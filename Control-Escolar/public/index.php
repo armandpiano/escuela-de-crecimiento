@@ -522,6 +522,37 @@ switch ($route['action']) {
             $route['base_path']
         );
         break;
+
+    case 'auth':
+        if (($route['segments'][1] ?? '') === 'login') {
+            redirectIfAuthenticated($route['base_path']);
+
+            $error = $_SESSION['error'] ?? null;
+            $success = $_SESSION['success'] ?? null;
+
+            unset($_SESSION['error']);
+            unset($_SESSION['success']);
+
+            echo loadLayout(
+                createLoginForm($error, $success, $route['base_path']),
+                'Iniciar Sesión - Control Escolar',
+                $route['base_path']
+            );
+            break;
+        }
+
+        http_response_code(404);
+        echo loadLayout('
+            <div class="text-center">
+                <h1><i class="fas fa-exclamation-triangle text-warning"></i></h1>
+                <h3>Página No Encontrada</h3>
+                <p class="text-muted">La página que busca no existe.</p>
+                <a href="' . $route['base_path'] . '/dashboard" class="btn btn-primary">
+                    <i class="fas fa-home"></i> Ir al Dashboard
+                </a>
+            </div>
+        ', 'Página No Encontrada - Control Escolar', $route['base_path']);
+        break;
         
     case 'dashboard':
         requireAuth($route['base_path']);
