@@ -241,6 +241,16 @@ function loadLayout($content, $title = 'Sistema Christian LMS', $basePath = '/Co
     return ob_get_clean();
 }
 
+// Renderizar vistas con layout principal
+function renderPage($viewPath, $pageTitle, $basePath) {
+    $basePath = rtrim($basePath, '/');
+    ob_start();
+    include __DIR__ . '/../src/UI/Views/layouts/header.php';
+    include $viewPath;
+    include __DIR__ . '/../src/UI/Views/layouts/footer.php';
+    return ob_get_clean();
+}
+
 // Función para crear el formulario de login
 function createLoginForm($error = null, $success = null, $basePath = '/Control-Escolar') {
     ob_start();
@@ -566,44 +576,29 @@ switch ($route['action']) {
         
     case 'courses':
         requireAuth($route['base_path']);
-        echo loadLayout('
-            <div class="text-center">
-                <h1><i class="fas fa-book text-primary"></i></h1>
-                <h3>Gestión de Cursos</h1>
-                <p class="text-muted">Esta funcionalidad estará disponible próximamente.</p>
-                <a href="' . $route['base_path'] . '/dashboard" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                </a>
-            </div>
-        ', 'Cursos - Control Escolar', $route['base_path']);
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/courses/index.php',
+            'Cursos - Control Escolar',
+            $route['base_path']
+        );
         break;
         
     case 'enrollments':
         requireAuth($route['base_path']);
-        echo loadLayout('
-            <div class="text-center">
-                <h1><i class="fas fa-user-plus text-success"></i></h1>
-                <h3>Gestión de Inscripciones</h1>
-                <p class="text-muted">Esta funcionalidad estará disponible próximamente.</p>
-                <a href="' . $route['base_path'] . '/dashboard" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                </a>
-            </div>
-        ', 'Inscripciones - Control Escolar', $route['base_path']);
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/enrollments/index.php',
+            'Inscripciones - Control Escolar',
+            $route['base_path']
+        );
         break;
         
     case 'subjects':
         requireAuth($route['base_path']);
-        echo loadLayout('
-            <div class="text-center">
-                <h1><i class="fas fa-list text-warning"></i></h1>
-                <h3>Gestión de Materias</h1>
-                <p class="text-muted">Esta funcionalidad estará disponible próximamente.</p>
-                <a href="' . $route['base_path'] . '/dashboard" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i> Volver al Dashboard
-                </a>
-            </div>
-        ', 'Materias - Control Escolar', $route['base_path']);
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/subjects/index.php',
+            'Materias - Control Escolar',
+            $route['base_path']
+        );
         break;
         
     case 'logout':

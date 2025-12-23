@@ -1,3 +1,7 @@
+<?php
+$basePath = rtrim($basePath ?? '', '/');
+$homePath = $basePath !== '' ? $basePath . '/' : '/';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -145,7 +149,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="<?= htmlspecialchars($homePath) ?>">
                 <i class="fas fa-graduation-cap me-2"></i>
                 Christian LMS
             </a>
@@ -157,13 +161,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Inicio</a>
+                        <a class="nav-link" href="<?= htmlspecialchars($homePath) ?>">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/courses">Cursos</a>
+                        <a class="nav-link" href="<?= htmlspecialchars($basePath . '/courses') ?>">Cursos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/about">Acerca de</a>
+                        <a class="nav-link" href="<?= htmlspecialchars($basePath . '/about') ?>">Acerca de</a>
                     </li>
                 </ul>
                 
@@ -175,18 +179,18 @@
                                 <?= htmlspecialchars($_SESSION['user']->getFullName()) ?>
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                                <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/dashboard') ?>"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/profile') ?>"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/auth/logout') ?>"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
                             </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="/auth/login">Iniciar Sesión</a>
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/auth/login') ?>">Iniciar Sesión</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/auth/register">Registrarse</a>
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/auth/register') ?>">Registrarse</a>
                         </li>
                     <?php endif; ?>
                 </ul>

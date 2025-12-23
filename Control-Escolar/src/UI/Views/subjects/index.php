@@ -1,6 +1,7 @@
 <?php
+$basePath = rtrim($basePath ?? '', '/');
 if (!isset($_SESSION['user_id'])) {
-    header('Location: /login');
+    header('Location: ' . $basePath . '/login');
     exit();
 }
 ?>
