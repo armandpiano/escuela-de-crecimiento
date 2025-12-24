@@ -181,17 +181,16 @@ $displayName = $_SESSION['user_name'] ?? 'Usuario';
                 
                 <ul class="navbar-nav">
                     <?php if ($isAuthenticated): ?>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <li class="nav-item">
+                            <span class="nav-link text-white-50">
                                 <i class="fas fa-user-circle me-1"></i>
                                 <?= htmlspecialchars($displayName) ?>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/logout') ?>">
+                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/dashboard') ?>"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-                                <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/profile') ?>"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/auth/logout') ?>"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
-                            </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
