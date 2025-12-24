@@ -94,6 +94,14 @@ function requireAuth($basePath) {
     }
 }
 
+function requireNonStudent($basePath) {
+    $userRole = $_SESSION['user_role'] ?? '';
+    if ($userRole === 'student') {
+        header('Location: ' . $basePath . '/enrollments');
+        exit();
+    }
+}
+
 // Función para redirigir si ya está autenticado
 function redirectIfAuthenticated($basePath) {
     if (isAuthenticated()) {
@@ -311,118 +319,97 @@ function createDashboard($basePath = '/Control-Escolar') {
     ob_start();
     ?>
     <div class="container-fluid py-4">
-        <div class="row">
-            <!-- Sidebar -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between bg-white p-3 rounded-3 shadow-sm mb-4">
+            <div>
+                <h2 class="mb-1"><i class="fas fa-tachometer-alt"></i> Panel de Control</h2>
+                <p class="text-muted mb-0">Bienvenido al Sistema de Gestión Escolar Christian LMS</p>
+            </div>
+            <div class="text-end">
+                <div class="mb-2">
+                    <strong><?php echo htmlspecialchars($userName); ?></strong>
+                    <span class="badge bg-info ms-2"><?php echo ucfirst($userRole); ?></span>
+                </div>
+                <a href="<?php echo $basePath; ?>/logout" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </a>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-graduation-cap"></i> Control Escolar
-                        </h5>
-                    </div>
+                <div class="card text-center">
                     <div class="card-body">
-                        <div class="mb-3">
-                            <strong>Usuario:</strong><br>
-                            <?php echo htmlspecialchars($userName); ?>
-                        </div>
-                        <div class="mb-3">
-                            <strong>Rol:</strong><br>
-                            <span class="badge bg-info"><?php echo ucfirst($userRole); ?></span>
-                        </div>
-                        <hr>
-                        <div class="d-grid">
-                            <a href="<?php echo $basePath; ?>/logout" class="btn btn-outline-danger btn-sm">
-                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                            </a>
-                        </div>
+                        <i class="fas fa-book fa-2x text-primary mb-2"></i>
+                        <h5 class="card-title">Cursos</h5>
+                        <p class="card-text display-6 text-primary">4</p>
                     </div>
                 </div>
             </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9">
-                <div class="page-header">
-                    <h2><i class="fas fa-tachometer-alt"></i> Panel de Control</h2>
-                    <p class="text-muted">Bienvenido al Sistema de Gestión Escolar Christian LMS</p>
-                </div>
-                
-                <!-- Statistics Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-book fa-2x text-primary mb-2"></i>
-                                <h5 class="card-title">Cursos</h5>
-                                <p class="card-text display-6 text-primary">4</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-users fa-2x text-success mb-2"></i>
-                                <h5 class="card-title">Estudiantes</h5>
-                                <p class="card-text display-6 text-success">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-chalkboard-teacher fa-2x text-warning mb-2"></i>
-                                <h5 class="card-title">Profesores</h5>
-                                <p class="card-text display-6 text-warning">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <i class="fas fa-clipboard-list fa-2x text-info mb-2"></i>
-                                <h5 class="card-title">Inscripciones</h5>
-                                <p class="card-text display-6 text-info">0</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
-                    </div>
+            <div class="col-md-3">
+                <div class="card text-center">
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <a href="<?php echo $basePath; ?>/courses" class="btn btn-outline-primary w-100">
-                                    <i class="fas fa-book"></i><br>Gestionar Cursos
-                                </a>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <a href="<?php echo $basePath; ?>/enrollments" class="btn btn-outline-success w-100">
-                                    <i class="fas fa-user-plus"></i><br>Gestionar Inscripciones
-                                </a>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <a href="<?php echo $basePath; ?>/subjects" class="btn btn-outline-warning w-100">
-                                    <i class="fas fa-list"></i><br>Gestionar Materias
-                                </a>
-                            </div>
-                        </div>
+                        <i class="fas fa-users fa-2x text-success mb-2"></i>
+                        <h5 class="card-title">Estudiantes</h5>
+                        <p class="card-text display-6 text-success">0</p>
                     </div>
                 </div>
-                
-                <!-- Recent Activity -->
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-clock"></i> Actividad Reciente</h5>
-                    </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
                     <div class="card-body">
-                        <div class="text-center text-muted">
-                            <i class="fas fa-info-circle"></i>
-                            No hay actividad reciente para mostrar.
-                        </div>
+                        <i class="fas fa-chalkboard-teacher fa-2x text-warning mb-2"></i>
+                        <h5 class="card-title">Profesores</h5>
+                        <p class="card-text display-6 text-warning">0</p>
                     </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-clipboard-list fa-2x text-info mb-2"></i>
+                        <h5 class="card-title">Inscripciones</h5>
+                        <p class="card-text display-6 text-info">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="<?php echo $basePath; ?>/courses" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-book"></i><br>Gestionar Cursos
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="<?php echo $basePath; ?>/enrollments" class="btn btn-outline-success w-100">
+                            <i class="fas fa-user-plus"></i><br>Gestionar Inscripciones
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="<?php echo $basePath; ?>/subjects" class="btn btn-outline-warning w-100">
+                            <i class="fas fa-list"></i><br>Gestionar Materias
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Actividad Reciente</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    No hay actividad reciente para mostrar.
                 </div>
             </div>
         </div>
@@ -566,6 +553,10 @@ switch ($route['action']) {
         
     case 'dashboard':
         requireAuth($route['base_path']);
+        if (($_SESSION['user_role'] ?? '') === 'student') {
+            header('Location: ' . $route['base_path'] . '/enrollments');
+            exit();
+        }
         
         echo loadLayout(
             createDashboard($route['base_path']),
@@ -576,6 +567,7 @@ switch ($route['action']) {
         
     case 'courses':
         requireAuth($route['base_path']);
+        requireNonStudent($route['base_path']);
         echo renderPage(
             __DIR__ . '/../src/UI/Views/courses/index.php',
             'Cursos - Control Escolar',
@@ -594,6 +586,7 @@ switch ($route['action']) {
         
     case 'subjects':
         requireAuth($route['base_path']);
+        requireNonStudent($route['base_path']);
         echo renderPage(
             __DIR__ . '/../src/UI/Views/subjects/index.php',
             'Materias - Control Escolar',
