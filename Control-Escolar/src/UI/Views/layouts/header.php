@@ -137,6 +137,12 @@ $homePath = $basePath !== '' ? $basePath . '/' : '/';
         
         .loading {
             display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading.is-active {
+            display: flex;
         }
         
         .spinner-border-sm {
@@ -199,7 +205,7 @@ $homePath = $basePath !== '' ? $basePath . '/' : '/';
     </nav>
 
     <!-- Loading Overlay -->
-    <div class="loading position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index: 9999;">
+    <div class="loading position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 9999;">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Cargando...</span>
         </div>

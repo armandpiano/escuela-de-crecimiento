@@ -46,11 +46,11 @@
         
         // Show/hide loading overlay
         function showLoading() {
-            $('.loading').show();
+            $('.loading').addClass('is-active');
         }
         
         function hideLoading() {
-            $('.loading').hide();
+            $('.loading').removeClass('is-active');
         }
         
         // Show alert message
