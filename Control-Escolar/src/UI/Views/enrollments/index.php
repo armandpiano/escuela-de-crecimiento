@@ -79,7 +79,6 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                             <td><?= htmlspecialchars($course['module_name'] ?? '') ?></td>
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($course['subject_name']) ?></div>
-                                                <small class="text-muted"><?= htmlspecialchars($course['subject_code']) ?></small>
                                             </td>
                                             <td><?= htmlspecialchars($course['day_of_week'] . ' ' . $course['start_time'] . '-' . $course['end_time']) ?></td>
                                             <td><?= htmlspecialchars($course['teachers'] ?: 'Por asignar') ?></td>
@@ -126,12 +125,11 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                         <tr>
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($enrollment['subject_name']) ?></div>
-                                                <small class="text-muted"><?= htmlspecialchars($enrollment['subject_code']) ?></small>
                                             </td>
                                             <td><?= htmlspecialchars($enrollment['period_name']) ?></td>
                                             <td><?= htmlspecialchars($enrollment['day_of_week'] . ' ' . $enrollment['start_time'] . '-' . $enrollment['end_time']) ?></td>
                                             <td><span class="badge bg-info"><?= htmlspecialchars($enrollment['status']) ?></span></td>
-                                            <td><?= htmlspecialchars($enrollment['created_at']) ?></td>
+                                            <td><?= htmlspecialchars($enrollment['enrollment_date']) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
