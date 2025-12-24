@@ -1,6 +1,8 @@
 <?php
 $basePath = rtrim($basePath ?? '', '/');
 $homePath = $basePath !== '' ? $basePath . '/' : '/';
+$isAuthenticated = isset($_SESSION['user_id']);
+$displayName = $_SESSION['user_name'] ?? 'Usuario';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -178,11 +180,11 @@ $homePath = $basePath !== '' ? $basePath . '/' : '/';
                 </ul>
                 
                 <ul class="navbar-nav">
-                    <?php if (isset($_SESSION['user'])): ?>
+                    <?php if ($isAuthenticated): ?>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user-circle me-1"></i>
-                                <?= htmlspecialchars($_SESSION['user']->getFullName()) ?>
+                                <?= htmlspecialchars($displayName) ?>
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="<?= htmlspecialchars($basePath . '/dashboard') ?>"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
