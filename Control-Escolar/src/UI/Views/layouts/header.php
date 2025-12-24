@@ -1,3 +1,9 @@
+<?php
+$basePath = rtrim($basePath ?? '', '/');
+$homePath = $basePath !== '' ? $basePath . '/' : '/';
+$isAuthenticated = isset($_SESSION['user_id']);
+$displayName = $_SESSION['user_name'] ?? 'Usuario';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -133,6 +139,12 @@
         
         .loading {
             display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading.is-active {
+            display: flex;
         }
         
         .spinner-border-sm {
@@ -145,7 +157,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="<?= htmlspecialchars($homePath) ?>">
                 <i class="fas fa-graduation-cap me-2"></i>
                 Christian LMS
             </a>
@@ -157,36 +169,41 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Inicio</a>
+                        <a class="nav-link" href="<?= htmlspecialchars($homePath) ?>">Inicio</a>
                     </li>
+                    <?php if (!$isAuthenticated || (($_SESSION['user_role'] ?? '') !== 'student')): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/courses') ?>">Cursos</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/enrollments') ?>">Mis Inscripciones</a>
+                        </li>
+                    <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/courses">Cursos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">Acerca de</a>
+                        <a class="nav-link" href="<?= htmlspecialchars($basePath . '/about') ?>">Acerca de</a>
                     </li>
                 </ul>
                 
                 <ul class="navbar-nav">
-                    <?php if (isset($_SESSION['user'])): ?>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                    <?php if ($isAuthenticated): ?>
+                        <li class="nav-item">
+                            <span class="nav-link text-white-50">
                                 <i class="fas fa-user-circle me-1"></i>
-                                <?= htmlspecialchars($_SESSION['user']->getFullName()) ?>
+                                <?= htmlspecialchars($displayName) ?>
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/logout') ?>">
+                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
-                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
-                            </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="/auth/login">Iniciar Sesión</a>
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/auth/login') ?>">Iniciar Sesión</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/auth/register">Registrarse</a>
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/auth/register') ?>">Registrarse</a>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -195,7 +212,7 @@
     </nav>
 
     <!-- Loading Overlay -->
-    <div class="loading position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center" style="z-index: 9999;">
+    <div class="loading position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 9999;">
         <div class="spinner-border text-light" role="status">
             <span class="visually-hidden">Cargando...</span>
         </div>
