@@ -288,6 +288,9 @@ function getActiveAcademicPeriod(PDO $pdo): ?array
 function isEnrollmentWindowOpen(array $period): bool
 {
     $now = new DateTimeImmutable();
+    if (empty($period['enrollment_start_date']) || empty($period['enrollment_end_date'])) {
+        return true;
+    }
     $start = new DateTimeImmutable($period['enrollment_start_date']);
     $end = new DateTimeImmutable($period['enrollment_end_date']);
     return $now >= $start && $now <= $end;
@@ -300,7 +303,7 @@ function getCompletedSubjectIds(PDO $pdo, int $studentId): array
         FROM enrollments e
         INNER JOIN courses c ON c.id = e.course_id
         WHERE e.student_id = :student_id
-          AND e.status IN ('completed', 'passed', 'approved')
+          AND e.status = 'completed'
     ");
     $stmt->execute(['student_id' => $studentId]);
     return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'subject_id');
@@ -319,7 +322,7 @@ function getEligibleSubjectIds(PDO $pdo, int $studentId): array
             SELECT 1
             FROM subject_prerequisites sp
             WHERE sp.subject_id = s.id
-              AND sp.prerequisite_id NOT IN ({$completedList})
+              AND sp.prerequisite_subject_id NOT IN ({$completedList})
           )
         ORDER BY s.sort_order ASC
     ");
@@ -332,19 +335,18 @@ function getStudentEnrollments(PDO $pdo, int $studentId): array
     $stmt = $pdo->prepare("
         SELECT e.id,
                e.status,
-               e.created_at,
+               e.enrollment_date,
                c.day_of_week,
                c.start_time,
                c.end_time,
                s.name AS subject_name,
-               s.code AS subject_code,
                ap.name AS period_name
         FROM enrollments e
         INNER JOIN courses c ON c.id = e.course_id
         INNER JOIN subjects s ON s.id = c.subject_id
         INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
         WHERE e.student_id = :student_id
-        ORDER BY e.created_at DESC
+        ORDER BY e.enrollment_date DESC
     ");
     $stmt->execute(['student_id' => $studentId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -364,9 +366,8 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, arr
                c.start_time,
                c.end_time,
                s.name AS subject_name,
-               s.code AS subject_code,
                m.name AS module_name,
-               GROUP_CONCAT(CONCAT(u.name, ' ', u.last_name) SEPARATOR ', ') AS teachers
+               GROUP_CONCAT(u.name SEPARATOR ', ') AS teachers
         FROM courses c
         INNER JOIN subjects s ON s.id = c.subject_id
         INNER JOIN modules m ON m.id = s.module_id
@@ -374,7 +375,7 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, arr
         LEFT JOIN users u ON u.id = ct.teacher_id
         WHERE c.academic_period_id = :period_id
           AND c.is_visible = 1
-          AND c.status IN ('published', 'active')
+          AND c.status = 'published'
           AND c.subject_id IN ({$eligibleList})
           AND c.id NOT IN (
               SELECT course_id FROM enrollments WHERE student_id = :student_id
@@ -909,18 +910,17 @@ switch ($route['action']) {
 
         $coursesStmt = $pdo->prepare("
             SELECT c.id,
-                   s.name AS subject_name,
-                   s.code AS subject_code,
-                   m.name AS module_name,
-                   c.day_of_week,
-                   c.start_time,
-                   c.end_time
+               s.name AS subject_name,
+               m.name AS module_name,
+               c.day_of_week,
+               c.start_time,
+               c.end_time
             FROM courses c
             INNER JOIN subjects s ON s.id = c.subject_id
             INNER JOIN modules m ON m.id = s.module_id
             WHERE c.academic_period_id = :period_id
               AND c.is_visible = 1
-              AND c.status IN ('published', 'active')
+              AND c.status = 'published'
             ORDER BY s.sort_order ASC
         ");
         $coursesStmt->execute(['period_id' => $activePeriod['id'] ?? 0]);

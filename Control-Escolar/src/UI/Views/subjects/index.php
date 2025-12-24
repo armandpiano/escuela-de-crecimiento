@@ -95,13 +95,6 @@ if (!isset($_SESSION['user_id'])) {
                                     <option value="6">6° Grado</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="teacherFilter" class="form-label">Profesor</label>
-                                <select class="form-select" id="teacherFilter">
-                                    <option value="">Todos los profesores</option>
-                                    <!-- Opciones se cargarán dinámicamente -->
-                                </select>
-                            </div>
                         </div>
                         <div class="row mt-3">
                             <div class="col-12">
@@ -259,13 +252,6 @@ if (!isset($_SESSION['user_id'])) {
                                 <div class="form-text">Horas de clase por semana</div>
                             </div>
                             <div class="mb-3">
-                                <label for="subjectTeacher" class="form-label">Profesor Asignado</label>
-                                <select class="form-select" id="subjectTeacher" name="teacher_id">
-                                    <option value="">Sin asignar</option>
-                                    <!-- Opciones se cargarán dinámicamente -->
-                                </select>
-                            </div>
-                            <div class="mb-3">
                                 <label for="subjectStatus" class="form-label">Estado *</label>
                                 <select class="form-select" id="subjectStatus" name="status" required>
                                     <option value="active">Activa</option>
@@ -370,13 +356,6 @@ if (!isset($_SESSION['user_id'])) {
                                 <input type="number" class="form-control" id="editSubjectHours" name="weekly_hours" min="1" max="40">
                             </div>
                             <div class="mb-3">
-                                <label for="editSubjectTeacher" class="form-label">Profesor Asignado</label>
-                                <select class="form-select" id="editSubjectTeacher" name="teacher_id">
-                                    <option value="">Sin asignar</option>
-                                    <!-- Opciones se cargarán dinámicamente -->
-                                </select>
-                            </div>
-                            <div class="mb-3">
                                 <label for="editSubjectStatus" class="form-label">Estado *</label>
                                 <select class="form-select" id="editSubjectStatus" name="status" required>
                                     <option value="active">Activa</option>
@@ -460,7 +439,6 @@ if (!isset($_SESSION['user_id'])) {
                     <strong>Advertencia:</strong> Esta acción no se puede deshacer y puede afectar los cursos que utilizan esta materia.
                 </div>
                 <p><strong>Materia:</strong> <span id="deleteSubjectName"></span></p>
-                <p><strong>Código:</strong> <span id="deleteSubjectCode"></span></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -484,7 +462,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar datos iniciales
     loadSubjects();
-    loadTeachers();
     updateSubjectCount();
     
     // Event listeners para búsqueda
@@ -824,28 +801,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
     
-    // Función para cargar profesores
-    function loadTeachers() {
-        // Simulación de carga de profesores (en implementación real, hacer petición AJAX)
-        const teachers = [
-            { id: 1, name: 'Prof. Ana García' },
-            { id: 2, name: 'Prof. Carlos López' },
-            { id: 3, name: 'Prof. María Rodríguez' },
-            { id: 4, name: 'Prof. Juan Pérez' }
-        ];
-        
-        const selects = ['subjectTeacher', 'editSubjectTeacher'];
-        selects.forEach(selectId => {
-            const select = document.getElementById(selectId);
-            teachers.forEach(teacher => {
-                const option = document.createElement('option');
-                option.value = teacher.id;
-                option.textContent = teacher.name;
-                select.appendChild(option);
-            });
-        });
-    }
-    
     // Función para actualizar contador de materias
     function updateSubjectCount() {
         document.getElementById('totalSubjects').textContent = '15';
@@ -873,8 +828,7 @@ document.addEventListener('DOMContentLoaded', function() {
         filters = {
             status: document.getElementById('statusFilter').value,
             category: document.getElementById('categoryFilter').value,
-            grade_level: document.getElementById('gradeLevelFilter').value,
-            teacher_id: document.getElementById('teacherFilter').value
+            grade_level: document.getElementById('gradeLevelFilter').value
         };
         
         currentPage = 1;
@@ -887,7 +841,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('statusFilter').value = '';
         document.getElementById('categoryFilter').value = '';
         document.getElementById('gradeLevelFilter').value = '';
-        document.getElementById('teacherFilter').value = '';
         document.getElementById('globalSearch').value = '';
         
         filters = {};
@@ -1010,7 +963,6 @@ function editSubject(subjectId) {
 
 function deleteSubjectConfirm(subjectId, subjectName, subjectCode) {
     document.getElementById('deleteSubjectName').textContent = subjectName;
-    document.getElementById('deleteSubjectCode').textContent = subjectCode;
     document.getElementById('deleteSubjectModal').dataset.subjectId = subjectId;
     
     const modal = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));

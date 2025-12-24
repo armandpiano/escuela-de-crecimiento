@@ -187,8 +187,6 @@ class EnrollmentController
             $request->setStudentId($currentUser->getId()->getValue());
             $request->setCourseId($courseId);
             $request->setAcademicPeriodId($currentPeriod->getId()->getValue());
-            $request->setPaymentStatus($_POST['payment_status'] ?? 'pending');
-            $request->setPaymentAmount(floatval($_POST['payment_amount'] ?? 0.0));
             $request->setNotes($_POST['notes'] ?? null);
 
             // Ejecutar caso de uso

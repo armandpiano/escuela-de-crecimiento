@@ -67,7 +67,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     public function findById(EnrollmentId $id): ?Enrollment
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -92,7 +92,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                     WHERE student_id = :student_id 
                     AND course_id = :course_id 
                     AND academic_period_id = :academic_period_id 
-                    AND deleted_at IS NULL 
+ 
                     LIMIT 1";
             $params = [
                 'student_id' => $studentId->getValue(),
@@ -118,7 +118,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE deleted_at IS NULL ORDER BY enrollment_date DESC";
+            $sql = "SELECT * FROM {$this->tableName} WHERE 1=1 ORDER BY enrollment_date DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateEnrollment'], $results);
@@ -134,7 +134,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE student_id = :student_id AND deleted_at IS NULL 
+                    WHERE student_id = :student_id 
                     ORDER BY enrollment_date DESC";
             $params = ['student_id' => $studentId->getValue()];
             
@@ -153,7 +153,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE course_id = :course_id AND deleted_at IS NULL 
+                    WHERE course_id = :course_id 
                     ORDER BY enrollment_date DESC";
             $params = ['course_id' => $courseId->getValue()];
             
@@ -172,7 +172,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE academic_period_id = :academic_period_id AND deleted_at IS NULL 
+                    WHERE academic_period_id = :academic_period_id 
                     ORDER BY enrollment_date DESC";
             $params = ['academic_period_id' => $academicPeriodId->getValue()];
             
@@ -191,7 +191,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = :status AND deleted_at IS NULL 
+                    WHERE status = :status 
                     ORDER BY enrollment_date DESC";
             $params = ['status' => $status->getValue()];
             
@@ -226,9 +226,9 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE payment_status = :payment_status AND deleted_at IS NULL 
+                    WHERE status = :status 
                     ORDER BY enrollment_date DESC";
-            $params = ['payment_status' => $paymentStatus->getValue()];
+            $params = ['status' => $paymentStatus->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -253,12 +253,10 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT e.* FROM {$this->tableName} e
-                    JOIN courses c ON e.course_id = c.id
-                    WHERE c.professor_id = :professor_id 
-                    AND e.deleted_at IS NULL 
-                    AND c.deleted_at IS NULL
+                    JOIN course_teachers ct ON ct.course_id = e.course_id
+                    WHERE ct.teacher_id = :teacher_id
                     ORDER BY e.enrollment_date DESC";
-            $params = ['professor_id' => $professorId->getValue()];
+            $params = ['teacher_id' => $professorId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -288,19 +286,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     public function softDelete(EnrollmentId $id): bool
     {
-        try {
-            $sql = "UPDATE {$this->tableName} 
-                    SET deleted_at = :deleted_at 
-                    WHERE id = :id AND deleted_at IS NULL";
-            $params = [
-                'id' => $id->getValue(),
-                'deleted_at' => date('Y-m-d H:i:s')
-            ];
-            
-            return $this->connectionManager->execute($sql, $params) > 0;
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al eliminar inscripción suavemente: ' . $e->getMessage());
-        }
+        return $this->delete($id);
     }
 
     /**
@@ -309,7 +295,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     public function existsById(EnrollmentId $id): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -329,7 +315,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                     WHERE student_id = :student_id 
                     AND course_id = :course_id 
                     AND academic_period_id = :academic_period_id 
-                    AND deleted_at IS NULL";
+";
             $params = [
                 'student_id' => $studentId->getValue(),
                 'course_id' => $courseId->getValue(),
@@ -349,7 +335,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     public function count(): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE 1=1";
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
         } catch (\Exception $e) {
@@ -364,7 +350,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE status = :status AND deleted_at IS NULL";
+                    WHERE status = :status";
             $params = ['status' => $status->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -381,7 +367,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE course_id = :course_id AND deleted_at IS NULL";
+                    WHERE course_id = :course_id";
             $params = ['course_id' => $courseId->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -402,9 +388,9 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                         SUM(CASE WHEN status = 'enrolled' THEN 1 ELSE 0 END) as active,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                         SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-                        SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_payment
+                        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payment
                     FROM {$this->tableName} 
-                    WHERE student_id = :student_id AND deleted_at IS NULL";
+                    WHERE student_id = :student_id";
             $params = ['student_id' => $studentId->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -421,7 +407,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE payment_status = 'pending' AND deleted_at IS NULL";
+                    WHERE status = 'pending'";
             
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
@@ -439,7 +425,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             $offset = ($page - 1) * $perPage;
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
+                    WHERE 1=1 
                     ORDER BY enrollment_date DESC 
                     LIMIT :limit OFFSET :offset";
             
@@ -462,7 +448,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     public function search(array $criteria, int $page = 1, int $perPage = 20): array
     {
         try {
-            $whereConditions = ['deleted_at IS NULL'];
+            $whereConditions = ['1=1'];
             $params = [];
             
             // Aplicar criterios de búsqueda
@@ -486,9 +472,9 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                 $params['academic_period_id'] = $criteria['academic_period_id'];
             }
             
-            if (isset($criteria['payment_status'])) {
-                $whereConditions[] = 'payment_status = :payment_status';
-                $params['payment_status'] = $criteria['payment_status'];
+            if (isset($criteria['status'])) {
+                $whereConditions[] = 'status = :status';
+                $params['status'] = $criteria['status'];
             }
             
             if (isset($criteria['enrollment_date_from'])) {
@@ -526,7 +512,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE enrollment_date >= DATE_SUB(NOW(), INTERVAL :days DAY) 
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY enrollment_date DESC";
             $params = ['days' => $days];
             
@@ -547,7 +533,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
+                    WHERE 1=1 
                     ORDER BY $orderBy $direction";
             
             $results = $this->connectionManager->query($sql);
@@ -566,7 +552,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE final_grade BETWEEN :min_grade AND :max_grade 
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY final_grade DESC";
             $params = [
                 'min_grade' => $minGrade,
@@ -589,7 +575,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE attendance_percentage BETWEEN :min_attendance AND :max_attendance 
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY attendance_percentage DESC";
             $params = [
                 'min_attendance' => $minAttendance,
@@ -616,13 +602,13 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                         SUM(CASE WHEN status = 'dropped' THEN 1 ELSE 0 END) as dropped,
                         SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-                        SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_payment,
-                        SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid,
+                        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payment,
+                        SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid,
                         AVG(final_grade) as avg_grade,
                         AVG(attendance_percentage) as avg_attendance,
                         SUM(credits_earned) as total_credits_earned
                     FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL";
+                    WHERE 1=1";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -638,7 +624,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE payment_status = 'overdue' AND deleted_at IS NULL 
+                    WHERE status = 'overdue' 
                     ORDER BY enrollment_date DESC";
             
             $results = $this->connectionManager->query($sql);
@@ -657,7 +643,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE enrollment_date BETWEEN :start_date AND :end_date
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY enrollment_date DESC";
             $params = [
                 'start_date' => $startDate,
@@ -690,7 +676,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                     FROM {$this->tableName} 
                     WHERE student_id = :student_id 
                     AND status = 'completed' 
-                    AND deleted_at IS NULL";
+";
             $params = ['student_id' => $studentId->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -715,7 +701,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                     FROM {$this->tableName} 
                     WHERE student_id = :student_id 
                     AND status = 'completed' 
-                    AND deleted_at IS NULL";
+";
             $params = ['student_id' => $studentId->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -737,20 +723,12 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             // Verificar inscripciones duplicadas
             $sql = "SELECT student_id, course_id, academic_period_id, COUNT(*) as count 
                     FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
+                    WHERE 1=1 
                     GROUP BY student_id, course_id, academic_period_id 
                     HAVING count > 1";
             $results = $this->connectionManager->query($sql);
             if (!empty($results)) {
                 $issues[] = 'Encontradas inscripciones duplicadas';
-            }
-            
-            // Verificar calificaciones fuera de rango
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE (final_grade < 0 OR final_grade > 100) AND deleted_at IS NULL";
-            $result = $this->connectionManager->query($sql);
-            if ($result['count'] > 0) {
-                $issues[] = "Encontradas {$result['count']} calificaciones fuera de rango";
             }
             
             return $issues;
@@ -764,7 +742,20 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     private function insert(Enrollment $enrollment): void
     {
-        $enrollmentArray = $enrollment->toArray();
+        $allowedColumns = [
+            'student_id',
+            'course_id',
+            'academic_period_id',
+            'enrollment_date',
+            'status',
+            'notes',
+            'enrolled_by',
+            'override_seriation',
+            'override_schedule',
+            'created_at',
+            'updated_at'
+        ];
+        $enrollmentArray = array_intersect_key($enrollment->toArray(), array_flip($allowedColumns));
         $columns = array_keys($enrollmentArray);
         $placeholders = array_map(fn($col) => ":$col", $columns);
         
@@ -779,7 +770,21 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     private function update(Enrollment $enrollment): void
     {
-        $enrollmentArray = $enrollment->toArray();
+        $allowedColumns = [
+            'id',
+            'student_id',
+            'course_id',
+            'academic_period_id',
+            'enrollment_date',
+            'status',
+            'notes',
+            'enrolled_by',
+            'override_seriation',
+            'override_schedule',
+            'created_at',
+            'updated_at'
+        ];
+        $enrollmentArray = array_intersect_key($enrollment->toArray(), array_flip($allowedColumns));
         $updateFields = [];
         
         foreach ($enrollmentArray as $column => $value) {
@@ -808,17 +813,12 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         );
 
         $enrollment->setStatus(new \ChristianLMS\Domain\ValueObjects\EnrollmentStatus($data['status']));
-        $enrollment->setFinalGrade($data['final_grade']);
-        $enrollment->setLetterGrade($data['letter_grade']);
-        $enrollment->setCreditsEarned($data['credits_earned']);
-        $enrollment->setAttendancePercentage($data['attendance_percentage']);
-        $enrollment->setPaymentStatus(new \ChristianLMS\Domain\ValueObjects\PaymentStatus($data['payment_status']));
-        $enrollment->setPaymentAmount($data['payment_amount']);
-        $enrollment->setPaymentDate($data['payment_date']);
-        $enrollment->setDropDate($data['drop_date']);
-        $enrollment->setCompletionDate($data['completion_date']);
-        $enrollment->setNotes($data['notes']);
-        $enrollment->setMetadata(json_decode($data['metadata'], true) ?? []);
+        if (!empty($data['notes'])) {
+            $enrollment->setNotes($data['notes']);
+        }
+        if (!empty($data['enrollment_date'])) {
+            $enrollment->setEnrollmentDate($data['enrollment_date']);
+        }
 
         return $enrollment;
     }
