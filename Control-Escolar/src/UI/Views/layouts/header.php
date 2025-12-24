@@ -171,13 +171,21 @@ $displayName = $_SESSION['user_name'] ?? 'Usuario';
                     <li class="nav-item">
                         <a class="nav-link" href="<?= htmlspecialchars($homePath) ?>">Inicio</a>
                     </li>
-                    <?php if (!$isAuthenticated || (($_SESSION['user_role'] ?? '') !== 'student')): ?>
+                    <?php if (!$isAuthenticated): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="<?= htmlspecialchars($basePath . '/courses') ?>">Cursos</a>
                         </li>
-                    <?php else: ?>
+                    <?php elseif (($_SESSION['user_role'] ?? '') === 'student'): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="<?= htmlspecialchars($basePath . '/enrollments') ?>">Mis Inscripciones</a>
+                        </li>
+                    <?php elseif (($_SESSION['user_role'] ?? '') === 'teacher'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/dashboard') ?>">Mis Cursos</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/courses') ?>">Cursos</a>
                         </li>
                     <?php endif; ?>
                     <li class="nav-item">

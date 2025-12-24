@@ -102,6 +102,14 @@ function requireNonStudent($basePath) {
     }
 }
 
+function requireAdmin($basePath) {
+    $userRole = $_SESSION['user_role'] ?? '';
+    if ($userRole !== 'admin') {
+        header('Location: ' . $basePath . '/dashboard');
+        exit();
+    }
+}
+
 // Función para redirigir si ya está autenticado
 function redirectIfAuthenticated($basePath) {
     if (isAuthenticated()) {
@@ -250,13 +258,212 @@ function loadLayout($content, $title = 'Sistema Christian LMS', $basePath = '/Co
 }
 
 // Renderizar vistas con layout principal
-function renderPage($viewPath, $pageTitle, $basePath) {
+function renderPage($viewPath, $pageTitle, $basePath, array $data = []) {
     $basePath = rtrim($basePath, '/');
+    extract($data, EXTR_SKIP);
     ob_start();
     include __DIR__ . '/../src/UI/Views/layouts/header.php';
     include $viewPath;
     include __DIR__ . '/../src/UI/Views/layouts/footer.php';
     return ob_get_clean();
+}
+
+function getPdoConnection(array $dbConfig): PDO
+{
+    return new PDO(
+        "mysql:host={$dbConfig['host']};dbname={$dbConfig['dbname']};charset={$dbConfig['charset']}",
+        $dbConfig['username'],
+        $dbConfig['password'],
+        $dbConfig['options']
+    );
+}
+
+function getActiveAcademicPeriod(PDO $pdo): ?array
+{
+    $stmt = $pdo->prepare("SELECT * FROM academic_periods WHERE status = 'active' LIMIT 1");
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
+
+function isEnrollmentWindowOpen(array $period): bool
+{
+    $now = new DateTimeImmutable();
+    $start = new DateTimeImmutable($period['enrollment_start_date']);
+    $end = new DateTimeImmutable($period['enrollment_end_date']);
+    return $now >= $start && $now <= $end;
+}
+
+function getCompletedSubjectIds(PDO $pdo, int $studentId): array
+{
+    $stmt = $pdo->prepare("
+        SELECT DISTINCT c.subject_id
+        FROM enrollments e
+        INNER JOIN courses c ON c.id = e.course_id
+        WHERE e.student_id = :student_id
+          AND e.status IN ('completed', 'passed', 'approved')
+    ");
+    $stmt->execute(['student_id' => $studentId]);
+    return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'subject_id');
+}
+
+function getEligibleSubjectIds(PDO $pdo, int $studentId): array
+{
+    $completed = getCompletedSubjectIds($pdo, $studentId);
+    $completedList = $completed ? implode(',', array_map('intval', $completed)) : '0';
+
+    $stmt = $pdo->prepare("
+        SELECT s.id
+        FROM subjects s
+        WHERE s.is_active = 1
+          AND NOT EXISTS (
+            SELECT 1
+            FROM subject_prerequisites sp
+            WHERE sp.subject_id = s.id
+              AND sp.prerequisite_id NOT IN ({$completedList})
+          )
+        ORDER BY s.sort_order ASC
+    ");
+    $stmt->execute();
+    return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
+}
+
+function getStudentEnrollments(PDO $pdo, int $studentId): array
+{
+    $stmt = $pdo->prepare("
+        SELECT e.id,
+               e.status,
+               e.created_at,
+               c.day_of_week,
+               c.start_time,
+               c.end_time,
+               s.name AS subject_name,
+               s.code AS subject_code,
+               ap.name AS period_name
+        FROM enrollments e
+        INNER JOIN courses c ON c.id = e.course_id
+        INNER JOIN subjects s ON s.id = c.subject_id
+        INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
+        WHERE e.student_id = :student_id
+        ORDER BY e.created_at DESC
+    ");
+    $stmt->execute(['student_id' => $studentId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, array $eligibleSubjectIds): array
+{
+    if (!$eligibleSubjectIds) {
+        return [];
+    }
+
+    $eligibleList = implode(',', array_map('intval', $eligibleSubjectIds));
+
+    $stmt = $pdo->prepare("
+        SELECT c.id,
+               c.day_of_week,
+               c.start_time,
+               c.end_time,
+               s.name AS subject_name,
+               s.code AS subject_code,
+               m.name AS module_name,
+               GROUP_CONCAT(CONCAT(u.name, ' ', u.last_name) SEPARATOR ', ') AS teachers
+        FROM courses c
+        INNER JOIN subjects s ON s.id = c.subject_id
+        INNER JOIN modules m ON m.id = s.module_id
+        LEFT JOIN course_teachers ct ON ct.course_id = c.id
+        LEFT JOIN users u ON u.id = ct.teacher_id
+        WHERE c.academic_period_id = :period_id
+          AND c.is_visible = 1
+          AND c.status IN ('published', 'active')
+          AND c.subject_id IN ({$eligibleList})
+          AND c.id NOT IN (
+              SELECT course_id FROM enrollments WHERE student_id = :student_id
+          )
+        GROUP BY c.id
+        ORDER BY s.sort_order ASC
+    ");
+    $stmt->execute([
+        'period_id' => $periodId,
+        'student_id' => $studentId
+    ]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolledBy, bool $overrideSeriation, bool $overrideSchedule): void
+{
+    $stmt = $pdo->prepare("SELECT * FROM courses WHERE id = :course_id LIMIT 1");
+    $stmt->execute(['course_id' => $courseId]);
+    $course = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$course) {
+        throw new Exception('Curso no encontrado.');
+    }
+
+    $periodStmt = $pdo->prepare("SELECT * FROM academic_periods WHERE id = :id LIMIT 1");
+    $periodStmt->execute(['id' => $course['academic_period_id']]);
+    $period = $periodStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$period || $period['status'] !== 'active') {
+        throw new Exception('No hay un periodo académico activo para este curso.');
+    }
+
+    if (!isEnrollmentWindowOpen($period)) {
+        throw new Exception('La ventana de inscripción está cerrada.');
+    }
+
+    $existsStmt = $pdo->prepare("SELECT 1 FROM enrollments WHERE student_id = :student_id AND course_id = :course_id LIMIT 1");
+    $existsStmt->execute([
+        'student_id' => $studentId,
+        'course_id' => $courseId
+    ]);
+    if ($existsStmt->fetch()) {
+        throw new Exception('Ya estás inscrito en este curso.');
+    }
+
+    if (!$overrideSeriation) {
+        $eligibleSubjects = getEligibleSubjectIds($pdo, $studentId);
+        if (!in_array($course['subject_id'], $eligibleSubjects, true)) {
+            throw new Exception('No cumples con la seriación requerida para esta materia.');
+        }
+    }
+
+    if (!$overrideSchedule) {
+        $conflictStmt = $pdo->prepare("
+            SELECT 1
+            FROM enrollments e
+            INNER JOIN courses c ON c.id = e.course_id
+            WHERE e.student_id = :student_id
+              AND c.academic_period_id = :period_id
+              AND c.day_of_week = :day_of_week
+              AND (
+                (c.start_time < :end_time AND c.end_time > :start_time)
+              )
+            LIMIT 1
+        ");
+        $conflictStmt->execute([
+            'student_id' => $studentId,
+            'period_id' => $course['academic_period_id'],
+            'day_of_week' => $course['day_of_week'],
+            'start_time' => $course['start_time'],
+            'end_time' => $course['end_time']
+        ]);
+        if ($conflictStmt->fetch()) {
+            throw new Exception('Tienes un choque de horario en este periodo.');
+        }
+    }
+
+    $insertStmt = $pdo->prepare("
+        INSERT INTO enrollments (student_id, course_id, academic_period_id, status, enrolled_by, override_seriation, override_schedule, created_at)
+        VALUES (:student_id, :course_id, :academic_period_id, 'active', :enrolled_by, :override_seriation, :override_schedule, NOW())
+    ");
+    $insertStmt->execute([
+        'student_id' => $studentId,
+        'course_id' => $courseId,
+        'academic_period_id' => $course['academic_period_id'],
+        'enrolled_by' => $enrolledBy,
+        'override_seriation' => $overrideSeriation ? 1 : 0,
+        'override_schedule' => $overrideSchedule ? 1 : 0
+    ]);
 }
 
 // Función para crear el formulario de login
@@ -312,7 +519,7 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
 }
 
 // Función para crear el dashboard principal
-function createDashboard($basePath = '/Control-Escolar') {
+function createDashboard($basePath = '/Control-Escolar', array $dashboardData = []) {
     $userName = $_SESSION['user_name'] ?? 'Usuario';
     $userRole = $_SESSION['user_role'] ?? 'student';
     
@@ -375,31 +582,64 @@ function createDashboard($basePath = '/Control-Escolar') {
             </div>
         </div>
         
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+        <?php if ($userRole === 'teacher'): ?>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chalkboard-teacher"></i> Mis cursos asignados</h5>
+                </div>
+                <div class="card-body">
+                    <?php if (empty($dashboardData['teacherCourses'])): ?>
+                        <p class="text-muted">No tienes cursos asignados en el periodo activo.</p>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Materia</th>
+                                        <th>Horario</th>
+                                        <th>Periodo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($dashboardData['teacherCourses'] as $course): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($course['subject_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($course['day_of_week'] . ' ' . $course['start_time'] . '-' . $course['end_time']); ?></td>
+                                            <td><?php echo htmlspecialchars($course['period_name']); ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <a href="<?php echo $basePath; ?>/courses" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-book"></i><br>Gestionar Cursos
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="<?php echo $basePath; ?>/enrollments" class="btn btn-outline-success w-100">
-                            <i class="fas fa-user-plus"></i><br>Gestionar Inscripciones
-                        </a>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <a href="<?php echo $basePath; ?>/subjects" class="btn btn-outline-warning w-100">
-                            <i class="fas fa-list"></i><br>Gestionar Materias
-                        </a>
+        <?php else: ?>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="<?php echo $basePath; ?>/courses" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-book"></i><br>Gestionar Cursos
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="<?php echo $basePath; ?>/enrollments" class="btn btn-outline-success w-100">
+                                <i class="fas fa-user-plus"></i><br>Gestionar Inscripciones
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="<?php echo $basePath; ?>/subjects" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-list"></i><br>Gestionar Materias
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
         
         <!-- Recent Activity -->
         <div class="card mt-4">
@@ -557,9 +797,30 @@ switch ($route['action']) {
             header('Location: ' . $route['base_path'] . '/enrollments');
             exit();
         }
+
+        $dashboardData = [];
+        if (($_SESSION['user_role'] ?? '') === 'teacher') {
+            $pdo = getPdoConnection($dbConfig);
+            $stmt = $pdo->prepare("
+                SELECT s.name AS subject_name,
+                       c.day_of_week,
+                       c.start_time,
+                       c.end_time,
+                       ap.name AS period_name
+                FROM course_teachers ct
+                INNER JOIN courses c ON c.id = ct.course_id
+                INNER JOIN subjects s ON s.id = c.subject_id
+                INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
+                WHERE ct.teacher_id = :teacher_id
+                  AND ap.status = 'active'
+                ORDER BY s.sort_order ASC
+            ");
+            $stmt->execute(['teacher_id' => (int) $_SESSION['user_id']]);
+            $dashboardData['teacherCourses'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
         
         echo loadLayout(
-            createDashboard($route['base_path']),
+            createDashboard($route['base_path'], $dashboardData),
             'Dashboard - Control Escolar',
             $route['base_path']
         );
@@ -567,7 +828,7 @@ switch ($route['action']) {
         
     case 'courses':
         requireAuth($route['base_path']);
-        requireNonStudent($route['base_path']);
+        requireAdmin($route['base_path']);
         echo renderPage(
             __DIR__ . '/../src/UI/Views/courses/index.php',
             'Cursos - Control Escolar',
@@ -577,16 +838,112 @@ switch ($route['action']) {
         
     case 'enrollments':
         requireAuth($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $userId = (int) ($_SESSION['user_id'] ?? 0);
+        $userRole = $_SESSION['user_role'] ?? '';
+        $activePeriod = getActiveAcademicPeriod($pdo);
+        $enrollmentWindowOpen = $activePeriod ? isEnrollmentWindowOpen($activePeriod) : false;
+
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $courseId = (int) ($_POST['course_id'] ?? 0);
+                if (!$courseId) {
+                    throw new Exception('Selecciona un curso válido.');
+                }
+
+                $overrideSeriation = !empty($_POST['override_seriation']);
+                $overrideSchedule = !empty($_POST['override_schedule']);
+                $enrolledBy = null;
+                $targetStudentId = $userId;
+
+                if ($userRole !== 'student') {
+                    $enrolledBy = $userId;
+                    $targetStudentId = (int) ($_POST['student_id'] ?? 0);
+                    if (!$targetStudentId) {
+                        throw new Exception('Selecciona un estudiante válido.');
+                    }
+                } else {
+                    $overrideSeriation = false;
+                    $overrideSchedule = false;
+                }
+
+                createEnrollment($pdo, $targetStudentId, $courseId, $enrolledBy, $overrideSeriation, $overrideSchedule);
+                $successMessage = 'Inscripción registrada correctamente.';
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        if ($userRole === 'student') {
+            $eligibleSubjects = $activePeriod ? getEligibleSubjectIds($pdo, $userId) : [];
+            $availableCourses = $activePeriod ? getStudentAvailableCourses($pdo, $userId, (int) $activePeriod['id'], $eligibleSubjects) : [];
+            $studentEnrollments = getStudentEnrollments($pdo, $userId);
+
+            echo renderPage(
+                __DIR__ . '/../src/UI/Views/enrollments/index.php',
+                'Mis Inscripciones - Control Escolar',
+                $route['base_path'],
+                [
+                    'activePeriod' => $activePeriod,
+                    'enrollmentWindowOpen' => $enrollmentWindowOpen,
+                    'availableCourses' => $availableCourses,
+                    'studentEnrollments' => $studentEnrollments,
+                    'errorMessage' => $errorMessage,
+                    'successMessage' => $successMessage
+                ]
+            );
+            break;
+        }
+
+        if ($userRole !== 'admin') {
+            header('Location: ' . $route['base_path'] . '/dashboard');
+            exit();
+        }
+
+        $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE role = 'student' AND status = 'active' ORDER BY name ASC");
+        $stmt->execute();
+        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $coursesStmt = $pdo->prepare("
+            SELECT c.id,
+                   s.name AS subject_name,
+                   s.code AS subject_code,
+                   m.name AS module_name,
+                   c.day_of_week,
+                   c.start_time,
+                   c.end_time
+            FROM courses c
+            INNER JOIN subjects s ON s.id = c.subject_id
+            INNER JOIN modules m ON m.id = s.module_id
+            WHERE c.academic_period_id = :period_id
+              AND c.is_visible = 1
+              AND c.status IN ('published', 'active')
+            ORDER BY s.sort_order ASC
+        ");
+        $coursesStmt->execute(['period_id' => $activePeriod['id'] ?? 0]);
+        $adminCourses = $coursesStmt->fetchAll(PDO::FETCH_ASSOC);
+
         echo renderPage(
-            __DIR__ . '/../src/UI/Views/enrollments/index.php',
-            'Inscripciones - Control Escolar',
-            $route['base_path']
+            __DIR__ . '/../src/UI/Views/enrollments/admin.php',
+            'Gestión de Inscripciones - Control Escolar',
+            $route['base_path'],
+            [
+                'activePeriod' => $activePeriod,
+                'enrollmentWindowOpen' => $enrollmentWindowOpen,
+                'students' => $students,
+                'adminCourses' => $adminCourses,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
         );
         break;
         
     case 'subjects':
         requireAuth($route['base_path']);
-        requireNonStudent($route['base_path']);
+        requireAdmin($route['base_path']);
         echo renderPage(
             __DIR__ . '/../src/UI/Views/subjects/index.php',
             'Materias - Control Escolar',
