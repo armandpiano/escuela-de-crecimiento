@@ -7,47 +7,13 @@ if (!isset($_SESSION['user_id'])) {
 
 $userRole = $_SESSION['user_role'] ?? '';
 if ($userRole !== 'student') {
-    $_SESSION['error'] = 'Esta sección es solo para estudiantes activos.';
     header('Location: ' . $basePath . '/dashboard');
     exit();
 }
 
 $studentName = $_SESSION['user_name'] ?? 'Estudiante';
 $studentEmail = $_SESSION['user_email'] ?? 'correo@ejemplo.com';
-
-$enrolledSubjects = [
-    [
-        'code' => 'MAT-101',
-        'name' => 'Matemáticas Básicas',
-        'status' => 'Inscrita',
-        'period' => '2024-S1',
-        'teacher' => 'Prof. Ana López'
-    ],
-    [
-        'code' => 'BIB-201',
-        'name' => 'Estudios Bíblicos',
-        'status' => 'Inscrita',
-        'period' => '2024-S1',
-        'teacher' => 'Prof. Carlos Ruiz'
-    ]
-];
-
-$historySubjects = [
-    [
-        'code' => 'ESP-101',
-        'name' => 'Lengua Española',
-        'status' => 'Aprobada',
-        'period' => '2023-S2',
-        'grade' => '9.1'
-    ],
-    [
-        'code' => 'CIE-102',
-        'name' => 'Ciencias Naturales',
-        'status' => 'Aprobada',
-        'period' => '2023-S2',
-        'grade' => '8.7'
-    ]
-];
+$activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 ?>
 
 <div class="container-fluid">
@@ -60,6 +26,20 @@ $historySubjects = [
         </div>
     </div>
 
+    <?php if (!empty($errorMessage)): ?>
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            <?= htmlspecialchars($errorMessage) ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($successMessage)): ?>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <?= htmlspecialchars($successMessage) ?>
+        </div>
+    <?php endif; ?>
+
     <div class="row mb-4">
         <div class="col-lg-4">
             <div class="card">
@@ -67,38 +47,54 @@ $historySubjects = [
                     <h5 class="card-title"><i class="fas fa-id-badge"></i> Información del estudiante</h5>
                     <p class="mb-1"><strong>Nombre:</strong> <?= htmlspecialchars($studentName) ?></p>
                     <p class="mb-1"><strong>Correo:</strong> <?= htmlspecialchars($studentEmail) ?></p>
-                    <p class="mb-0"><strong>Rol:</strong> Estudiante</p>
+                    <p class="mb-0"><strong>Periodo activo:</strong> <?= htmlspecialchars($activePeriodName) ?></p>
                 </div>
             </div>
         </div>
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-book"></i> Materias inscritas</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Materia</th>
-                                    <th>Periodo</th>
-                                    <th>Docente</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($enrolledSubjects as $subject): ?>
+                    <h5 class="card-title"><i class="fas fa-book"></i> Cursos disponibles</h5>
+                    <?php if (!$activePeriod): ?>
+                        <p class="text-muted">No hay un periodo académico activo.</p>
+                    <?php elseif (!$enrollmentWindowOpen): ?>
+                        <p class="text-warning">La ventana de inscripción está cerrada.</p>
+                    <?php elseif (empty($availableCourses)): ?>
+                        <p class="text-muted">No tienes cursos disponibles por seriación o visibilidad.</p>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
                                     <tr>
-                                        <td><?= htmlspecialchars($subject['code']) ?></td>
-                                        <td><?= htmlspecialchars($subject['name']) ?></td>
-                                        <td><?= htmlspecialchars($subject['period']) ?></td>
-                                        <td><?= htmlspecialchars($subject['teacher']) ?></td>
-                                        <td><span class="badge bg-success"><?= htmlspecialchars($subject['status']) ?></span></td>
+                                        <th>Módulo</th>
+                                        <th>Materia</th>
+                                        <th>Horario</th>
+                                        <th>Profesores</th>
+                                        <th></th>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($availableCourses as $course): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($course['module_name'] ?? '') ?></td>
+                                            <td>
+                                                <div class="fw-bold"><?= htmlspecialchars($course['subject_name']) ?></div>
+                                                <small class="text-muted"><?= htmlspecialchars($course['subject_code']) ?></small>
+                                            </td>
+                                            <td><?= htmlspecialchars($course['day_of_week'] . ' ' . $course['start_time'] . '-' . $course['end_time']) ?></td>
+                                            <td><?= htmlspecialchars($course['teachers'] ?: 'Por asignar') ?></td>
+                                            <td>
+                                                <form method="POST" action="<?= htmlspecialchars($basePath . '/enrollments') ?>">
+                                                    <input type="hidden" name="course_id" value="<?= (int) $course['id'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-primary">Inscribirme</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -108,33 +104,40 @@ $historySubjects = [
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-history"></i> Historial de materias</h5>
+                    <h5 class="mb-0"><i class="fas fa-history"></i> Historial de inscripciones</h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Materia</th>
-                                    <th>Periodo</th>
-                                    <th>Calificación</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($historySubjects as $subject): ?>
+                    <?php if (empty($studentEnrollments)): ?>
+                        <p class="text-muted">Aún no tienes inscripciones registradas.</p>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
                                     <tr>
-                                        <td><?= htmlspecialchars($subject['code']) ?></td>
-                                        <td><?= htmlspecialchars($subject['name']) ?></td>
-                                        <td><?= htmlspecialchars($subject['period']) ?></td>
-                                        <td><?= htmlspecialchars($subject['grade']) ?></td>
-                                        <td><span class="badge bg-primary"><?= htmlspecialchars($subject['status']) ?></span></td>
+                                        <th>Materia</th>
+                                        <th>Periodo</th>
+                                        <th>Horario</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($studentEnrollments as $enrollment): ?>
+                                        <tr>
+                                            <td>
+                                                <div class="fw-bold"><?= htmlspecialchars($enrollment['subject_name']) ?></div>
+                                                <small class="text-muted"><?= htmlspecialchars($enrollment['subject_code']) ?></small>
+                                            </td>
+                                            <td><?= htmlspecialchars($enrollment['period_name']) ?></td>
+                                            <td><?= htmlspecialchars($enrollment['day_of_week'] . ' ' . $enrollment['start_time'] . '-' . $enrollment['end_time']) ?></td>
+                                            <td><span class="badge bg-info"><?= htmlspecialchars($enrollment['status']) ?></span></td>
+                                            <td><?= htmlspecialchars($enrollment['created_at']) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
