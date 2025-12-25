@@ -42,14 +42,12 @@ class UserRepository implements UserRepositoryInterface
     {
         try {
             $userArray = $user->toArray();
-            $userArray['updated_at'] = date('Y-m-d H:i:s');
-            
+
             if ($this->existsById($user->getId())) {
                 // Actualizar usuario existente
                 $this->update($user);
             } else {
                 // Crear nuevo usuario
-                $userArray['created_at'] = date('Y-m-d H:i:s');
                 $this->insert($user);
             }
             
@@ -65,7 +63,7 @@ class UserRepository implements UserRepositoryInterface
     public function findById(UserId $id): ?User
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -86,7 +84,7 @@ class UserRepository implements UserRepositoryInterface
     public function findByEmail(Email $email): ?User
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE email = :email AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE email = :email LIMIT 1";
             $params = ['email' => $email->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -107,7 +105,7 @@ class UserRepository implements UserRepositoryInterface
     public function findByEmailCaseInsensitive(Email $email): ?User
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE LOWER(email) = LOWER(:email) AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE LOWER(email) = LOWER(:email) LIMIT 1";
             $params = ['email' => $email->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -128,7 +126,7 @@ class UserRepository implements UserRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE deleted_at IS NULL ORDER BY created_at DESC";
+            $sql = "SELECT * FROM {$this->tableName} ORDER BY id DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateUser'], $results);
@@ -143,7 +141,7 @@ class UserRepository implements UserRepositoryInterface
     public function findByStatus(UserStatus $status): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE status = :status AND deleted_at IS NULL ORDER BY created_at DESC";
+            $sql = "SELECT * FROM {$this->tableName} WHERE status = :status ORDER BY id DESC";
             $params = ['status' => $status->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -177,9 +175,8 @@ class UserRepository implements UserRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE JSON_CONTAINS(roles, JSON_QUOTE(:role)) 
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
+                    WHERE role = :role 
+                    ORDER BY id DESC";
             $params = ['role' => $role];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -201,14 +198,13 @@ class UserRepository implements UserRepositoryInterface
             
             foreach ($roles as $index => $role) {
                 $paramKey = "role_$index";
-                $roleConditions[] = "JSON_CONTAINS(roles, JSON_QUOTE(:$paramKey))";
+                $roleConditions[] = ":$paramKey";
                 $params[$paramKey] = $role;
             }
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (" . implode(' OR ', $roleConditions) . ") 
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
+                    WHERE role IN (" . implode(', ', $roleConditions) . ") 
+                    ORDER BY id DESC";
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -265,15 +261,7 @@ class UserRepository implements UserRepositoryInterface
     public function softDelete(UserId $id): bool
     {
         try {
-            $sql = "UPDATE {$this->tableName} 
-                    SET deleted_at = :deleted_at 
-                    WHERE id = :id AND deleted_at IS NULL";
-            $params = [
-                'id' => $id->getValue(),
-                'deleted_at' => date('Y-m-d H:i:s')
-            ];
-            
-            return $this->connectionManager->execute($sql, $params) > 0;
+            return $this->delete($id);
         } catch (\Exception $e) {
             throw new DatabaseException('Error al eliminar usuario suavemente: ' . $e->getMessage());
         }
@@ -285,7 +273,7 @@ class UserRepository implements UserRepositoryInterface
     public function existsById(UserId $id): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -301,7 +289,7 @@ class UserRepository implements UserRepositoryInterface
     public function existsByEmail(Email $email): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE email = :email AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE email = :email";
             $params = ['email' => $email->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -317,7 +305,7 @@ class UserRepository implements UserRepositoryInterface
     public function count(): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName}";
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
         } catch (\Exception $e) {
@@ -331,7 +319,7 @@ class UserRepository implements UserRepositoryInterface
     public function countByStatus(UserStatus $status): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE status = :status AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE status = :status";
             $params = ['status' => $status->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -348,8 +336,7 @@ class UserRepository implements UserRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE JSON_CONTAINS(roles, JSON_QUOTE(:role)) 
-                    AND deleted_at IS NULL";
+                    WHERE role = :role";
             $params = ['role' => $role];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -368,8 +355,7 @@ class UserRepository implements UserRepositoryInterface
             $offset = ($page - 1) * $perPage;
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    ORDER BY created_at DESC 
+                    ORDER BY id DESC 
                     LIMIT :limit OFFSET :offset";
             
             $params = [
@@ -391,7 +377,7 @@ class UserRepository implements UserRepositoryInterface
     public function search(array $criteria, int $page = 1, int $perPage = 20): array
     {
         try {
-            $whereConditions = ['deleted_at IS NULL'];
+            $whereConditions = ['1=1'];
             $params = [];
             
             // Aplicar criterios de búsqueda
@@ -401,12 +387,12 @@ class UserRepository implements UserRepositoryInterface
             }
             
             if (isset($criteria['role'])) {
-                $whereConditions[] = 'JSON_CONTAINS(roles, JSON_QUOTE(:role))';
+                $whereConditions[] = 'role = :role';
                 $params['role'] = $criteria['role'];
             }
             
             if (isset($criteria['name'])) {
-                $whereConditions[] = '(first_name LIKE :name OR last_name LIKE :name)';
+                $whereConditions[] = 'name LIKE :name';
                 $params['name'] = '%' . $criteria['name'] . '%';
             }
             
@@ -421,7 +407,7 @@ class UserRepository implements UserRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE " . implode(' AND ', $whereConditions) . "
-                    ORDER BY created_at DESC 
+                    ORDER BY id DESC 
                     LIMIT :limit OFFSET :offset";
             
             $results = $this->connectionManager->query($sql, $params);
@@ -438,15 +424,7 @@ class UserRepository implements UserRepositoryInterface
     public function findRecent(int $days = 30): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateUser'], $results);
+            return $this->findPaginated(1, 20);
         } catch (\Exception $e) {
             throw new DatabaseException('Error al buscar usuarios recientes: ' . $e->getMessage());
         }
@@ -457,19 +435,7 @@ class UserRepository implements UserRepositoryInterface
      */
     public function findInactiveUsers(int $days = 90): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (last_login_at IS NULL OR last_login_at < DATE_SUB(NOW(), INTERVAL :days DAY))
-                    AND deleted_at IS NULL 
-                    ORDER BY last_login_at ASC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateUser'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar usuarios inactivos: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -479,12 +445,10 @@ class UserRepository implements UserRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (first_name LIKE :name OR last_name LIKE :name OR CONCAT(first_name, ' ', last_name) LIKE :fullname) 
-                    AND deleted_at IS NULL 
-                    ORDER BY first_name ASC, last_name ASC";
+                    WHERE name LIKE :name 
+                    ORDER BY name ASC";
             $params = [
-                'name' => '%' . $name . '%',
-                'fullname' => '%' . $name . '%'
+                'name' => '%' . $name . '%'
             ];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -501,13 +465,9 @@ class UserRepository implements UserRepositoryInterface
     public function getNextMatriculaNumber(): int
     {
         try {
-            $sql = "SELECT MAX(CAST(SUBSTRING(metadata->'$.matricula_number', 2) AS UNSIGNED)) as max_number 
-                    FROM {$this->tableName} 
-                    WHERE metadata->'$.matricula_number IS NOT NULL 
-                    AND deleted_at IS NULL";
-            
-            $result = $this->connectionManager->query($sql);
-            return ($result['max_number'] ?? 0) + 1;
+            $sql = "SELECT last_number FROM matricula_sequences WHERE year = YEAR(CURDATE())";
+            $result = $this->connectionManager->fetch($sql);
+            return ((int) ($result['last_number'] ?? 0)) + 1;
         } catch (\Exception $e) {
             throw new DatabaseException('Error al obtener siguiente número de matrícula: ' . $e->getMessage());
         }
@@ -520,7 +480,7 @@ class UserRepository implements UserRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE email = :email AND id != :id AND deleted_at IS NULL";
+                    WHERE email = :email AND id != :id";
             $params = [
                 'email' => $email->getValue(),
                 'id' => $excludeId->getValue()
@@ -543,13 +503,11 @@ class UserRepository implements UserRepositoryInterface
                         COUNT(*) as total,
                         SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                         SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive,
-                        SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) as suspended,
-                        SUM(CASE WHEN JSON_CONTAINS(roles, JSON_QUOTE('admin')) THEN 1 ELSE 0 END) as admins,
-                        SUM(CASE WHEN JSON_CONTAINS(roles, JSON_QUOTE('teacher')) OR JSON_CONTAINS(roles, JSON_QUOTE('professor')) THEN 1 ELSE 0 END) as teachers,
-                        SUM(CASE WHEN JSON_CONTAINS(roles, JSON_QUOTE('student')) OR JSON_CONTAINS(roles, JSON_QUOTE('alumno')) THEN 1 ELSE 0 END) as students,
-                        SUM(CASE WHEN last_login_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as recently_active
-                    FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL";
+                        SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admins,
+                        SUM(CASE WHEN role = 'teacher' THEN 1 ELSE 0 END) as teachers,
+                        SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as students,
+                        0 as recently_active
+                    FROM {$this->tableName}";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -572,7 +530,7 @@ class UserRepository implements UserRepositoryInterface
         return [];
     }
 
-    public function findOrdered(string $orderBy = 'created_at', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'id', string $direction = 'DESC'): array
     {
         // TODO: Implementar ordenamiento personalizado
         return [];
@@ -619,7 +577,19 @@ class UserRepository implements UserRepositoryInterface
      */
     private function insert(User $user): void
     {
-        $userArray = $user->toArray();
+        $allowedColumns = [
+            'id',
+            'matricula',
+            'name',
+            'email',
+            'password',
+            'role',
+            'status'
+        ];
+        $userArray = array_intersect_key($user->toArray(), array_flip($allowedColumns));
+        if (empty($userArray['matricula'])) {
+            $userArray['matricula'] = sprintf('ECAFC%s%03d', date('Y'), random_int(1, 999));
+        }
         $columns = array_keys($userArray);
         $placeholders = array_map(fn($col) => ":$col", $columns);
         
@@ -634,11 +604,20 @@ class UserRepository implements UserRepositoryInterface
      */
     private function update(User $user): void
     {
-        $userArray = $user->toArray();
+        $allowedColumns = [
+            'id',
+            'matricula',
+            'name',
+            'email',
+            'password',
+            'role',
+            'status'
+        ];
+        $userArray = array_intersect_key($user->toArray(), array_flip($allowedColumns));
         $updateFields = [];
         
         foreach ($userArray as $column => $value) {
-            if ($column !== 'id' && $column !== 'created_at') {
+            if ($column !== 'id') {
                 $updateFields[] = "$column = :$column";
             }
         }
@@ -655,25 +634,21 @@ class UserRepository implements UserRepositoryInterface
      */
     private function hydrateUser(array $data): User
     {
+        $nameParts = explode(' ', $data['name'] ?? '', 2);
+        $firstName = $nameParts[0] ?? '';
+        $lastName = $nameParts[1] ?? '';
+
         $user = new User(
             new UserId($data['id']),
-            $data['first_name'],
-            $data['last_name'],
+            $firstName,
+            $lastName,
             new \ChristianLMS\Domain\ValueObjects\Email($data['email']),
-            $data['password_hash'] ? new \ChristianLMS\Domain\ValueObjects\PasswordHash($data['password_hash']) : null
+            !empty($data['password']) ? new \ChristianLMS\Domain\ValueObjects\PasswordHash($data['password']) : null
         );
 
         $user->setStatus(new \ChristianLMS\Domain\ValueObjects\UserStatus($data['status']));
-        $user->setGender(new \ChristianLMS\Domain\ValueObjects\UserGender($data['gender']));
-        $user->setPhone($data['phone']);
-        $user->setAddress($data['address']);
-        $user->setProfilePhoto($data['profile_photo']);
-        $user->setRoles(json_decode($data['roles'], true) ?? []);
-        $user->setMetadata(json_decode($data['metadata'], true) ?? []);
-        $user->setLastLoginAt($data['last_login_at']);
-        $user->setLoginAttempts($data['login_attempts'] ?? 0);
-        $user->setLockedUntil($data['locked_until']);
-
+        $user->setRoles([$data['role']]);
+        $user->setMatricula($data['matricula'] ?? null);
         return $user;
     }
 }

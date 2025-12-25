@@ -17,9 +17,7 @@ use ChristianLMS\Domain\ValueObjects\{
     EnrollmentId,
     UserId,
     CourseId,
-    AcademicPeriodId,
-    EnrollmentStatus,
-    PaymentStatus
+    EnrollmentStatus
 };
 
 /**
@@ -79,11 +77,9 @@ class EnrollStudentUseCase
             }
 
             // Verificar que no esté ya inscrito
-            $academicPeriodId = new AcademicPeriodId($request->getAcademicPeriodId());
-            $existingEnrollment = $enrollmentRepository->findByStudentAndCourse(
-                $studentId, 
-                $courseId, 
-                $academicPeriodId
+            $existingEnrollment = $enrollmentRepository->findByUserAndCourse(
+                $studentId,
+                $courseId
             );
             if ($existingEnrollment) {
                 return new EnrollStudentResponse(false, 'El estudiante ya está inscrito en este curso');
@@ -92,14 +88,8 @@ class EnrollStudentUseCase
             // Crear la inscripción
             $enrollment = Enrollment::create(
                 $request->getStudentId(),
-                $request->getCourseId(),
-                $request->getAcademicPeriodId()
+                $request->getCourseId()
             );
-
-            // Aplicar datos adicionales
-            $enrollment->setPaymentStatus(new PaymentStatus($request->getPaymentStatus() ?? PaymentStatus::PENDING));
-            $enrollment->setPaymentAmount($request->getPaymentAmount() ?? 0.0);
-            $enrollment->setNotes($request->getNotes());
 
             // Guardar inscripción
             $savedEnrollment = $enrollmentRepository->save($enrollment);
@@ -144,13 +134,7 @@ class EnrollStudentUseCase
             throw new \InvalidArgumentException('El ID del curso es requerido');
         }
 
-        if (empty(trim($request->getAcademicPeriodId()))) {
-            throw new \InvalidArgumentException('El ID del periodo académico es requerido');
-        }
-
-        if ($request->getPaymentAmount() < 0) {
-            throw new \InvalidArgumentException('El monto de pago no puede ser negativo');
-        }
+        return;
     }
 
     /**
@@ -166,18 +150,13 @@ class EnrollStudentUseCase
             "Curso: %s\n" .
             "Código: %s\n" .
             "Profesor: %s\n" .
-            "Fecha de inicio: %s\n\n" .
-            "Detalles de pago:\n" .
-            "Monto: %s\n" .
-            "Estado: %s\n\n" .
+            "Horario: %s\n\n" .
             "¡Gracias por inscribirte!",
             $student->getFirstName(),
             $course->getName(),
             $course->getCode()->getValue(),
             'Profesor', // TODO: Obtener nombre del profesor
-            $course->getStartDate() ? date('d/m/Y', strtotime($course->getStartDate())) : 'Por definir',
-            number_format($enrollment->getPaymentAmount(), 2),
-            $enrollment->getPaymentStatus()->getValue()
+            'Por definir'
         );
 
         $this->emailService->sendEmail(
@@ -198,26 +177,14 @@ class EnrollStudentRequest
 {
     private string $studentId;
     private string $courseId;
-    private string $academicPeriodId;
-    private ?string $paymentStatus;
-    private float $paymentAmount;
-    private ?string $notes;
 
     // Getters
     public function getStudentId(): string { return $this->studentId; }
     public function getCourseId(): string { return $this->courseId; }
-    public function getAcademicPeriodId(): string { return $this->academicPeriodId; }
-    public function getPaymentStatus(): ?string { return $this->paymentStatus; }
-    public function getPaymentAmount(): float { return $this->paymentAmount; }
-    public function getNotes(): ?string { return $this->notes; }
 
     // Setters
     public function setStudentId(string $studentId): self { $this->studentId = $studentId; return $this; }
     public function setCourseId(string $courseId): self { $this->courseId = $courseId; return $this; }
-    public function setAcademicPeriodId(string $academicPeriodId): self { $this->academicPeriodId = $academicPeriodId; return $this; }
-    public function setPaymentStatus(?string $paymentStatus): self { $this->paymentStatus = $paymentStatus; return $this; }
-    public function setPaymentAmount(float $paymentAmount): self { $this->paymentAmount = $paymentAmount; return $this; }
-    public function setNotes(?string $notes): self { $this->notes = $notes; return $this; }
 }
 
 /**

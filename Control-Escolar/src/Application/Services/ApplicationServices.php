@@ -15,7 +15,10 @@ use ChristianLMS\Infrastructure\Repositories\{
     CourseRepository,
     SubjectRepository,
     AcademicPeriodRepository,
-    EnrollmentRepository
+    EnrollmentRepository,
+    ModuleRepository,
+    SubjectPrerequisiteRepository,
+    CourseTeacherRepository
 };
 
 /**
@@ -308,6 +311,9 @@ class ApplicationServices
     private ?SubjectRepository $subjectRepository = null;
     private ?AcademicPeriodRepository $academicPeriodRepository = null;
     private ?EnrollmentRepository $enrollmentRepository = null;
+    private ?ModuleRepository $moduleRepository = null;
+    private ?SubjectPrerequisiteRepository $subjectPrerequisiteRepository = null;
+    private ?CourseTeacherRepository $courseTeacherRepository = null;
 
     /**
      * Singleton pattern
@@ -392,6 +398,30 @@ class ApplicationServices
             $this->enrollmentRepository = new EnrollmentRepository($this->getConnectionManager());
         }
         return $this->enrollmentRepository;
+    }
+
+    public function getModuleRepository(): ModuleRepository
+    {
+        if ($this->moduleRepository === null) {
+            $this->moduleRepository = new ModuleRepository($this->getConnectionManager());
+        }
+        return $this->moduleRepository;
+    }
+
+    public function getSubjectPrerequisiteRepository(): SubjectPrerequisiteRepository
+    {
+        if ($this->subjectPrerequisiteRepository === null) {
+            $this->subjectPrerequisiteRepository = new SubjectPrerequisiteRepository($this->getConnectionManager());
+        }
+        return $this->subjectPrerequisiteRepository;
+    }
+
+    public function getCourseTeacherRepository(): CourseTeacherRepository
+    {
+        if ($this->courseTeacherRepository === null) {
+            $this->courseTeacherRepository = new CourseTeacherRepository($this->getConnectionManager());
+        }
+        return $this->courseTeacherRepository;
     }
 
     /**

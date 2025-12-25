@@ -167,19 +167,19 @@ class Application
     {
         $expectedTables = [
             'users' => [
-                'columns' => ['id', 'first_name', 'last_name', 'email', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'matricula', 'name', 'email', 'password', 'role', 'status']
             ],
             'courses' => [
-                'columns' => ['id', 'name', 'code', 'professor_id', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'academic_period_id', 'subject_id', 'day_of_week', 'start_time', 'end_time', 'location', 'max_students', 'status']
             ],
             'subjects' => [
-                'columns' => ['id', 'name', 'code', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'module_id', 'name', 'sort_order', 'is_active']
             ],
             'academic_periods' => [
-                'columns' => ['id', 'name', 'code', 'start_date', 'end_date', 'is_current', 'created_at', 'updated_at']
+                'columns' => ['id', 'name', 'start_date', 'end_date', 'enrollment_start', 'enrollment_end', 'status']
             ],
             'enrollments' => [
-                'columns' => ['id', 'student_id', 'course_id', 'academic_period_id', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'user_id', 'course_id', 'status', 'enrolled_by', 'override_seriation', 'override_schedule']
             ]
         ];
 
@@ -251,7 +251,7 @@ class Application
     {
         // Verificar si ya existe un admin
         $existingAdmin = $this->connectionManager->fetch(
-            "SELECT id FROM users WHERE JSON_CONTAINS(roles, '\"admin\"') LIMIT 1"
+            "SELECT id FROM users WHERE role = 'admin' LIMIT 1"
         );
 
         if ($existingAdmin) {
@@ -261,20 +261,17 @@ class Application
         // Crear usuario admin por defecto
         $adminData = [
             'id' => \ChristianLMS\Domain\ValueObjects\UserId::generate()->getValue(),
-            'first_name' => 'Administrador',
-            'last_name' => 'Sistema',
+            'matricula' => sprintf('ECAFC%s%03d', date('Y'), random_int(1, 999)),
+            'name' => 'Administrador Sistema',
             'email' => 'admin@churchlms.com',
-            'password_hash' => password_hash('admin123', PASSWORD_ARGON2ID),
-            'status' => 'active',
-            'gender' => 'unspecified',
-            'roles' => json_encode(['admin']),
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            'password' => password_hash('admin123', PASSWORD_BCRYPT),
+            'role' => 'admin',
+            'status' => 'active'
         ];
 
         $this->connectionManager->execute(
-            "INSERT INTO users (id, first_name, last_name, email, password_hash, status, gender, roles, created_at, updated_at) 
-             VALUES (:id, :first_name, :last_name, :email, :password_hash, :status, :gender, :roles, :created_at, :updated_at)",
+            "INSERT INTO users (id, matricula, name, email, password, role, status) 
+             VALUES (:id, :matricula, :name, :email, :password, :role, :status)",
             $adminData
         );
     }

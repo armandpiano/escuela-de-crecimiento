@@ -42,14 +42,12 @@ class SubjectRepository implements SubjectRepositoryInterface
     {
         try {
             $subjectArray = $subject->toArray();
-            $subjectArray['updated_at'] = date('Y-m-d H:i:s');
-            
+
             if ($this->existsById($subject->getId())) {
                 // Actualizar materia existente
                 $this->update($subject);
             } else {
                 // Crear nueva materia
-                $subjectArray['created_at'] = date('Y-m-d H:i:s');
                 $this->insert($subject);
             }
             
@@ -65,7 +63,7 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function findById(SubjectId $id): ?Subject
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -86,8 +84,8 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function findByCode(SubjectCode $code): ?Subject
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE code = :code AND deleted_at IS NULL LIMIT 1";
-            $params = ['code' => $code->getValue()];
+            $sql = "SELECT * FROM {$this->tableName} WHERE name = :name LIMIT 1";
+            $params = ['name' => $code->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             
@@ -107,7 +105,7 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE deleted_at IS NULL ORDER BY name ASC";
+            $sql = "SELECT * FROM {$this->tableName} ORDER BY sort_order ASC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateSubject'], $results);
@@ -121,18 +119,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findByDepartment(string $department): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE department = :department AND deleted_at IS NULL 
-                    ORDER BY name ASC";
-            $params = ['department' => $department];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias por departamento: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -140,18 +127,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findByGradeLevel(GradeLevel $gradeLevel): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE grade_level = :grade_level AND deleted_at IS NULL 
-                    ORDER BY name ASC";
-            $params = ['grade_level' => $gradeLevel->getValue()];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias por nivel educativo: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -161,9 +137,9 @@ class SubjectRepository implements SubjectRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = :status AND deleted_at IS NULL 
-                    ORDER BY name ASC";
-            $params = ['status' => $status->getValue()];
+                    WHERE is_active = :is_active 
+                    ORDER BY sort_order ASC";
+            $params = ['is_active' => $status->getValue() === 'active' ? 1 : 0];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -186,17 +162,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findCore(): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_core = 1 AND deleted_at IS NULL 
-                    ORDER BY name ASC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias básicas: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -204,17 +170,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findElective(): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_core = 0 AND deleted_at IS NULL 
-                    ORDER BY name ASC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias electivas: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -237,19 +193,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function softDelete(SubjectId $id): bool
     {
-        try {
-            $sql = "UPDATE {$this->tableName} 
-                    SET deleted_at = :deleted_at 
-                    WHERE id = :id AND deleted_at IS NULL";
-            $params = [
-                'id' => $id->getValue(),
-                'deleted_at' => date('Y-m-d H:i:s')
-            ];
-            
-            return $this->connectionManager->execute($sql, $params) > 0;
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al eliminar materia suavemente: ' . $e->getMessage());
-        }
+        return $this->delete($id);
     }
 
     /**
@@ -258,7 +202,7 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function existsById(SubjectId $id): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -274,8 +218,8 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function existsByCode(SubjectCode $code): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE code = :code AND deleted_at IS NULL";
-            $params = ['code' => $code->getValue()];
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE name = :name";
+            $params = ['name' => $code->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             return $result['count'] > 0;
@@ -290,7 +234,7 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function count(): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE 1=1";
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
         } catch (\Exception $e) {
@@ -304,8 +248,8 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function countByStatus(SubjectStatus $status): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE status = :status AND deleted_at IS NULL";
-            $params = ['status' => $status->getValue()];
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE is_active = :is_active";
+            $params = ['is_active' => $status->getValue() === 'active' ? 1 : 0];
             
             $result = $this->connectionManager->query($sql, $params);
             return (int) $result['count'];
@@ -319,16 +263,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function countByDepartment(string $department): int
     {
-        try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE department = :department AND deleted_at IS NULL";
-            $params = ['department' => $department];
-            
-            $result = $this->connectionManager->query($sql, $params);
-            return (int) $result['count'];
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al contar materias por departamento: ' . $e->getMessage());
-        }
+        return 0;
     }
 
     /**
@@ -336,16 +271,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function countByGradeLevel(GradeLevel $gradeLevel): int
     {
-        try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE grade_level = :grade_level AND deleted_at IS NULL";
-            $params = ['grade_level' => $gradeLevel->getValue()];
-            
-            $result = $this->connectionManager->query($sql, $params);
-            return (int) $result['count'];
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al contar materias por nivel educativo: ' . $e->getMessage());
-        }
+        return 0;
     }
 
     /**
@@ -357,8 +283,7 @@ class SubjectRepository implements SubjectRepositoryInterface
             $offset = ($page - 1) * $perPage;
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    ORDER BY name ASC 
+                    ORDER BY sort_order ASC 
                     LIMIT :limit OFFSET :offset";
             
             $params = [
@@ -380,28 +305,13 @@ class SubjectRepository implements SubjectRepositoryInterface
     public function search(array $criteria, int $page = 1, int $perPage = 20): array
     {
         try {
-            $whereConditions = ['deleted_at IS NULL'];
+            $whereConditions = ['1=1'];
             $params = [];
             
             // Aplicar criterios de búsqueda
             if (isset($criteria['status'])) {
-                $whereConditions[] = 'status = :status';
-                $params['status'] = $criteria['status'];
-            }
-            
-            if (isset($criteria['department'])) {
-                $whereConditions[] = 'department = :department';
-                $params['department'] = $criteria['department'];
-            }
-            
-            if (isset($criteria['grade_level'])) {
-                $whereConditions[] = 'grade_level = :grade_level';
-                $params['grade_level'] = $criteria['grade_level'];
-            }
-            
-            if (isset($criteria['is_core'])) {
-                $whereConditions[] = 'is_core = :is_core';
-                $params['is_core'] = $criteria['is_core'] ? 1 : 0;
+                $whereConditions[] = 'is_active = :is_active';
+                $params['is_active'] = $criteria['status'] === 'active' ? 1 : 0;
             }
             
             if (isset($criteria['name'])) {
@@ -415,7 +325,7 @@ class SubjectRepository implements SubjectRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE " . implode(' AND ', $whereConditions) . "
-                    ORDER BY name ASC 
+                    ORDER BY sort_order ASC 
                     LIMIT :limit OFFSET :offset";
             
             $results = $this->connectionManager->query($sql, $params);
@@ -431,19 +341,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findRecent(int $days = 30): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias recientes: ' . $e->getMessage());
-        }
+        return $this->findPaginated(1, 20);
     }
 
     /**
@@ -453,12 +351,10 @@ class SubjectRepository implements SubjectRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (name LIKE :name OR code LIKE :code) 
-                    AND deleted_at IS NULL 
-                    ORDER BY name ASC";
+                    WHERE name LIKE :name 
+                    ORDER BY sort_order ASC";
             $params = [
-                'name' => '%' . $name . '%',
-                'code' => '%' . $name . '%'
+                'name' => '%' . $name . '%'
             ];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -472,13 +368,15 @@ class SubjectRepository implements SubjectRepositoryInterface
     /**
      * Obtener materias ordenadas
      */
-    public function findOrdered(string $orderBy = 'created_at', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'sort_order', string $direction = 'ASC'): array
     {
         try {
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
-            
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
+            $allowedColumns = ['id', 'name', 'sort_order', 'module_id', 'is_active'];
+            $orderBy = in_array($orderBy, $allowedColumns, true) ? $orderBy : 'sort_order';
+
+            $sql = "SELECT * FROM {$this->tableName}
+                    WHERE 1=1
                     ORDER BY $orderBy $direction";
             
             $results = $this->connectionManager->query($sql);
@@ -494,17 +392,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findDepartments(): array
     {
-        try {
-            $sql = "SELECT DISTINCT department FROM {$this->tableName} 
-                    WHERE department IS NOT NULL AND department != '' AND deleted_at IS NULL 
-                    ORDER BY department ASC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_column($results, 'department');
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al obtener departamentos: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -512,17 +400,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findGradeLevels(): array
     {
-        try {
-            $sql = "SELECT DISTINCT grade_level FROM {$this->tableName} 
-                    WHERE grade_level IS NOT NULL AND grade_level != '' AND deleted_at IS NULL 
-                    ORDER BY grade_level ASC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_column($results, 'grade_level');
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al obtener niveles educativos: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -533,15 +411,10 @@ class SubjectRepository implements SubjectRepositoryInterface
         try {
             $sql = "SELECT 
                         COUNT(*) as total,
-                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
-                        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive,
-                        SUM(CASE WHEN status = 'deprecated' THEN 1 ELSE 0 END) as deprecated,
-                        SUM(CASE WHEN is_core = 1 THEN 1 ELSE 0 END) as core,
-                        SUM(CASE WHEN is_core = 0 THEN 1 ELSE 0 END) as elective,
-                        AVG(credits) as avg_credits,
-                        AVG(hours_per_week) as avg_hours_per_week
+                        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
+                        SUM(CASE WHEN is_active = 0 THEN 1 ELSE 0 END) as inactive
                     FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL";
+                    WHERE 1=1";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -555,19 +428,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findWithPrerequisites(): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE prerequisites IS NOT NULL 
-                    AND JSON_LENGTH(prerequisites) > 0 
-                    AND deleted_at IS NULL 
-                    ORDER BY name ASC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias con prerrequisitos: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -583,22 +444,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findByDateRange(string $startDate, string $endDate): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at BETWEEN :start_date AND :end_date
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
-            $params = [
-                'start_date' => $startDate,
-                'end_date' => $endDate
-            ];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias por rango de fechas: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -608,15 +454,6 @@ class SubjectRepository implements SubjectRepositoryInterface
     {
         try {
             $issues = [];
-            
-            // Verificar códigos duplicados
-            $sql = "SELECT code, COUNT(*) as count FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    GROUP BY code HAVING count > 1";
-            $results = $this->connectionManager->query($sql);
-            if (!empty($results)) {
-                $issues[] = 'Encontrados códigos de materia duplicados';
-            }
             
             return $issues;
         } catch (\Exception $e) {
@@ -629,7 +466,19 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     private function insert(Subject $subject): void
     {
-        $subjectArray = $subject->toArray();
+        $allowedColumns = [
+            'id',
+            'module_id',
+            'name',
+            'sort_order',
+            'is_active'
+        ];
+        $subjectArray = array_intersect_key($subject->toArray(), array_flip($allowedColumns));
+        $subjectArray += [
+            'module_id' => null,
+            'sort_order' => 0,
+            'is_active' => 1
+        ];
         $columns = array_keys($subjectArray);
         $placeholders = array_map(fn($col) => ":$col", $columns);
         
@@ -644,11 +493,23 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     private function update(Subject $subject): void
     {
-        $subjectArray = $subject->toArray();
+        $allowedColumns = [
+            'id',
+            'module_id',
+            'name',
+            'sort_order',
+            'is_active'
+        ];
+        $subjectArray = array_intersect_key($subject->toArray(), array_flip($allowedColumns));
+        $subjectArray += [
+            'module_id' => null,
+            'sort_order' => 0,
+            'is_active' => 1
+        ];
         $updateFields = [];
         
         foreach ($subjectArray as $column => $value) {
-            if ($column !== 'id' && $column !== 'created_at') {
+            if ($column !== 'id') {
                 $updateFields[] = "$column = :$column";
             }
         }
@@ -665,24 +526,19 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     private function hydrateSubject(array $data): Subject
     {
+        $rawCode = strtoupper(preg_replace('/[^A-Z0-9_-]/', '', $data['name'] ?? ''));
+        $subjectCode = $rawCode !== '' ? $rawCode : 'SUBJECT';
+
         $subject = new Subject(
             new SubjectId($data['id']),
             $data['name'],
-            new SubjectCode($data['code'])
+            new SubjectCode($subjectCode)
         );
 
-        $subject->setDescription($data['description']);
-        $subject->setDepartment($data['department']);
-        $subject->setGradeLevel($data['grade_level'] ? new \ChristianLMS\Domain\ValueObjects\GradeLevel($data['grade_level']) : null);
-        $subject->setIsCore($data['is_core']);
-        $subject->setCredits($data['credits']);
-        $subject->setHoursPerWeek($data['hours_per_week']);
-        $subject->setPrerequisites(json_decode($data['prerequisites'], true));
-        $subject->setLearningOutcomes($data['learning_outcomes']);
-        $subject->setBibliography($data['bibliography']);
-        $subject->setResources(json_decode($data['resources'], true));
-        $subject->setStatus(new \ChristianLMS\Domain\ValueObjects\SubjectStatus($data['status']));
-        $subject->setMetadata(json_decode($data['metadata'], true) ?? []);
+        if (!empty($data['description'])) {
+            $subject->setDescription($data['description']);
+        }
+        $subject->setStatus(new \ChristianLMS\Domain\ValueObjects\SubjectStatus(($data['is_active'] ?? 1) ? 'active' : 'inactive'));
 
         return $subject;
     }

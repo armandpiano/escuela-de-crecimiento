@@ -64,7 +64,7 @@ class EnrollmentController
                 $criteria['status'] = $_GET['status'];
             }
             if (!empty($_GET['student_id'])) {
-                $criteria['student_id'] = $_GET['student_id'];
+                $criteria['user_id'] = $_GET['student_id'];
             }
             if (!empty($_GET['course_id'])) {
                 $criteria['course_id'] = $_GET['course_id'];
@@ -74,7 +74,7 @@ class EnrollmentController
             
             // Filtrar por permisos de usuario
             if ($currentUser->isStudent()) {
-                $criteria['student_id'] = $currentUser->getId()->getValue();
+                $criteria['user_id'] = $currentUser->getId()->getValue();
             } elseif ($currentUser->isTeacher()) {
                 // TODO: Filtrar por cursos del profesor
             }
@@ -132,10 +132,9 @@ class EnrollmentController
 
             // Verificar que no esté ya inscrito
             $enrollmentRepository = $this->applicationServices->getEnrollmentRepository();
-            $existingEnrollment = $enrollmentRepository->findByStudentAndCourse(
+            $existingEnrollment = $enrollmentRepository->findByUserAndCourse(
                 $currentUser->getId(),
-                $course->getId(),
-                $currentPeriod->getId()
+                $course->getId()
             );
 
             if ($existingEnrollment) {
@@ -186,10 +185,6 @@ class EnrollmentController
             $request = new \ChristianLMS\Application\UseCases\Enrollment\EnrollStudentRequest();
             $request->setStudentId($currentUser->getId()->getValue());
             $request->setCourseId($courseId);
-            $request->setAcademicPeriodId($currentPeriod->getId()->getValue());
-            $request->setPaymentStatus($_POST['payment_status'] ?? 'pending');
-            $request->setPaymentAmount(floatval($_POST['payment_amount'] ?? 0.0));
-            $request->setNotes($_POST['notes'] ?? null);
 
             // Ejecutar caso de uso
             $response = $this->enrollStudentUseCase->execute($request);
@@ -349,9 +344,9 @@ class EnrollmentController
 
             // Completar inscripción
             if ($finalGrade >= 60) {
-                $enrollment->complete($finalGrade, $creditsEarned);
+                $enrollment->setStatus(new \ChristianLMS\Domain\ValueObjects\EnrollmentStatus(\ChristianLMS\Domain\ValueObjects\EnrollmentStatus::COMPLETED));
             } else {
-                $enrollment->fail($finalGrade);
+                $enrollment->setStatus(new \ChristianLMS\Domain\ValueObjects\EnrollmentStatus(\ChristianLMS\Domain\ValueObjects\EnrollmentStatus::FAILED));
             }
 
             $enrollmentRepository->save($enrollment);
@@ -382,11 +377,11 @@ class EnrollmentController
             }
 
             $enrollmentRepository = $this->applicationServices->getEnrollmentRepository();
-            $enrollments = $enrollmentRepository->findByStudent($currentUser->getId());
+            $enrollments = $enrollmentRepository->findByUser($currentUser->getId());
 
             // Obtener estadísticas del estudiante
-            $gpa = $enrollmentRepository->getStudentGPA($currentUser->getId());
-            $totalCredits = $enrollmentRepository->getStudentCredits($currentUser->getId());
+            $gpa = 0;
+            $totalCredits = 0;
 
             $pageTitle = 'Mi Historial Académico';
             include __DIR__ . '/../../UI/Views/pages/enrollments/history.php';
