@@ -52,8 +52,8 @@ function getBasePath() {
         return '/Control-Escolar';
     }
     
-    // Fallback para desarrollo local
-    return '/Control-Escolar';
+    // Fallback para desarrollo local (raíz del servidor)
+    return '';
 }
 
 // Función para obtener la ruta solicitada
@@ -827,10 +827,109 @@ switch ($route['action']) {
     case 'courses':
         requireAuth($route['base_path']);
         requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                if (!empty($_POST['action']) && $_POST['action'] === 'delete') {
+                    $courseId = (int) ($_POST['course_id'] ?? 0);
+                    if (!$courseId) {
+                        throw new Exception('Curso inválido.');
+                    }
+
+                    $pdo->beginTransaction();
+                    $pdo->prepare("DELETE FROM enrollments WHERE course_id = :course_id")->execute(['course_id' => $courseId]);
+                    $pdo->prepare("DELETE FROM course_teachers WHERE course_id = :course_id")->execute(['course_id' => $courseId]);
+                    $pdo->prepare("DELETE FROM courses WHERE id = :course_id")->execute(['course_id' => $courseId]);
+                    $pdo->commit();
+
+                    $successMessage = 'Curso eliminado correctamente.';
+                } else {
+                    $subjectId = (int) ($_POST['subject_id'] ?? 0);
+                    $academicPeriodId = (int) ($_POST['academic_period_id'] ?? 0);
+                    $dayOfWeek = trim($_POST['day_of_week'] ?? '');
+                    $startTime = trim($_POST['start_time'] ?? '');
+                    $endTime = trim($_POST['end_time'] ?? '');
+                    $location = trim($_POST['location'] ?? '');
+                    $maxStudents = (int) ($_POST['max_students'] ?? 0);
+                    $status = trim($_POST['status'] ?? 'draft');
+                    $teacherIds = array_map('intval', $_POST['teacher_ids'] ?? []);
+
+                    if (!$subjectId || !$academicPeriodId) {
+                        throw new Exception('Materia y cuatrimestre son requeridos.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO courses (subject_id, academic_period_id, day_of_week, start_time, end_time, location, max_students, status)
+                        VALUES (:subject_id, :academic_period_id, :day_of_week, :start_time, :end_time, :location, :max_students, :status)
+                    ");
+                    $stmt->execute([
+                        'subject_id' => $subjectId,
+                        'academic_period_id' => $academicPeriodId,
+                        'day_of_week' => $dayOfWeek ?: null,
+                        'start_time' => $startTime ?: null,
+                        'end_time' => $endTime ?: null,
+                        'location' => $location ?: null,
+                        'max_students' => $maxStudents ?: null,
+                        'status' => $status ?: 'draft'
+                    ]);
+                    $courseId = (int) $pdo->lastInsertId();
+
+                    if ($teacherIds) {
+                        $roleIndex = 0;
+                        $teacherStmt = $pdo->prepare("
+                            INSERT INTO course_teachers (course_id, teacher_id, role)
+                            VALUES (:course_id, :teacher_id, :role)
+                        ");
+                        foreach ($teacherIds as $teacherId) {
+                            $teacherStmt->execute([
+                                'course_id' => $courseId,
+                                'teacher_id' => $teacherId,
+                                'role' => $roleIndex === 0 ? 'primary' : 'secondary'
+                            ]);
+                            $roleIndex++;
+                        }
+                    }
+
+                    $successMessage = 'Curso creado correctamente.';
+                }
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $periods = $pdo->query("SELECT * FROM academic_periods ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+        $subjects = $pdo->query("SELECT s.*, m.name AS module_name FROM subjects s LEFT JOIN modules m ON m.id = s.module_id ORDER BY s.sort_order ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $teachers = $pdo->query("SELECT id, name, email FROM users WHERE role = 'teacher' ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $courses = $pdo->query("
+            SELECT c.*, s.name AS subject_name, ap.name AS period_name,
+                   GROUP_CONCAT(u.name SEPARATOR ', ') AS teacher_names
+            FROM courses c
+            INNER JOIN subjects s ON s.id = c.subject_id
+            INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
+            LEFT JOIN course_teachers ct ON ct.course_id = c.id
+            LEFT JOIN users u ON u.id = ct.teacher_id
+            GROUP BY c.id
+            ORDER BY ap.start_date DESC, s.sort_order ASC
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
         echo renderPage(
             __DIR__ . '/../src/UI/Views/courses/index.php',
             'Cursos - Control Escolar',
-            $route['base_path']
+            $route['base_path'],
+            [
+                'courses' => $courses,
+                'subjects' => $subjects,
+                'periods' => $periods,
+                'teachers' => $teachers,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
         );
         break;
         
@@ -875,7 +974,7 @@ switch ($route['action']) {
             }
         }
 
-        if ($userRole === 'student') {
+        if ($userRole === 'student' || $userRole === 'teacher') {
             $eligibleSubjects = $activePeriod ? getEligibleSubjectIds($pdo, $userId) : [];
             $availableCourses = $activePeriod ? getStudentAvailableCourses($pdo, $userId, (int) $activePeriod['id'], $eligibleSubjects) : [];
             $studentEnrollments = getStudentEnrollments($pdo, $userId);
@@ -901,7 +1000,7 @@ switch ($route['action']) {
             exit();
         }
 
-        $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE role = 'student' AND status = 'active' ORDER BY name ASC");
+        $stmt = $pdo->prepare("SELECT id, name, email FROM users WHERE role IN ('student', 'teacher') AND status = 'active' ORDER BY name ASC");
         $stmt->execute();
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -940,10 +1039,330 @@ switch ($route['action']) {
     case 'subjects':
         requireAuth($route['base_path']);
         requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                if (!empty($_POST['action']) && $_POST['action'] === 'delete') {
+                    $subjectId = (int) ($_POST['subject_id'] ?? 0);
+                    if (!$subjectId) {
+                        throw new Exception('Materia inválida.');
+                    }
+                    $pdo->beginTransaction();
+                    $pdo->prepare("DELETE FROM subject_prerequisites WHERE subject_id = :subject_id OR prerequisite_subject_id = :subject_id")->execute(['subject_id' => $subjectId]);
+                    $pdo->prepare("DELETE FROM subjects WHERE id = :subject_id")->execute(['subject_id' => $subjectId]);
+                    $pdo->commit();
+                    $successMessage = 'Materia eliminada correctamente.';
+                } elseif (!empty($_POST['action']) && $_POST['action'] === 'update') {
+                    $subjectId = (int) ($_POST['subject_id'] ?? 0);
+                    if (!$subjectId) {
+                        throw new Exception('Materia inválida.');
+                    }
+                    $name = trim($_POST['name'] ?? '');
+                    $moduleId = (int) ($_POST['module_id'] ?? 0) ?: null;
+                    $sortOrder = (int) ($_POST['sort_order'] ?? 0);
+                    $isActive = !empty($_POST['is_active']) ? 1 : 0;
+                    $prerequisites = array_map('intval', $_POST['prerequisites'] ?? []);
+
+                    if ($name === '') {
+                        throw new Exception('El nombre es obligatorio.');
+                    }
+
+                    $pdo->beginTransaction();
+                    $stmt = $pdo->prepare("
+                        UPDATE subjects
+                        SET name = :name, module_id = :module_id, sort_order = :sort_order, is_active = :is_active
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        'name' => $name,
+                        'module_id' => $moduleId,
+                        'sort_order' => $sortOrder,
+                        'is_active' => $isActive,
+                        'id' => $subjectId
+                    ]);
+
+                    $pdo->prepare("DELETE FROM subject_prerequisites WHERE subject_id = :subject_id")->execute(['subject_id' => $subjectId]);
+                    if ($prerequisites) {
+                        $insert = $pdo->prepare("
+                            INSERT INTO subject_prerequisites (subject_id, prerequisite_subject_id)
+                            VALUES (:subject_id, :prerequisite_subject_id)
+                        ");
+                        foreach ($prerequisites as $prerequisiteId) {
+                            if ($prerequisiteId === $subjectId) {
+                                continue;
+                            }
+                            $insert->execute([
+                                'subject_id' => $subjectId,
+                                'prerequisite_subject_id' => $prerequisiteId
+                            ]);
+                        }
+                    }
+
+                    $pdo->commit();
+                    $successMessage = 'Materia actualizada correctamente.';
+                } else {
+                    $name = trim($_POST['name'] ?? '');
+                    $moduleId = (int) ($_POST['module_id'] ?? 0) ?: null;
+                    $sortOrder = (int) ($_POST['sort_order'] ?? 0);
+                    $isActive = !empty($_POST['is_active']) ? 1 : 0;
+                    $prerequisites = array_map('intval', $_POST['prerequisites'] ?? []);
+
+                    if ($name === '') {
+                        throw new Exception('El nombre es obligatorio.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO subjects (module_id, name, sort_order, is_active)
+                        VALUES (:module_id, :name, :sort_order, :is_active)
+                    ");
+                    $stmt->execute([
+                        'module_id' => $moduleId,
+                        'name' => $name,
+                        'sort_order' => $sortOrder,
+                        'is_active' => $isActive
+                    ]);
+                    $subjectId = (int) $pdo->lastInsertId();
+
+                    if ($prerequisites) {
+                        $insert = $pdo->prepare("
+                            INSERT INTO subject_prerequisites (subject_id, prerequisite_subject_id)
+                            VALUES (:subject_id, :prerequisite_subject_id)
+                        ");
+                        foreach ($prerequisites as $prerequisiteId) {
+                            if ($prerequisiteId === $subjectId) {
+                                continue;
+                            }
+                            $insert->execute([
+                                'subject_id' => $subjectId,
+                                'prerequisite_subject_id' => $prerequisiteId
+                            ]);
+                        }
+                    }
+
+                    $successMessage = 'Materia creada correctamente.';
+                }
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $modules = $pdo->query("SELECT * FROM modules ORDER BY sort_order ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $subjects = $pdo->query("SELECT s.*, m.name AS module_name FROM subjects s LEFT JOIN modules m ON m.id = s.module_id ORDER BY s.sort_order ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $prereqStmt = $pdo->query("SELECT subject_id, prerequisite_subject_id FROM subject_prerequisites");
+        $prereqMap = [];
+        foreach ($prereqStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $prereqMap[$row['subject_id']][] = (int) $row['prerequisite_subject_id'];
+        }
+
         echo renderPage(
             __DIR__ . '/../src/UI/Views/subjects/index.php',
             'Materias - Control Escolar',
-            $route['base_path']
+            $route['base_path'],
+            [
+                'modules' => $modules,
+                'subjects' => $subjects,
+                'prereqMap' => $prereqMap,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
+        );
+        break;
+
+    case 'academic-periods':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                if (!empty($_POST['action']) && $_POST['action'] === 'delete') {
+                    $periodId = (int) ($_POST['period_id'] ?? 0);
+                    if (!$periodId) {
+                        throw new Exception('Periodo inválido.');
+                    }
+                    $pdo->prepare("DELETE FROM academic_periods WHERE id = :id")->execute(['id' => $periodId]);
+                    $successMessage = 'Cuatrimestre eliminado correctamente.';
+                } else {
+                    $name = trim($_POST['name'] ?? '');
+                    $startDate = trim($_POST['start_date'] ?? '');
+                    $endDate = trim($_POST['end_date'] ?? '');
+                    $enrollmentStart = trim($_POST['enrollment_start'] ?? '');
+                    $enrollmentEnd = trim($_POST['enrollment_end'] ?? '');
+                    $status = trim($_POST['status'] ?? 'inactive');
+
+                    if ($name === '' || $startDate === '' || $endDate === '') {
+                        throw new Exception('Nombre y fechas son obligatorios.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO academic_periods (name, start_date, end_date, enrollment_start, enrollment_end, status)
+                        VALUES (:name, :start_date, :end_date, :enrollment_start, :enrollment_end, :status)
+                    ");
+                    $stmt->execute([
+                        'name' => $name,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'enrollment_start' => $enrollmentStart ?: null,
+                        'enrollment_end' => $enrollmentEnd ?: null,
+                        'status' => $status ?: 'inactive'
+                    ]);
+                    $successMessage = 'Cuatrimestre creado correctamente.';
+                }
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $academicPeriods = $pdo->query("SELECT * FROM academic_periods ORDER BY start_date DESC")->fetchAll(PDO::FETCH_ASSOC);
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/academic_periods/index.php',
+            'Cuatrimestres - Control Escolar',
+            $route['base_path'],
+            [
+                'academicPeriods' => $academicPeriods,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
+        );
+        break;
+
+    case 'modules':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                if (!empty($_POST['action']) && $_POST['action'] === 'delete') {
+                    $moduleId = (int) ($_POST['module_id'] ?? 0);
+                    if (!$moduleId) {
+                        throw new Exception('Módulo inválido.');
+                    }
+                    $pdo->prepare("DELETE FROM modules WHERE id = :id")->execute(['id' => $moduleId]);
+                    $successMessage = 'Módulo eliminado correctamente.';
+                } elseif (!empty($_POST['action']) && $_POST['action'] === 'update') {
+                    $moduleId = (int) ($_POST['module_id'] ?? 0);
+                    $name = trim($_POST['name'] ?? '');
+                    $sortOrder = (int) ($_POST['sort_order'] ?? 0);
+                    $isActive = !empty($_POST['is_active']) ? 1 : 0;
+
+                    if (!$moduleId || $name === '') {
+                        throw new Exception('Datos incompletos para actualizar módulo.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        UPDATE modules
+                        SET name = :name, sort_order = :sort_order, is_active = :is_active
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        'id' => $moduleId,
+                        'name' => $name,
+                        'sort_order' => $sortOrder,
+                        'is_active' => $isActive
+                    ]);
+                    $successMessage = 'Módulo actualizado correctamente.';
+                } else {
+                    $name = trim($_POST['name'] ?? '');
+                    $sortOrder = (int) ($_POST['sort_order'] ?? 0);
+                    $isActive = !empty($_POST['is_active']) ? 1 : 0;
+
+                    if ($name === '') {
+                        throw new Exception('El nombre del módulo es obligatorio.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO modules (name, sort_order, is_active)
+                        VALUES (:name, :sort_order, :is_active)
+                    ");
+                    $stmt->execute([
+                        'name' => $name,
+                        'sort_order' => $sortOrder,
+                        'is_active' => $isActive
+                    ]);
+                    $successMessage = 'Módulo creado correctamente.';
+                }
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $modules = $pdo->query("SELECT * FROM modules ORDER BY sort_order ASC")->fetchAll(PDO::FETCH_ASSOC);
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/modules/index.php',
+            'Módulos - Control Escolar',
+            $route['base_path'],
+            [
+                'modules' => $modules,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
+        );
+        break;
+
+    case 'teachers':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $name = trim($_POST['name'] ?? '');
+                $email = trim($_POST['email'] ?? '');
+                $password = trim($_POST['password'] ?? '');
+                $status = trim($_POST['status'] ?? 'active');
+
+                if ($name === '' || $email === '' || $password === '') {
+                    throw new Exception('Nombre, correo y contraseña son obligatorios.');
+                }
+
+                $exists = $pdo->prepare("SELECT 1 FROM users WHERE email = :email LIMIT 1");
+                $exists->execute(['email' => $email]);
+                if ($exists->fetch()) {
+                    throw new Exception('El correo ya está registrado.');
+                }
+
+                $matricula = sprintf('ECAFC%s%03d', date('Y'), random_int(1, 999));
+                $stmt = $pdo->prepare("
+                    INSERT INTO users (matricula, name, email, password, role, status)
+                    VALUES (:matricula, :name, :email, :password, 'teacher', :status)
+                ");
+                $stmt->execute([
+                    'matricula' => $matricula,
+                    'name' => $name,
+                    'email' => $email,
+                    'password' => password_hash($password, PASSWORD_BCRYPT),
+                    'status' => $status ?: 'active'
+                ]);
+
+                $successMessage = 'Profesor creado correctamente.';
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $teachers = $pdo->query("SELECT id, matricula, name, email, status FROM users WHERE role = 'teacher' ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/teachers/index.php',
+            'Profesores - Control Escolar',
+            $route['base_path'],
+            [
+                'teachers' => $teachers,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
         );
         break;
         

@@ -6,7 +6,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userRole = $_SESSION['user_role'] ?? '';
-if ($userRole !== 'student') {
+if (!in_array($userRole, ['student', 'teacher'], true)) {
     header('Location: ' . $basePath . '/dashboard');
     exit();
 }
