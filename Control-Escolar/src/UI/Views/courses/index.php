@@ -47,21 +47,9 @@ if (!isset($_SESSION['user_id'])) {
                                 <option value="draft">Borrador</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label for="gradeLevelFilter" class="form-label">Nivel</label>
-                            <select class="form-select" id="gradeLevelFilter" name="grade_level">
-                                <option value="">Todos los niveles</option>
-                                <option value="1">1° Grado</option>
-                                <option value="2">2° Grado</option>
-                                <option value="3">3° Grado</option>
-                                <option value="4">4° Grado</option>
-                                <option value="5">5° Grado</option>
-                                <option value="6">6° Grado</option>
-                            </select>
-                        </div>
                         <div class="col-md-4">
                             <label for="searchFilter" class="form-label">Buscar</label>
-                            <input type="text" class="form-control" id="searchFilter" name="search" placeholder="Buscar por nombre o código...">
+                            <input type="text" class="form-control" id="searchFilter" name="search" placeholder="Buscar por título del curso...">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
@@ -90,10 +78,10 @@ if (!isset($_SESSION['user_id'])) {
                             <thead>
                                 <tr>
                                     <th><input type="checkbox" id="selectAll"></th>
-                                    <th>Código</th>
-                                    <th>Nombre del Curso</th>
-                                    <th>Nivel</th>
+                                    <th>Curso</th>
+                                    <th>Materia</th>
                                     <th>Período</th>
+                                    <th>Horario</th>
                                     <th>Estado</th>
                                     <th>Inscripciones</th>
                                     <th>Acciones</th>
@@ -140,15 +128,14 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="courseName" class="form-label">Nombre del Curso *</label>
+                                <label for="courseName" class="form-label">Título del Curso *</label>
                                 <input type="text" class="form-control" id="courseName" name="name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="courseCode" class="form-label">Código del Curso *</label>
-                                <input type="text" class="form-control" id="courseCode" name="code" required>
-                                <div class="form-text">Código único de identificación</div>
+                                <label for="courseSubject" class="form-label">Materia (ID)</label>
+                                <input type="number" class="form-control" id="courseSubject" name="subject_id" min="1">
                             </div>
                         </div>
                     </div>
@@ -156,15 +143,16 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="gradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="gradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
+                                <label for="courseDay" class="form-label">Día de la semana</label>
+                                <select class="form-select" id="courseDay" name="day_of_week">
+                                    <option value="">Seleccionar día</option>
+                                    <option value="monday">Lunes</option>
+                                    <option value="tuesday">Martes</option>
+                                    <option value="wednesday">Miércoles</option>
+                                    <option value="thursday">Jueves</option>
+                                    <option value="friday">Viernes</option>
+                                    <option value="saturday">Sábado</option>
+                                    <option value="sunday">Domingo</option>
                                 </select>
                             </div>
                         </div>
@@ -176,6 +164,21 @@ if (!isset($_SESSION['user_id'])) {
                                     <option value="active">Activo</option>
                                     <option value="inactive">Inactivo</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseStartTime" class="form-label">Hora de inicio</label>
+                                <input type="time" class="form-control" id="courseStartTime" name="start_time">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseEndTime" class="form-label">Hora de fin</label>
+                                <input type="time" class="form-control" id="courseEndTime" name="end_time">
                             </div>
                         </div>
                     </div>
@@ -223,14 +226,14 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="editCourseName" class="form-label">Nombre del Curso *</label>
+                                <label for="editCourseName" class="form-label">Título del Curso *</label>
                                 <input type="text" class="form-control" id="editCourseName" name="name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="editCourseCode" class="form-label">Código del Curso *</label>
-                                <input type="text" class="form-control" id="editCourseCode" name="code" required readonly>
+                                <label for="editCourseSubject" class="form-label">Materia (ID)</label>
+                                <input type="number" class="form-control" id="editCourseSubject" name="subject_id" min="1">
                             </div>
                         </div>
                     </div>
@@ -238,15 +241,16 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="editGradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="editGradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
+                                <label for="editCourseDay" class="form-label">Día de la semana</label>
+                                <select class="form-select" id="editCourseDay" name="day_of_week">
+                                    <option value="">Seleccionar día</option>
+                                    <option value="monday">Lunes</option>
+                                    <option value="tuesday">Martes</option>
+                                    <option value="wednesday">Miércoles</option>
+                                    <option value="thursday">Jueves</option>
+                                    <option value="friday">Viernes</option>
+                                    <option value="saturday">Sábado</option>
+                                    <option value="sunday">Domingo</option>
                                 </select>
                             </div>
                         </div>
@@ -258,6 +262,21 @@ if (!isset($_SESSION['user_id'])) {
                                     <option value="active">Activo</option>
                                     <option value="inactive">Inactivo</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCourseStartTime" class="form-label">Hora de inicio</label>
+                                <input type="time" class="form-control" id="editCourseStartTime" name="start_time">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCourseEndTime" class="form-label">Hora de fin</label>
+                                <input type="time" class="form-control" id="editCourseEndTime" name="end_time">
                             </div>
                         </div>
                     </div>
@@ -335,7 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         filters = {
             status: document.getElementById('statusFilter').value,
-            grade_level: document.getElementById('gradeLevelFilter').value,
             search: document.getElementById('searchFilter').value
         };
         currentPage = 1;
@@ -386,12 +404,12 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.innerHTML = `
                 <tr>
                     <td><input type="checkbox" class="course-checkbox" value="1"></td>
-                    <td><span class="badge bg-primary">CUR-001</span></td>
                     <td>Matemáticas Básicas</td>
-                    <td>1° Grado</td>
+                    <td>Materia 1</td>
                     <td>2024-S1</td>
+                    <td>Lunes 08:00 - 10:00</td>
                     <td><span class="badge bg-success">Activo</span></td>
-                    <td>25/30</td>
+                    <td>25</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" onclick="editCourse(1)">
                             <i class="fas fa-edit"></i>
@@ -406,12 +424,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>
                 <tr>
                     <td><input type="checkbox" class="course-checkbox" value="2"></td>
-                    <td><span class="badge bg-primary">CUR-002</span></td>
                     <td>Estudios Bíblicos</td>
-                    <td>2° Grado</td>
+                    <td>Materia 2</td>
                     <td>2024-S1</td>
+                    <td>Miércoles 10:00 - 12:00</td>
                     <td><span class="badge bg-warning">Borrador</span></td>
-                    <td>0/25</td>
+                    <td>0</td>
                     <td>
                         <button class="btn btn-sm btn-outline-primary" onclick="editCourse(2)">
                             <i class="fas fa-edit"></i>
@@ -454,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(document.getElementById('createCourseForm'));
         
         // Validación básica
-        if (!formData.get('name') || !formData.get('code') || !formData.get('grade_level')) {
+        if (!formData.get('name')) {
             showAlert('Por favor complete todos los campos requeridos', 'warning');
             return;
         }
@@ -471,7 +489,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(document.getElementById('editCourseForm'));
         
         // Validación básica
-        if (!formData.get('name') || !formData.get('code') || !formData.get('grade_level')) {
+        if (!formData.get('name')) {
             showAlert('Por favor complete todos los campos requeridos', 'warning');
             return;
         }
@@ -514,8 +532,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function editCourse(courseId) {
     // Cargar datos del curso y abrir modal de edición
     document.getElementById('editCourseId').value = courseId;
-    document.getElementById('editCourseCode').value = 'CUR-00' + courseId;
     document.getElementById('editCourseName').value = courseId == 1 ? 'Matemáticas Básicas' : 'Estudios Bíblicos';
+    document.getElementById('editCourseSubject').value = courseId == 1 ? 1 : 2;
+    document.getElementById('editCourseDay').value = courseId == 1 ? 'monday' : 'wednesday';
+    document.getElementById('editCourseStartTime').value = courseId == 1 ? '08:00' : '10:00';
+    document.getElementById('editCourseEndTime').value = courseId == 1 ? '10:00' : '12:00';
     
     const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
     modal.show();

@@ -70,31 +70,6 @@ if (!isset($_SESSION['user_id'])) {
                                     <option value="inactive">Inactiva</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="categoryFilter" class="form-label">Categoría</label>
-                                <select class="form-select" id="categoryFilter">
-                                    <option value="">Todas las categorías</option>
-                                    <option value="mathematics">Matemáticas</option>
-                                    <option value="language">Lenguaje</option>
-                                    <option value="science">Ciencias</option>
-                                    <option value="social">Ciencias Sociales</option>
-                                    <option value="religious">Educación Religiosa</option>
-                                    <option value="physical">Educación Física</option>
-                                    <option value="arts">Artes</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="gradeLevelFilter" class="form-label">Nivel</label>
-                                <select class="form-select" id="gradeLevelFilter">
-                                    <option value="">Todos los niveles</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
-                            </div>
                         </div>
                         <div class="row mt-3">
                             <div class="col-12">
@@ -142,11 +117,9 @@ if (!isset($_SESSION['user_id'])) {
                             <thead>
                                 <tr>
                                     <th><input type="checkbox" id="selectAllSubjects"></th>
-                                    <th>Código</th>
-                                    <th>Nombre de la Materia</th>
-                                    <th>Categoría</th>
-                                    <th>Nivel</th>
-                                    <th>Creditos</th>
+                                    <th>Materia</th>
+                                    <th>Módulo</th>
+                                    <th>Orden</th>
                                     <th>Estado</th>
                                     <th>Cursos Activos</th>
                                     <th>Acciones</th>
@@ -155,7 +128,7 @@ if (!isset($_SESSION['user_id'])) {
                             <tbody>
                                 <!-- Los datos se cargarán dinámicamente -->
                                 <tr>
-                                    <td colspan="9" class="text-center">
+                                    <td colspan="7" class="text-center">
                                         <div class="spinner-border" role="status">
                                             <span class="visually-hidden">Cargando...</span>
                                         </div>
@@ -203,24 +176,13 @@ if (!isset($_SESSION['user_id'])) {
                                 <input type="text" class="form-control" id="subjectName" name="name" required>
                             </div>
                             <div class="mb-3">
-                                <label for="subjectCode" class="form-label">Código de la Materia *</label>
-                                <input type="text" class="form-control" id="subjectCode" name="code" required>
-                                <div class="form-text">Código único de identificación (ej: MAT-001)</div>
+                                <label for="subjectModule" class="form-label">Módulo (ID)</label>
+                                <input type="number" class="form-control" id="subjectModule" name="module_id" min="1">
+                                <div class="form-text">ID del módulo al que pertenece la materia</div>
                             </div>
                             <div class="mb-3">
-                                <label for="subjectCategory" class="form-label">Categoría *</label>
-                                <select class="form-select" id="subjectCategory" name="category" required>
-                                    <option value="">Seleccionar categoría</option>
-                                    <option value="mathematics">Matemáticas</option>
-                                    <option value="language">Lenguaje y Literatura</option>
-                                    <option value="science">Ciencias Naturales</option>
-                                    <option value="social">Ciencias Sociales</option>
-                                    <option value="religious">Educación Religiosa</option>
-                                    <option value="physical">Educación Física</option>
-                                    <option value="arts">Artes</option>
-                                    <option value="technology">Tecnología</option>
-                                    <option value="foreign_language">Idiomas Extranjeros</option>
-                                </select>
+                                <label for="subjectSortOrder" class="form-label">Orden</label>
+                                <input type="number" class="form-control" id="subjectSortOrder" name="sort_order" min="0" value="0">
                             </div>
                             <div class="mb-3">
                                 <label for="subjectDescription" class="form-label">Descripción</label>
@@ -230,50 +192,15 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <h6 class="text-primary border-bottom pb-2 mb-3">Configuración Académica</h6>
                             <div class="mb-3">
-                                <label for="subjectGradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="subjectGradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectCredits" class="form-label">Créditos</label>
-                                <input type="number" class="form-control" id="subjectCredits" name="credits" min="1" max="10" value="3">
-                                <div class="form-text">Número de créditos académicos (1-10)</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectHours" class="form-label">Horas Semanales</label>
-                                <input type="number" class="form-control" id="subjectHours" name="weekly_hours" min="1" max="40" value="5">
-                                <div class="form-text">Horas de clase por semana</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectStatus" class="form-label">Estado *</label>
-                                <select class="form-select" id="subjectStatus" name="status" required>
-                                    <option value="active">Activa</option>
-                                    <option value="inactive">Inactiva</option>
+                                <label for="subjectIsActive" class="form-label">Estado</label>
+                                <select class="form-select" id="subjectIsActive" name="is_active">
+                                    <option value="1">Activa</option>
+                                    <option value="0">Inactiva</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">Objetivos y Competencias</h6>
-                            <div class="mb-3">
-                                <label for="subjectObjectives" class="form-label">Objetivos de Aprendizaje</label>
-                                <textarea class="form-control" id="subjectObjectives" name="objectives" rows="4" placeholder="Describe los objetivos principales de la materia..."></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectCompetencies" class="form-label">Competencias a Desarrollar</label>
-                                <textarea class="form-control" id="subjectCompetencies" name="competencies" rows="3" placeholder="Lista las competencias que se desarrollarán..."></textarea>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -310,23 +237,8 @@ if (!isset($_SESSION['user_id'])) {
                                 <input type="text" class="form-control" id="editSubjectName" name="name" required>
                             </div>
                             <div class="mb-3">
-                                <label for="editSubjectCode" class="form-label">Código de la Materia *</label>
-                                <input type="text" class="form-control" id="editSubjectCode" name="code" required readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectCategory" class="form-label">Categoría *</label>
-                                <select class="form-select" id="editSubjectCategory" name="category" required>
-                                    <option value="">Seleccionar categoría</option>
-                                    <option value="mathematics">Matemáticas</option>
-                                    <option value="language">Lenguaje y Literatura</option>
-                                    <option value="science">Ciencias Naturales</option>
-                                    <option value="social">Ciencias Sociales</option>
-                                    <option value="religious">Educación Religiosa</option>
-                                    <option value="physical">Educación Física</option>
-                                    <option value="arts">Artes</option>
-                                    <option value="technology">Tecnología</option>
-                                    <option value="foreign_language">Idiomas Extranjeros</option>
-                                </select>
+                                <label for="editSubjectModule" class="form-label">Módulo (ID)</label>
+                                <input type="number" class="form-control" id="editSubjectModule" name="module_id" min="1">
                             </div>
                             <div class="mb-3">
                                 <label for="editSubjectDescription" class="form-label">Descripción</label>
@@ -336,48 +248,19 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <h6 class="text-primary border-bottom pb-2 mb-3">Configuración Académica</h6>
                             <div class="mb-3">
-                                <label for="editSubjectGradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="editSubjectGradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
+                                <label for="editSubjectSortOrder" class="form-label">Orden</label>
+                                <input type="number" class="form-control" id="editSubjectSortOrder" name="sort_order" min="0" value="0">
                             </div>
                             <div class="mb-3">
-                                <label for="editSubjectCredits" class="form-label">Créditos</label>
-                                <input type="number" class="form-control" id="editSubjectCredits" name="credits" min="1" max="10">
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectHours" class="form-label">Horas Semanales</label>
-                                <input type="number" class="form-control" id="editSubjectHours" name="weekly_hours" min="1" max="40">
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectStatus" class="form-label">Estado *</label>
-                                <select class="form-select" id="editSubjectStatus" name="status" required>
-                                    <option value="active">Activa</option>
-                                    <option value="inactive">Inactiva</option>
+                                <label for="editSubjectIsActive" class="form-label">Estado</label>
+                                <select class="form-select" id="editSubjectIsActive" name="is_active">
+                                    <option value="1">Activa</option>
+                                    <option value="0">Inactiva</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-12">
-                            <h6 class="text-primary border-bottom pb-2 mb-3">Objetivos y Competencias</h6>
-                            <div class="mb-3">
-                                <label for="editSubjectObjectives" class="form-label">Objetivos de Aprendizaje</label>
-                                <textarea class="form-control" id="editSubjectObjectives" name="objectives" rows="4"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectCompetencies" class="form-label">Competencias a Desarrollar</label>
-                                <textarea class="form-control" id="editSubjectCompetencies" name="competencies" rows="3"></textarea>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -531,7 +414,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Mostrar loading
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center">
+                <td colspan="7" class="text-center">
                     <div class="spinner-border" role="status">
                         <span class="visually-hidden">Cargando...</span>
                     </div>
@@ -565,7 +448,6 @@ document.addEventListener('DOMContentLoaded', function() {
         tbody.innerHTML = `
             <tr>
                 <td><input type="checkbox" class="subject-checkbox" value="1"></td>
-                <td><span class="badge bg-primary">MAT-001</span></td>
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="subject-icon me-2">
@@ -577,9 +459,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 </td>
-                <td><span class="badge bg-info">Matemáticas</span></td>
-                <td>1°-3° Grado</td>
-                <td>4 créditos</td>
+                <td>1</td>
+                <td>10</td>
                 <td><span class="badge bg-success">Activa</span></td>
                 <td>3 cursos</td>
                 <td>
@@ -590,7 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn btn-sm btn-outline-info" onclick="editSubject(1)">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(1, 'Matemáticas Básicas', 'MAT-001')">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(1, 'Matemáticas Básicas')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -598,7 +479,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </tr>
             <tr>
                 <td><input type="checkbox" class="subject-checkbox" value="2"></td>
-                <td><span class="badge bg-primary">LEN-001</span></td>
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="subject-icon me-2">
@@ -610,9 +490,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 </td>
-                <td><span class="badge bg-warning">Lenguaje</span></td>
-                <td>1°-6° Grado</td>
-                <td>5 créditos</td>
+                <td>2</td>
+                <td>20</td>
                 <td><span class="badge bg-success">Activa</span></td>
                 <td>6 cursos</td>
                 <td>
@@ -623,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn btn-sm btn-outline-info" onclick="editSubject(2)">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(2, 'Lenguaje y Literatura', 'LEN-001')">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(2, 'Lenguaje y Literatura')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -631,7 +510,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </tr>
             <tr>
                 <td><input type="checkbox" class="subject-checkbox" value="3"></td>
-                <td><span class="badge bg-primary">REL-001</span></td>
                 <td>
                     <div class="d-flex align-items-center">
                         <div class="subject-icon me-2">
@@ -643,9 +521,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                 </td>
-                <td><span class="badge bg-danger">Religión</span></td>
-                <td>1°-6° Grado</td>
-                <td>3 créditos</td>
+                <td>3</td>
+                <td>30</td>
                 <td><span class="badge bg-success">Activa</span></td>
                 <td>6 cursos</td>
                 <td>
@@ -656,7 +533,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn btn-sm btn-outline-info" onclick="editSubject(3)">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(3, 'Educación Religiosa', 'REL-001')">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(3, 'Educación Religiosa')">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -677,8 +554,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-calculator text-primary"></i>
                             </div>
                             <div>
-                                <h6 class="mb-0">MAT-001</h6>
-                                <small class="text-muted">Matemáticas</small>
+                                <h6 class="mb-0">Módulo 1</h6>
+                                <small class="text-muted">Orden 10</small>
                             </div>
                         </div>
                         <input type="checkbox" class="subject-checkbox" value="1">
@@ -687,13 +564,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h5 class="card-title">Matemáticas Básicas</h5>
                         <p class="card-text">Fundamentos matemáticos para el desarrollo del pensamiento lógico.</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-info">1°-3° Grado</span>
+                            <span class="badge bg-info">Módulo 1</span>
                             <span class="badge bg-success">Activa</span>
                         </div>
                         <div class="mt-2">
                             <small class="text-muted">
-                                <i class="fas fa-star"></i> 4 créditos
-                                <i class="fas fa-clock ms-2"></i> 5h/semana
+                                <i class="fas fa-sort-numeric-down"></i> Orden 10
                             </small>
                         </div>
                     </div>
@@ -705,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="btn btn-sm btn-outline-info" onclick="editSubject(1)">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(1, 'Matemáticas Básicas', 'MAT-001')">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(1, 'Matemáticas Básicas')">
                                 <i class="fas fa-trash"></i> Eliminar
                             </button>
                         </div>
@@ -720,8 +596,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-book text-success"></i>
                             </div>
                             <div>
-                                <h6 class="mb-0">LEN-001</h6>
-                                <small class="text-muted">Lenguaje</small>
+                                <h6 class="mb-0">Módulo 2</h6>
+                                <small class="text-muted">Orden 20</small>
                             </div>
                         </div>
                         <input type="checkbox" class="subject-checkbox" value="2">
@@ -730,13 +606,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h5 class="card-title">Lenguaje y Literatura</h5>
                         <p class="card-text">Desarrollo de competencias comunicativas y literarias.</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-warning">1°-6° Grado</span>
+                            <span class="badge bg-warning">Módulo 2</span>
                             <span class="badge bg-success">Activa</span>
                         </div>
                         <div class="mt-2">
                             <small class="text-muted">
-                                <i class="fas fa-star"></i> 5 créditos
-                                <i class="fas fa-clock ms-2"></i> 6h/semana
+                                <i class="fas fa-sort-numeric-down"></i> Orden 20
                             </small>
                         </div>
                     </div>
@@ -748,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="btn btn-sm btn-outline-info" onclick="editSubject(2)">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(2, 'Lenguaje y Literatura', 'LEN-001')">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(2, 'Lenguaje y Literatura')">
                                 <i class="fas fa-trash"></i> Eliminar
                             </button>
                         </div>
@@ -763,8 +638,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-church text-warning"></i>
                             </div>
                             <div>
-                                <h6 class="mb-0">REL-001</h6>
-                                <small class="text-muted">Religión</small>
+                                <h6 class="mb-0">Módulo 3</h6>
+                                <small class="text-muted">Orden 30</small>
                             </div>
                         </div>
                         <input type="checkbox" class="subject-checkbox" value="3">
@@ -773,13 +648,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h5 class="card-title">Educación Religiosa</h5>
                         <p class="card-text">Formación cristiana integral y valores bíblicos.</p>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-danger">1°-6° Grado</span>
+                            <span class="badge bg-danger">Módulo 3</span>
                             <span class="badge bg-success">Activa</span>
                         </div>
                         <div class="mt-2">
                             <small class="text-muted">
-                                <i class="fas fa-star"></i> 3 créditos
-                                <i class="fas fa-clock ms-2"></i> 3h/semana
+                                <i class="fas fa-sort-numeric-down"></i> Orden 30
                             </small>
                         </div>
                     </div>
@@ -791,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <button class="btn btn-sm btn-outline-info" onclick="editSubject(3)">
                                 <i class="fas fa-edit"></i> Editar
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(3, 'Educación Religiosa', 'REL-001')">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubjectConfirm(3, 'Educación Religiosa')">
                                 <i class="fas fa-trash"></i> Eliminar
                             </button>
                         </div>
@@ -826,9 +700,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función para aplicar filtros avanzados
     function applyAdvancedFilters() {
         filters = {
-            status: document.getElementById('statusFilter').value,
-            category: document.getElementById('categoryFilter').value,
-            grade_level: document.getElementById('gradeLevelFilter').value
+            status: document.getElementById('statusFilter').value
         };
         
         currentPage = 1;
@@ -839,8 +711,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función para limpiar filtros avanzados
     function clearAdvancedFilters() {
         document.getElementById('statusFilter').value = '';
-        document.getElementById('categoryFilter').value = '';
-        document.getElementById('gradeLevelFilter').value = '';
         document.getElementById('globalSearch').value = '';
         
         filters = {};
@@ -854,7 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(document.getElementById('createSubjectForm'));
         
         // Validación básica
-        if (!formData.get('name') || !formData.get('code') || !formData.get('category') || !formData.get('grade_level')) {
+        if (!formData.get('name')) {
             showAlert('Por favor complete todos los campos requeridos', 'warning');
             return;
         }
@@ -872,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(document.getElementById('editSubjectForm'));
         
         // Validación básica
-        if (!formData.get('name') || !formData.get('code') || !formData.get('category') || !formData.get('grade_level')) {
+        if (!formData.get('name')) {
             showAlert('Por favor complete todos los campos requeridos', 'warning');
             return;
         }
@@ -913,6 +783,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Funciones globales para botones de acción
 function viewSubject(subjectId) {
+    const subjectMap = {
+        1: {
+            name: 'Matemáticas Básicas',
+            description: 'Fundamentos matemáticos para el desarrollo del pensamiento lógico y la resolución de problemas en los primeros grados.',
+            moduleId: 1,
+            sortOrder: 10,
+            activeCourses: 3
+        },
+        2: {
+            name: 'Lenguaje y Literatura',
+            description: 'Desarrollo de competencias comunicativas y literarias.',
+            moduleId: 2,
+            sortOrder: 20,
+            activeCourses: 6
+        },
+        3: {
+            name: 'Educación Religiosa',
+            description: 'Formación cristiana integral y valores bíblicos.',
+            moduleId: 3,
+            sortOrder: 30,
+            activeCourses: 6
+        }
+    };
+    const subject = subjectMap[subjectId] ?? subjectMap[1];
+
     // Cargar detalles de la materia
     const detailsContainer = document.getElementById('subjectDetails');
     detailsContainer.innerHTML = `
@@ -920,27 +815,24 @@ function viewSubject(subjectId) {
             <div class="col-md-6">
                 <h6>Información General</h6>
                 <table class="table table-sm">
-                    <tr><td><strong>Código:</strong></td><td>MAT-00${subjectId}</td></tr>
-                    <tr><td><strong>Nombre:</strong></td><td>Matemáticas Básicas</td></tr>
-                    <tr><td><strong>Categoría:</strong></td><td><span class="badge bg-info">Matemáticas</span></td></tr>
-                    <tr><td><strong>Nivel:</strong></td><td>1°-3° Grado</td></tr>
+                    <tr><td><strong>Nombre:</strong></td><td>${subject.name}</td></tr>
+                    <tr><td><strong>Módulo:</strong></td><td>${subject.moduleId}</td></tr>
+                    <tr><td><strong>Orden:</strong></td><td>${subject.sortOrder}</td></tr>
                     <tr><td><strong>Estado:</strong></td><td><span class="badge bg-success">Activa</span></td></tr>
                 </table>
             </div>
             <div class="col-md-6">
                 <h6>Configuración Académica</h6>
                 <table class="table table-sm">
-                    <tr><td><strong>Créditos:</strong></td><td>4</td></tr>
-                    <tr><td><strong>Horas Semanales:</strong></td><td>5 horas</td></tr>
-                    <tr><td><strong>Cursos Activos:</strong></td><td>3</td></tr>
-                    <tr><td><strong>Profesor:</strong></td><td>Prof. Ana García</td></tr>
+                    <tr><td><strong>Cursos Activos:</strong></td><td>${subject.activeCourses}</td></tr>
+                    <tr><td><strong>Módulo:</strong></td><td>${subject.moduleId}</td></tr>
                 </table>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-12">
                 <h6>Descripción</h6>
-                <p>Fundamentos matemáticos para el desarrollo del pensamiento lógico y la resolución de problemas en los primeros grados.</p>
+                <p>${subject.description}</p>
             </div>
         </div>
     `;
@@ -952,16 +844,17 @@ function viewSubject(subjectId) {
 function editSubject(subjectId) {
     // Cargar datos de la materia y abrir modal de edición
     document.getElementById('editSubjectId').value = subjectId;
-    document.getElementById('editSubjectCode').value = 'MAT-00' + subjectId;
     document.getElementById('editSubjectName').value = subjectId == 1 ? 'Matemáticas Básicas' : 
                                                      subjectId == 2 ? 'Lenguaje y Literatura' : 
                                                      'Educación Religiosa';
+    document.getElementById('editSubjectModule').value = subjectId;
+    document.getElementById('editSubjectSortOrder').value = subjectId * 10;
     
     const modal = new bootstrap.Modal(document.getElementById('editSubjectModal'));
     modal.show();
 }
 
-function deleteSubjectConfirm(subjectId, subjectName, subjectCode) {
+function deleteSubjectConfirm(subjectId, subjectName) {
     document.getElementById('deleteSubjectName').textContent = subjectName;
     document.getElementById('deleteSubjectModal').dataset.subjectId = subjectId;
     

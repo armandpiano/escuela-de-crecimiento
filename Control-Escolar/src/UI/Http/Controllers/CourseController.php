@@ -62,14 +62,8 @@ class CourseController
             if (!empty($_GET['status'])) {
                 $criteria['status'] = $_GET['status'];
             }
-            if (!empty($_GET['professor_id'])) {
-                $criteria['professor_id'] = $_GET['professor_id'];
-            }
             if (!empty($_GET['search'])) {
                 $criteria['name'] = $_GET['search'];
-            }
-            if (!empty($_GET['is_virtual'])) {
-                $criteria['is_virtual'] = filter_var($_GET['is_virtual'], FILTER_VALIDATE_BOOLEAN);
             }
 
             // Obtener cursos
@@ -134,25 +128,9 @@ class CourseController
             
             // Llenar datos del request
             $request->setName($_POST['name'] ?? '');
-            $request->setCode($_POST['code'] ?? '');
-            $request->setProfessorId($_POST['professor_id'] ?? '');
             $request->setSubjectId($_POST['subject_id'] ?: null);
             $request->setDescription($_POST['description'] ?? null);
             $request->setMaxStudents(intval($_POST['max_students'] ?? 50));
-            $request->setCredits(floatval($_POST['credits'] ?? 0.0));
-            $request->setHoursPerWeek(floatval($_POST['hours_per_week'] ?? 0.0));
-            $request->setStartDate($_POST['start_date'] ?: null);
-            $request->setEndDate($_POST['end_date'] ?: null);
-            $request->setSchedule($_POST['schedule'] ? json_decode($_POST['schedule'], true) : null);
-            $request->setIsVirtual(filter_var($_POST['is_virtual'] ?? false, FILTER_VALIDATE_BOOLEAN));
-            $request->setVirtualPlatform($_POST['virtual_platform'] ?? null);
-            $request->setVirtualLink($_POST['virtual_link'] ?? null);
-            $request->setLearningObjectives($_POST['learning_objectives'] ?? null);
-            $request->setSyllabus($_POST['syllabus'] ?? null);
-            $request->setAssessmentMethods($_POST['assessment_methods'] ?? null);
-            $request->setPrerequisites($_POST['prerequisites'] ? json_decode($_POST['prerequisites'], true) : null);
-            $request->setMaterials($_POST['materials'] ? json_decode($_POST['materials'], true) : null);
-            $request->setGradingScale($_POST['grading_scale'] ? json_decode($_POST['grading_scale'], true) : null);
 
             // Ejecutar caso de uso
             $response = $this->createCourseUseCase->execute($request);

@@ -374,8 +374,7 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, arr
         LEFT JOIN course_teachers ct ON ct.course_id = c.id
         LEFT JOIN users u ON u.id = ct.teacher_id
         WHERE c.academic_period_id = :period_id
-          AND c.is_visible = 1
-          AND c.status = 'published'
+          AND c.status = 'active'
           AND c.subject_id IN ({$eligibleList})
           AND c.id NOT IN (
               SELECT course_id FROM enrollments WHERE student_id = :student_id
@@ -919,8 +918,7 @@ switch ($route['action']) {
             INNER JOIN subjects s ON s.id = c.subject_id
             INNER JOIN modules m ON m.id = s.module_id
             WHERE c.academic_period_id = :period_id
-              AND c.is_visible = 1
-              AND c.status = 'published'
+              AND c.status = 'active'
             ORDER BY s.sort_order ASC
         ");
         $coursesStmt->execute(['period_id' => $activePeriod['id'] ?? 0]);

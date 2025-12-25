@@ -386,23 +386,13 @@ class User
     {
         return [
             'id' => $this->id->getValue(),
-            'first_name' => $this->firstName,
-            'last_name' => $this->lastName,
-            'full_name' => $this->getFullName(),
+            'name' => $this->getFullName(),
             'email' => $this->email->getValue(),
+            'password' => $this->passwordHash?->getValue(),
+            'role' => $this->roles[0] ?? 'student',
             'status' => $this->status->getValue(),
-            'gender' => $this->gender->getValue(),
-            'phone' => $this->phone,
-            'address' => $this->address,
-            'profile_photo' => $this->profilePhoto,
-            'roles' => $this->roles,
-            'metadata' => $this->metadata,
-            'last_login_at' => $this->lastLoginAt,
-            'login_attempts' => $this->loginAttempts,
-            'locked_until' => $this->lockedUntil,
             'created_at' => $this->getCreatedAt(),
             'updated_at' => $this->getUpdatedAt(),
-            'deleted_at' => $this->getDeletedAt(),
         ];
     }
 

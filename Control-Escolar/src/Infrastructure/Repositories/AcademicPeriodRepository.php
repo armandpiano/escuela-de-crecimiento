@@ -63,7 +63,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function findById(AcademicPeriodId $id): ?AcademicPeriod
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -84,8 +84,8 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function findByCode(string $code): ?AcademicPeriod
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE code = :code AND deleted_at IS NULL LIMIT 1";
-            $params = ['code' => $code];
+            $sql = "SELECT * FROM {$this->tableName} WHERE name = :name LIMIT 1";
+            $params = ['name' => $code];
             
             $result = $this->connectionManager->query($sql, $params);
             
@@ -105,7 +105,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE deleted_at IS NULL ORDER BY academic_year DESC, period_number ASC";
+            $sql = "SELECT * FROM {$this->tableName} ORDER BY start_date DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateAcademicPeriod'], $results);
@@ -121,8 +121,8 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_active = 1 AND deleted_at IS NULL 
-                    ORDER BY academic_year DESC, period_number ASC";
+                    WHERE status = 'active' 
+                    ORDER BY start_date DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -139,8 +139,8 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_current = 1 AND deleted_at IS NULL 
-                    ORDER BY academic_year DESC, period_number DESC 
+                    WHERE status = 'active' 
+                    ORDER BY start_date DESC 
                     LIMIT 1";
             
             $result = $this->connectionManager->query($sql);
@@ -162,8 +162,8 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE type = :type AND deleted_at IS NULL 
-                    ORDER BY academic_year DESC, period_number ASC";
+                    WHERE type = :type 
+                    ORDER BY start_date DESC";
             $params = ['type' => $type->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -179,18 +179,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function findByAcademicYear(int $year): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE academic_year = :year AND deleted_at IS NULL 
-                    ORDER BY period_number ASC";
-            $params = ['year' => $year];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateAcademicPeriod'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar periodos por año académico: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -200,7 +189,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE start_date > CURDATE() AND deleted_at IS NULL 
+                    WHERE start_date > CURDATE() 
                     ORDER BY start_date ASC";
             
             $results = $this->connectionManager->query($sql);
@@ -220,7 +209,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE start_date <= CURDATE() 
                     AND end_date >= CURDATE() 
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY start_date DESC";
             
             $results = $this->connectionManager->query($sql);
@@ -238,7 +227,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE end_date < CURDATE() AND deleted_at IS NULL 
+                    WHERE end_date < CURDATE() 
                     ORDER BY end_date DESC";
             
             $results = $this->connectionManager->query($sql);
@@ -254,18 +243,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function findByPeriodNumber(int $periodNumber): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE period_number = :period_number AND deleted_at IS NULL 
-                    ORDER BY academic_year DESC";
-            $params = ['period_number' => $periodNumber];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateAcademicPeriod'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar periodos por número: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -288,19 +266,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function softDelete(AcademicPeriodId $id): bool
     {
-        try {
-            $sql = "UPDATE {$this->tableName} 
-                    SET deleted_at = :deleted_at 
-                    WHERE id = :id AND deleted_at IS NULL";
-            $params = [
-                'id' => $id->getValue(),
-                'deleted_at' => date('Y-m-d H:i:s')
-            ];
-            
-            return $this->connectionManager->execute($sql, $params) > 0;
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al eliminar periodo académico suavemente: ' . $e->getMessage());
-        }
+        return $this->delete($id);
     }
 
     /**
@@ -309,7 +275,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function existsById(AcademicPeriodId $id): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -325,8 +291,8 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function existsByCode(string $code): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE code = :code AND deleted_at IS NULL";
-            $params = ['code' => $code];
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE name = :name";
+            $params = ['name' => $code];
             
             $result = $this->connectionManager->query($sql, $params);
             return $result['count'] > 0;
@@ -341,7 +307,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function count(): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE 1=1";
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
         } catch (\Exception $e) {
@@ -356,7 +322,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE is_active = 1 AND deleted_at IS NULL";
+                    WHERE status = 'active'";
             
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
@@ -372,7 +338,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE type = :type AND deleted_at IS NULL";
+                    WHERE type = :type";
             $params = ['type' => $type->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -387,16 +353,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function countByAcademicYear(int $year): int
     {
-        try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE academic_year = :year AND deleted_at IS NULL";
-            $params = ['year' => $year];
-            
-            $result = $this->connectionManager->query($sql, $params);
-            return (int) $result['count'];
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al contar periodos por año académico: ' . $e->getMessage());
-        }
+        return 0;
     }
 
     /**
@@ -408,8 +365,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
             $offset = ($page - 1) * $perPage;
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    ORDER BY academic_year DESC, period_number ASC 
+                    ORDER BY start_date DESC 
                     LIMIT :limit OFFSET :offset";
             
             $params = [
@@ -431,28 +387,18 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     public function search(array $criteria, int $page = 1, int $perPage = 20): array
     {
         try {
-            $whereConditions = ['deleted_at IS NULL'];
+            $whereConditions = ['1=1'];
             $params = [];
             
             // Aplicar criterios de búsqueda
-            if (isset($criteria['is_active'])) {
-                $whereConditions[] = 'is_active = :is_active';
-                $params['is_active'] = $criteria['is_active'] ? 1 : 0;
-            }
-            
-            if (isset($criteria['is_current'])) {
-                $whereConditions[] = 'is_current = :is_current';
-                $params['is_current'] = $criteria['is_current'] ? 1 : 0;
+            if (isset($criteria['status'])) {
+                $whereConditions[] = 'status = :status';
+                $params['status'] = $criteria['status'];
             }
             
             if (isset($criteria['type'])) {
                 $whereConditions[] = 'type = :type';
                 $params['type'] = $criteria['type'];
-            }
-            
-            if (isset($criteria['academic_year'])) {
-                $whereConditions[] = 'academic_year = :academic_year';
-                $params['academic_year'] = $criteria['academic_year'];
             }
             
             if (isset($criteria['name'])) {
@@ -466,7 +412,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE " . implode(' AND ', $whereConditions) . "
-                    ORDER BY academic_year DESC, period_number ASC 
+                    ORDER BY start_date DESC 
                     LIMIT :limit OFFSET :offset";
             
             $results = $this->connectionManager->query($sql, $params);
@@ -485,7 +431,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY created_at DESC";
             $params = ['days' => $days];
             
@@ -504,12 +450,10 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (name LIKE :name OR code LIKE :code) 
-                    AND deleted_at IS NULL 
-                    ORDER BY academic_year DESC, period_number ASC";
+                    WHERE name LIKE :name 
+                    ORDER BY start_date DESC";
             $params = [
-                'name' => '%' . $name . '%',
-                'code' => '%' . $name . '%'
+                'name' => '%' . $name . '%'
             ];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -529,7 +473,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
+                    WHERE 1=1 
                     ORDER BY $orderBy $direction";
             
             $results = $this->connectionManager->query($sql);
@@ -545,17 +489,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function findAcademicYears(): array
     {
-        try {
-            $sql = "SELECT DISTINCT academic_year FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    ORDER BY academic_year DESC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_column($results, 'academic_year');
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al obtener años académicos: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -565,7 +499,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT DISTINCT type FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
+                    WHERE 1=1 
                     ORDER BY type ASC";
             
             $results = $this->connectionManager->query($sql);
@@ -584,14 +518,12 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
         try {
             $sql = "SELECT 
                         COUNT(*) as total,
-                        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active,
-                        SUM(CASE WHEN is_current = 1 THEN 1 ELSE 0 END) as current,
+                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                         SUM(CASE WHEN start_date > CURDATE() THEN 1 ELSE 0 END) as upcoming,
                         SUM(CASE WHEN start_date <= CURDATE() AND end_date >= CURDATE() THEN 1 ELSE 0 END) as in_progress,
-                        SUM(CASE WHEN end_date < CURDATE() THEN 1 ELSE 0 END) as ended,
-                        AVG(max_students_per_course) as avg_max_students
+                        SUM(CASE WHEN end_date < CURDATE() THEN 1 ELSE 0 END) as ended
                     FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL";
+                    WHERE 1=1";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -607,12 +539,12 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE registration_start IS NOT NULL 
-                    AND registration_end IS NOT NULL 
-                    AND registration_start <= CURDATE() 
-                    AND registration_end >= CURDATE()
-                    AND deleted_at IS NULL 
-                    ORDER BY registration_start ASC";
+                    WHERE enrollment_start_date IS NOT NULL 
+                    AND enrollment_end_date IS NOT NULL 
+                    AND enrollment_start_date <= CURDATE() 
+                    AND enrollment_end_date >= CURDATE()
+ 
+                    ORDER BY enrollment_start_date ASC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -629,8 +561,8 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_active = 1 AND deleted_at IS NULL 
-                    ORDER BY academic_year DESC, period_number ASC";
+                    WHERE status = 'active' 
+                    ORDER BY start_date DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -650,7 +582,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
                     WHERE (start_date BETWEEN :start_date AND :end_date 
                            OR end_date BETWEEN :start_date AND :end_date
                            OR (start_date <= :start_date AND end_date >= :end_date))
-                    AND deleted_at IS NULL 
+ 
                     ORDER BY start_date ASC";
             $params = [
                 'start_date' => $startDate,
@@ -672,7 +604,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE start_date > CURDATE() AND deleted_at IS NULL 
+                    WHERE start_date > CURDATE() 
                     ORDER BY start_date ASC 
                     LIMIT 1";
             
@@ -695,7 +627,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE end_date < CURDATE() AND deleted_at IS NULL 
+                    WHERE end_date < CURDATE() 
                     ORDER BY end_date DESC 
                     LIMIT 1";
             
@@ -719,18 +651,9 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
         try {
             $issues = [];
             
-            // Verificar códigos duplicados
-            $sql = "SELECT code, COUNT(*) as count FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    GROUP BY code HAVING count > 1";
-            $results = $this->connectionManager->query($sql);
-            if (!empty($results)) {
-                $issues[] = 'Encontrados códigos de periodo duplicados';
-            }
-            
             // Verificar fechas inválidas
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE end_date <= start_date AND deleted_at IS NULL";
+                    WHERE end_date <= start_date";
             $result = $this->connectionManager->query($sql);
             if ($result['count'] > 0) {
                 $issues[] = "Encontrados {$result['count']} periodos con fechas inválidas";
@@ -747,7 +670,22 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     private function insert(AcademicPeriod $period): void
     {
-        $periodArray = $period->toArray();
+        $allowedColumns = [
+            'id',
+            'name',
+            'type',
+            'start_date',
+            'end_date',
+            'enrollment_start_date',
+            'enrollment_end_date',
+            'status',
+            'created_at',
+            'updated_at'
+        ];
+        $periodArray = array_intersect_key($period->toArray(), array_flip($allowedColumns));
+        $periodArray += [
+            'status' => 'draft'
+        ];
         $columns = array_keys($periodArray);
         $placeholders = array_map(fn($col) => ":$col", $columns);
         
@@ -762,7 +700,22 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     private function update(AcademicPeriod $period): void
     {
-        $periodArray = $period->toArray();
+        $allowedColumns = [
+            'id',
+            'name',
+            'type',
+            'start_date',
+            'end_date',
+            'enrollment_start_date',
+            'enrollment_end_date',
+            'status',
+            'created_at',
+            'updated_at'
+        ];
+        $periodArray = array_intersect_key($period->toArray(), array_flip($allowedColumns));
+        $periodArray += [
+            'status' => 'draft'
+        ];
         $updateFields = [];
         
         foreach ($periodArray as $column => $value) {
@@ -783,26 +736,26 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     private function hydrateAcademicPeriod(array $data): AcademicPeriod
     {
+        $academicYear = (int) date('Y', strtotime($data['start_date'] ?? 'now'));
+
         $period = new AcademicPeriod(
             new AcademicPeriodId($data['id']),
             $data['name'],
-            $data['code'],
+            $data['name'],
             new AcademicPeriodType($data['type']),
             $data['start_date'],
             $data['end_date'],
-            $data['academic_year'],
-            $data['period_number']
+            $academicYear,
+            1
         );
 
-        $period->setRegistrationStart($data['registration_start']);
-        $period->setRegistrationEnd($data['registration_end']);
-        $period->setIsActive($data['is_active']);
-        $period->setIsCurrent($data['is_current']);
-        $period->setMaxStudentsPerCourse($data['max_students_per_course']);
-        $period->setGradingDeadline($data['grading_deadline']);
-        $period->setTranscriptReleaseDate($data['transcript_release_date']);
-        $period->setNotes($data['notes']);
-        $period->setMetadata(json_decode($data['metadata'], true) ?? []);
+        if (!empty($data['enrollment_start_date'])) {
+            $period->setRegistrationStart($data['enrollment_start_date']);
+        }
+        if (!empty($data['enrollment_end_date'])) {
+            $period->setRegistrationEnd($data['enrollment_end_date']);
+        }
+        $period->setIsActive(($data['status'] ?? '') === 'active');
 
         return $period;
     }
