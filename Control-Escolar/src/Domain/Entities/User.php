@@ -29,6 +29,7 @@ class User
     use Timestampable, SoftDeleteable;
 
     private UserId $id;
+    private ?string $matricula = null;
     private string $firstName;
     private string $lastName;
     private Email $email;
@@ -93,6 +94,11 @@ class User
     public function getFirstName(): string
     {
         return $this->firstName;
+    }
+
+    public function getMatricula(): ?string
+    {
+        return $this->matricula;
     }
 
     public function getLastName(): string
@@ -188,6 +194,12 @@ class User
             throw new \InvalidArgumentException('El nombre no puede estar vacío');
         }
         $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function setMatricula(?string $matricula): self
+    {
+        $this->matricula = $matricula;
         return $this;
     }
 
@@ -386,13 +398,12 @@ class User
     {
         return [
             'id' => $this->id->getValue(),
+            'matricula' => $this->matricula,
             'name' => $this->getFullName(),
             'email' => $this->email->getValue(),
             'password' => $this->passwordHash?->getValue(),
             'role' => $this->roles[0] ?? 'student',
             'status' => $this->status->getValue(),
-            'created_at' => $this->getCreatedAt(),
-            'updated_at' => $this->getUpdatedAt(),
         ];
     }
 

@@ -167,19 +167,19 @@ class Application
     {
         $expectedTables = [
             'users' => [
-                'columns' => ['id', 'matricula', 'name', 'email', 'role', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'matricula', 'name', 'email', 'password', 'role', 'status']
             ],
             'courses' => [
-                'columns' => ['id', 'academic_period_id', 'subject_id', 'title', 'day_of_week', 'start_time', 'end_time', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'academic_period_id', 'subject_id', 'day_of_week', 'start_time', 'end_time', 'location', 'max_students', 'status']
             ],
             'subjects' => [
-                'columns' => ['id', 'module_id', 'name', 'sort_order', 'is_active', 'created_at', 'updated_at']
+                'columns' => ['id', 'module_id', 'name', 'sort_order', 'is_active']
             ],
             'academic_periods' => [
-                'columns' => ['id', 'name', 'type', 'start_date', 'end_date', 'enrollment_start_date', 'enrollment_end_date', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'name', 'start_date', 'end_date', 'enrollment_start', 'enrollment_end', 'status']
             ],
             'enrollments' => [
-                'columns' => ['id', 'student_id', 'course_id', 'enrollment_date', 'status', 'enrolled_by', 'override_seriation', 'override_schedule', 'created_at', 'updated_at']
+                'columns' => ['id', 'user_id', 'course_id', 'status', 'enrolled_by', 'override_seriation', 'override_schedule']
             ]
         ];
 
@@ -261,18 +261,17 @@ class Application
         // Crear usuario admin por defecto
         $adminData = [
             'id' => \ChristianLMS\Domain\ValueObjects\UserId::generate()->getValue(),
+            'matricula' => sprintf('ECAFC%s%03d', date('Y'), random_int(1, 999)),
             'name' => 'Administrador Sistema',
             'email' => 'admin@churchlms.com',
             'password' => password_hash('admin123', PASSWORD_BCRYPT),
             'role' => 'admin',
-            'status' => 'active',
-            'created_at' => date('Y-m-d H:i:s'),
-            'updated_at' => date('Y-m-d H:i:s')
+            'status' => 'active'
         ];
 
         $this->connectionManager->execute(
-            "INSERT INTO users (id, name, email, password, role, status, created_at, updated_at) 
-             VALUES (:id, :name, :email, :password, :role, :status, :created_at, :updated_at)",
+            "INSERT INTO users (id, matricula, name, email, password, role, status) 
+             VALUES (:id, :matricula, :name, :email, :password, :role, :status)",
             $adminData
         );
     }

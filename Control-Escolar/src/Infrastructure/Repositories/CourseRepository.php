@@ -43,14 +43,12 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $courseArray = $course->toArray();
-            $courseArray['updated_at'] = date('Y-m-d H:i:s');
-            
+
             if ($this->existsById($course->getId())) {
                 // Actualizar curso existente
                 $this->update($course);
             } else {
                 // Crear nuevo curso
-                $courseArray['created_at'] = date('Y-m-d H:i:s');
                 $this->insert($course);
             }
             
@@ -66,7 +64,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findById(CourseId $id): ?Course
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE c.id = :id
+                    LIMIT 1";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -87,8 +89,12 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByCode(CourseCode $code): ?Course
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE title = :title LIMIT 1";
-            $params = ['title' => $code->getValue()];
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE s.name = :name
+                    LIMIT 1";
+            $params = ['name' => $code->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             
@@ -108,7 +114,10 @@ class CourseRepository implements CourseRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} ORDER BY created_at DESC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    ORDER BY c.id DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateCourse'], $results);
@@ -126,7 +135,7 @@ class CourseRepository implements CourseRepositoryInterface
             $sql = "SELECT c.* FROM {$this->tableName} c
                     INNER JOIN course_teachers ct ON ct.course_id = c.id
                     WHERE ct.teacher_id = :teacher_id
-                    ORDER BY c.created_at DESC";
+                    ORDER BY c.id DESC";
             $params = ['teacher_id' => $professorId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -143,9 +152,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findBySubject(SubjectId $subjectId): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE subject_id = :subject_id 
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE c.subject_id = :subject_id
+                    ORDER BY c.id DESC";
             $params = ['subject_id' => $subjectId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -162,9 +173,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByStatus(CourseStatus $status): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = :status 
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE c.status = :status
+                    ORDER BY c.id DESC";
             $params = ['status' => $status->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -189,9 +202,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findWithAvailableSpots(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = 'active'
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE c.status = 'active'
+                    ORDER BY c.id DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -262,8 +277,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function existsByCode(CourseCode $code): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE title = :title";
-            $params = ['title' => $code->getValue()];
+            $sql = "SELECT COUNT(*) as count
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE s.name = :name";
+            $params = ['name' => $code->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             return $result['count'] > 0;
@@ -327,9 +345,10 @@ class CourseRepository implements CourseRepositoryInterface
         try {
             $offset = ($page - 1) * $perPage;
             
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE 1=1 
-                    ORDER BY created_at DESC 
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    ORDER BY c.id DESC
                     LIMIT :limit OFFSET :offset";
             
             $params = [
@@ -356,32 +375,32 @@ class CourseRepository implements CourseRepositoryInterface
             
             // Aplicar criterios de búsqueda
             if (isset($criteria['status'])) {
-                $whereConditions[] = 'status = :status';
+                $whereConditions[] = 'c.status = :status';
                 $params['status'] = $criteria['status'];
             }
             
             if (isset($criteria['professor_id'])) {
-                $whereConditions[] = 'id IN (SELECT course_id FROM course_teachers WHERE teacher_id = :teacher_id)';
+                $whereConditions[] = 'c.id IN (SELECT course_id FROM course_teachers WHERE teacher_id = :teacher_id)';
                 $params['teacher_id'] = $criteria['professor_id'];
             }
             
             if (isset($criteria['subject_id'])) {
-                $whereConditions[] = 'subject_id = :subject_id';
+                $whereConditions[] = 'c.subject_id = :subject_id';
                 $params['subject_id'] = $criteria['subject_id'];
             }
             
             if (isset($criteria['name'])) {
-                $whereConditions[] = 'title LIKE :title';
-                $params['title'] = '%' . $criteria['name'] . '%';
+                $whereConditions[] = 's.name LIKE :subject_name';
+                $params['subject_name'] = '%' . $criteria['name'] . '%';
             }
             
             if (isset($criteria['code'])) {
-                $whereConditions[] = 'title LIKE :title_code';
-                $params['title_code'] = '%' . $criteria['code'] . '%';
+                $whereConditions[] = 's.name LIKE :subject_code';
+                $params['subject_code'] = '%' . $criteria['code'] . '%';
             }
             
             if (isset($criteria['available_spots_only']) && $criteria['available_spots_only']) {
-                $whereConditions[] = 'status = :available_status';
+                $whereConditions[] = 'c.status = :available_status';
                 $params['available_status'] = 'active';
             }
             
@@ -389,9 +408,11 @@ class CourseRepository implements CourseRepositoryInterface
             $params['limit'] = $perPage;
             $params['offset'] = $offset;
             
-            $sql = "SELECT * FROM {$this->tableName} 
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
                     WHERE " . implode(' AND ', $whereConditions) . "
-                    ORDER BY created_at DESC 
+                    ORDER BY c.id DESC
                     LIMIT :limit OFFSET :offset";
             
             $results = $this->connectionManager->query($sql, $params);
@@ -407,19 +428,7 @@ class CourseRepository implements CourseRepositoryInterface
      */
     public function findRecent(int $days = 30): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
- 
-                    ORDER BY created_at DESC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateCourse'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar cursos recientes: ' . $e->getMessage());
-        }
+        return $this->findPaginated(1, 20);
     }
 
     /**
@@ -428,11 +437,13 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByName(string $name): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE title LIKE :title 
-                    ORDER BY title ASC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE s.name LIKE :name
+                    ORDER BY s.name ASC";
             $params = [
-                'title' => '%' . $name . '%'
+                'name' => '%' . $name . '%'
             ];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -446,14 +457,17 @@ class CourseRepository implements CourseRepositoryInterface
     /**
      * Obtener cursos ordenados
      */
-    public function findOrdered(string $orderBy = 'created_at', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'id', string $direction = 'DESC'): array
     {
         try {
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
-            
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE 1=1 
-                    ORDER BY $orderBy $direction";
+            $allowedColumns = ['id', 'status', 'academic_period_id', 'subject_id', 'day_of_week'];
+            $orderBy = in_array($orderBy, $allowedColumns, true) ? $orderBy : 'id';
+
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    ORDER BY c.$orderBy $direction";
             
             $results = $this->connectionManager->query($sql);
             
@@ -469,9 +483,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByAcademicPeriod(string $academicPeriodId): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE academic_period_id = :academic_period_id 
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE c.academic_period_id = :academic_period_id
+                    ORDER BY c.id DESC";
             $params = ['academic_period_id' => $academicPeriodId];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -493,8 +509,7 @@ class CourseRepository implements CourseRepositoryInterface
                         SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                         SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
                         SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived
-                    FROM {$this->tableName} 
-                    WHERE 1=1";
+                    FROM {$this->tableName}";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -509,9 +524,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findAvailableForEnrollment(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = 'active' 
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, s.name AS subject_name
+                    FROM {$this->tableName} c
+                    LEFT JOIN subjects s ON s.id = c.subject_id
+                    WHERE c.status = 'active'
+                    ORDER BY c.id DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -552,18 +569,14 @@ class CourseRepository implements CourseRepositoryInterface
             'id',
             'academic_period_id',
             'subject_id',
-            'title',
             'day_of_week',
             'start_time',
             'end_time',
             'status',
-            'created_at',
-            'updated_at'
+            'location',
+            'max_students'
         ];
         $courseArray = array_intersect_key($course->toArray(), array_flip($allowedColumns));
-        if (empty($courseArray['title']) && !empty($course->toArray()['name'])) {
-            $courseArray['title'] = $course->toArray()['name'];
-        }
         $courseArray += [
             'status' => 'draft'
         ];
@@ -585,25 +598,21 @@ class CourseRepository implements CourseRepositoryInterface
             'id',
             'academic_period_id',
             'subject_id',
-            'title',
             'day_of_week',
             'start_time',
             'end_time',
             'status',
-            'created_at',
-            'updated_at'
+            'location',
+            'max_students'
         ];
         $courseArray = array_intersect_key($course->toArray(), array_flip($allowedColumns));
-        if (empty($courseArray['title']) && !empty($course->toArray()['name'])) {
-            $courseArray['title'] = $course->toArray()['name'];
-        }
         $courseArray += [
             'status' => 'draft'
         ];
         $updateFields = [];
         
         foreach ($courseArray as $column => $value) {
-            if ($column !== 'id' && $column !== 'created_at') {
+            if ($column !== 'id') {
                 $updateFields[] = "$column = :$column";
             }
         }
@@ -620,12 +629,13 @@ class CourseRepository implements CourseRepositoryInterface
      */
     private function hydrateCourse(array $data): Course
     {
-        $rawCode = strtoupper(preg_replace('/[^A-Z0-9_-]/', '', $data['title'] ?? ''));
+        $subjectName = $data['subject_name'] ?? 'Curso';
+        $rawCode = strtoupper(preg_replace('/[^A-Z0-9_-]/', '', $subjectName));
         $courseCode = $rawCode !== '' ? $rawCode : 'COURSE';
 
         $course = new Course(
             new CourseId($data['id']),
-            $data['title'],
+            $subjectName,
             new CourseCode($courseCode),
             UserId::fromString('0'),
             $data['subject_id'] ? new SubjectId($data['subject_id']) : null
@@ -633,6 +643,21 @@ class CourseRepository implements CourseRepositoryInterface
 
         if (!empty($data['academic_period_id'])) {
             $course->setAcademicPeriodId($data['academic_period_id']);
+        }
+        if (!empty($data['day_of_week'])) {
+            $course->setDayOfWeek($data['day_of_week']);
+        }
+        if (!empty($data['start_time'])) {
+            $course->setStartTime($data['start_time']);
+        }
+        if (!empty($data['end_time'])) {
+            $course->setEndTime($data['end_time']);
+        }
+        if (!empty($data['location'])) {
+            $course->setLocation($data['location']);
+        }
+        if (!empty($data['max_students'])) {
+            $course->setMaxStudents($data['max_students']);
         }
         $course->setStatus(new \ChristianLMS\Domain\ValueObjects\CourseStatus($data['status']));
 

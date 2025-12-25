@@ -42,14 +42,12 @@ class SubjectRepository implements SubjectRepositoryInterface
     {
         try {
             $subjectArray = $subject->toArray();
-            $subjectArray['updated_at'] = date('Y-m-d H:i:s');
-            
+
             if ($this->existsById($subject->getId())) {
                 // Actualizar materia existente
                 $this->update($subject);
             } else {
                 // Crear nueva materia
-                $subjectArray['created_at'] = date('Y-m-d H:i:s');
                 $this->insert($subject);
             }
             
@@ -343,19 +341,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findRecent(int $days = 30): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
- 
-                    ORDER BY created_at DESC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias recientes: ' . $e->getMessage());
-        }
+        return $this->findPaginated(1, 20);
     }
 
     /**
@@ -382,13 +368,15 @@ class SubjectRepository implements SubjectRepositoryInterface
     /**
      * Obtener materias ordenadas
      */
-    public function findOrdered(string $orderBy = 'created_at', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'sort_order', string $direction = 'ASC'): array
     {
         try {
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
-            
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE 1=1 
+            $allowedColumns = ['id', 'name', 'sort_order', 'module_id', 'is_active'];
+            $orderBy = in_array($orderBy, $allowedColumns, true) ? $orderBy : 'sort_order';
+
+            $sql = "SELECT * FROM {$this->tableName}
+                    WHERE 1=1
                     ORDER BY $orderBy $direction";
             
             $results = $this->connectionManager->query($sql);
@@ -456,22 +444,7 @@ class SubjectRepository implements SubjectRepositoryInterface
      */
     public function findByDateRange(string $startDate, string $endDate): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at BETWEEN :start_date AND :end_date
- 
-                    ORDER BY created_at DESC";
-            $params = [
-                'start_date' => $startDate,
-                'end_date' => $endDate
-            ];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateSubject'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar materias por rango de fechas: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -497,11 +470,8 @@ class SubjectRepository implements SubjectRepositoryInterface
             'id',
             'module_id',
             'name',
-            'description',
             'sort_order',
-            'is_active',
-            'created_at',
-            'updated_at'
+            'is_active'
         ];
         $subjectArray = array_intersect_key($subject->toArray(), array_flip($allowedColumns));
         $subjectArray += [
@@ -527,11 +497,8 @@ class SubjectRepository implements SubjectRepositoryInterface
             'id',
             'module_id',
             'name',
-            'description',
             'sort_order',
-            'is_active',
-            'created_at',
-            'updated_at'
+            'is_active'
         ];
         $subjectArray = array_intersect_key($subject->toArray(), array_flip($allowedColumns));
         $subjectArray += [
@@ -542,7 +509,7 @@ class SubjectRepository implements SubjectRepositoryInterface
         $updateFields = [];
         
         foreach ($subjectArray as $column => $value) {
-            if ($column !== 'id' && $column !== 'created_at') {
+            if ($column !== 'id') {
                 $updateFields[] = "$column = :$column";
             }
         }

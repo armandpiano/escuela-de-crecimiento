@@ -288,11 +288,11 @@ function getActiveAcademicPeriod(PDO $pdo): ?array
 function isEnrollmentWindowOpen(array $period): bool
 {
     $now = new DateTimeImmutable();
-    if (empty($period['enrollment_start_date']) || empty($period['enrollment_end_date'])) {
+    if (empty($period['enrollment_start']) || empty($period['enrollment_end'])) {
         return true;
     }
-    $start = new DateTimeImmutable($period['enrollment_start_date']);
-    $end = new DateTimeImmutable($period['enrollment_end_date']);
+    $start = new DateTimeImmutable($period['enrollment_start']);
+    $end = new DateTimeImmutable($period['enrollment_end']);
     return $now >= $start && $now <= $end;
 }
 
@@ -302,7 +302,7 @@ function getCompletedSubjectIds(PDO $pdo, int $studentId): array
         SELECT DISTINCT c.subject_id
         FROM enrollments e
         INNER JOIN courses c ON c.id = e.course_id
-        WHERE e.student_id = :student_id
+        WHERE e.user_id = :student_id
           AND e.status = 'completed'
     ");
     $stmt->execute(['student_id' => $studentId]);
@@ -335,7 +335,6 @@ function getStudentEnrollments(PDO $pdo, int $studentId): array
     $stmt = $pdo->prepare("
         SELECT e.id,
                e.status,
-               e.enrollment_date,
                c.day_of_week,
                c.start_time,
                c.end_time,
@@ -345,8 +344,8 @@ function getStudentEnrollments(PDO $pdo, int $studentId): array
         INNER JOIN courses c ON c.id = e.course_id
         INNER JOIN subjects s ON s.id = c.subject_id
         INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
-        WHERE e.student_id = :student_id
-        ORDER BY e.enrollment_date DESC
+        WHERE e.user_id = :student_id
+        ORDER BY e.id DESC
     ");
     $stmt->execute(['student_id' => $studentId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -377,7 +376,7 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, arr
           AND c.status = 'active'
           AND c.subject_id IN ({$eligibleList})
           AND c.id NOT IN (
-              SELECT course_id FROM enrollments WHERE student_id = :student_id
+              SELECT course_id FROM enrollments WHERE user_id = :student_id
           )
         GROUP BY c.id
         ORDER BY s.sort_order ASC
@@ -411,7 +410,7 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
         throw new Exception('La ventana de inscripción está cerrada.');
     }
 
-    $existsStmt = $pdo->prepare("SELECT 1 FROM enrollments WHERE student_id = :student_id AND course_id = :course_id LIMIT 1");
+    $existsStmt = $pdo->prepare("SELECT 1 FROM enrollments WHERE user_id = :student_id AND course_id = :course_id LIMIT 1");
     $existsStmt->execute([
         'student_id' => $studentId,
         'course_id' => $courseId
@@ -432,7 +431,7 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
             SELECT 1
             FROM enrollments e
             INNER JOIN courses c ON c.id = e.course_id
-            WHERE e.student_id = :student_id
+            WHERE e.user_id = :student_id
               AND c.academic_period_id = :period_id
               AND c.day_of_week = :day_of_week
               AND (
@@ -453,13 +452,12 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
     }
 
     $insertStmt = $pdo->prepare("
-        INSERT INTO enrollments (student_id, course_id, academic_period_id, status, enrolled_by, override_seriation, override_schedule, created_at)
-        VALUES (:student_id, :course_id, :academic_period_id, 'active', :enrolled_by, :override_seriation, :override_schedule, NOW())
+        INSERT INTO enrollments (user_id, course_id, status, enrolled_by, override_seriation, override_schedule)
+        VALUES (:student_id, :course_id, 'enrolled', :enrolled_by, :override_seriation, :override_schedule)
     ");
     $insertStmt->execute([
         'student_id' => $studentId,
         'course_id' => $courseId,
-        'academic_period_id' => $course['academic_period_id'],
         'enrolled_by' => $enrolledBy,
         'override_seriation' => $overrideSeriation ? 1 : 0,
         'override_schedule' => $overrideSchedule ? 1 : 0

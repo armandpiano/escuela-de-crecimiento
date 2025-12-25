@@ -40,14 +40,12 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $periodArray = $period->toArray();
-            $periodArray['updated_at'] = date('Y-m-d H:i:s');
-            
+
             if ($this->existsById($period->getId())) {
                 // Actualizar periodo existente
                 $this->update($period);
             } else {
                 // Crear nuevo periodo
-                $periodArray['created_at'] = date('Y-m-d H:i:s');
                 $this->insert($period);
             }
             
@@ -160,18 +158,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function findByType(AcademicPeriodType $type): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE type = :type 
-                    ORDER BY start_date DESC";
-            $params = ['type' => $type->getValue()];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateAcademicPeriod'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar periodos por tipo: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -336,16 +323,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function countByType(AcademicPeriodType $type): int
     {
-        try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE type = :type";
-            $params = ['type' => $type->getValue()];
-            
-            $result = $this->connectionManager->query($sql, $params);
-            return (int) $result['count'];
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al contar periodos por tipo: ' . $e->getMessage());
-        }
+        return 0;
     }
 
     /**
@@ -396,11 +374,6 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
                 $params['status'] = $criteria['status'];
             }
             
-            if (isset($criteria['type'])) {
-                $whereConditions[] = 'type = :type';
-                $params['type'] = $criteria['type'];
-            }
-            
             if (isset($criteria['name'])) {
                 $whereConditions[] = 'name LIKE :name';
                 $params['name'] = '%' . $criteria['name'] . '%';
@@ -428,19 +401,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function findRecent(int $days = 30): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
- 
-                    ORDER BY created_at DESC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateAcademicPeriod'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar periodos académicos recientes: ' . $e->getMessage());
-        }
+        return $this->findPaginated(1, 20);
     }
 
     /**
@@ -467,11 +428,13 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     /**
      * Obtener periodos académicos ordenados
      */
-    public function findOrdered(string $orderBy = 'created_at', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'start_date', string $direction = 'DESC'): array
     {
         try {
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
-            
+            $allowedColumns = ['id', 'name', 'start_date', 'end_date', 'status'];
+            $orderBy = in_array($orderBy, $allowedColumns, true) ? $orderBy : 'start_date';
+
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE 1=1 
                     ORDER BY $orderBy $direction";
@@ -497,17 +460,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
      */
     public function findTypes(): array
     {
-        try {
-            $sql = "SELECT DISTINCT type FROM {$this->tableName} 
-                    WHERE 1=1 
-                    ORDER BY type ASC";
-            
-            $results = $this->connectionManager->query($sql);
-            
-            return array_column($results, 'type');
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al obtener tipos de periodo: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -539,12 +492,12 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE enrollment_start_date IS NOT NULL 
-                    AND enrollment_end_date IS NOT NULL 
-                    AND enrollment_start_date <= CURDATE() 
-                    AND enrollment_end_date >= CURDATE()
+                    WHERE enrollment_start IS NOT NULL 
+                    AND enrollment_end IS NOT NULL 
+                    AND enrollment_start <= CURDATE() 
+                    AND enrollment_end >= CURDATE()
  
-                    ORDER BY enrollment_start_date ASC";
+                    ORDER BY enrollment_start ASC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -673,14 +626,11 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
         $allowedColumns = [
             'id',
             'name',
-            'type',
             'start_date',
             'end_date',
-            'enrollment_start_date',
-            'enrollment_end_date',
-            'status',
-            'created_at',
-            'updated_at'
+            'enrollment_start',
+            'enrollment_end',
+            'status'
         ];
         $periodArray = array_intersect_key($period->toArray(), array_flip($allowedColumns));
         $periodArray += [
@@ -703,14 +653,11 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
         $allowedColumns = [
             'id',
             'name',
-            'type',
             'start_date',
             'end_date',
-            'enrollment_start_date',
-            'enrollment_end_date',
-            'status',
-            'created_at',
-            'updated_at'
+            'enrollment_start',
+            'enrollment_end',
+            'status'
         ];
         $periodArray = array_intersect_key($period->toArray(), array_flip($allowedColumns));
         $periodArray += [
@@ -719,7 +666,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
         $updateFields = [];
         
         foreach ($periodArray as $column => $value) {
-            if ($column !== 'id' && $column !== 'created_at') {
+            if ($column !== 'id') {
                 $updateFields[] = "$column = :$column";
             }
         }
@@ -742,18 +689,18 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
             new AcademicPeriodId($data['id']),
             $data['name'],
             $data['name'],
-            new AcademicPeriodType($data['type']),
+            AcademicPeriodType::custom(),
             $data['start_date'],
             $data['end_date'],
             $academicYear,
             1
         );
 
-        if (!empty($data['enrollment_start_date'])) {
-            $period->setRegistrationStart($data['enrollment_start_date']);
+        if (!empty($data['enrollment_start'])) {
+            $period->setRegistrationStart($data['enrollment_start']);
         }
-        if (!empty($data['enrollment_end_date'])) {
-            $period->setRegistrationEnd($data['enrollment_end_date']);
+        if (!empty($data['enrollment_end'])) {
+            $period->setRegistrationEnd($data['enrollment_end']);
         }
         $period->setIsActive(($data['status'] ?? '') === 'active');
 

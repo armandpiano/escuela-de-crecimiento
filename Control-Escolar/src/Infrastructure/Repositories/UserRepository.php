@@ -42,14 +42,12 @@ class UserRepository implements UserRepositoryInterface
     {
         try {
             $userArray = $user->toArray();
-            $userArray['updated_at'] = date('Y-m-d H:i:s');
-            
+
             if ($this->existsById($user->getId())) {
                 // Actualizar usuario existente
                 $this->update($user);
             } else {
                 // Crear nuevo usuario
-                $userArray['created_at'] = date('Y-m-d H:i:s');
                 $this->insert($user);
             }
             
@@ -128,7 +126,7 @@ class UserRepository implements UserRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} ORDER BY created_at DESC";
+            $sql = "SELECT * FROM {$this->tableName} ORDER BY id DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateUser'], $results);
@@ -143,7 +141,7 @@ class UserRepository implements UserRepositoryInterface
     public function findByStatus(UserStatus $status): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE status = :status ORDER BY created_at DESC";
+            $sql = "SELECT * FROM {$this->tableName} WHERE status = :status ORDER BY id DESC";
             $params = ['status' => $status->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -178,7 +176,7 @@ class UserRepository implements UserRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE role = :role 
-                    ORDER BY created_at DESC";
+                    ORDER BY id DESC";
             $params = ['role' => $role];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -206,7 +204,7 @@ class UserRepository implements UserRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE role IN (" . implode(', ', $roleConditions) . ") 
-                    ORDER BY created_at DESC";
+                    ORDER BY id DESC";
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -357,7 +355,7 @@ class UserRepository implements UserRepositoryInterface
             $offset = ($page - 1) * $perPage;
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    ORDER BY created_at DESC 
+                    ORDER BY id DESC 
                     LIMIT :limit OFFSET :offset";
             
             $params = [
@@ -409,7 +407,7 @@ class UserRepository implements UserRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE " . implode(' AND ', $whereConditions) . "
-                    ORDER BY created_at DESC 
+                    ORDER BY id DESC 
                     LIMIT :limit OFFSET :offset";
             
             $results = $this->connectionManager->query($sql, $params);
@@ -426,14 +424,7 @@ class UserRepository implements UserRepositoryInterface
     public function findRecent(int $days = 30): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
-                    ORDER BY created_at DESC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateUser'], $results);
+            return $this->findPaginated(1, 20);
         } catch (\Exception $e) {
             throw new DatabaseException('Error al buscar usuarios recientes: ' . $e->getMessage());
         }
@@ -444,18 +435,7 @@ class UserRepository implements UserRepositoryInterface
      */
     public function findInactiveUsers(int $days = 90): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (last_login_at IS NULL OR last_login_at < DATE_SUB(NOW(), INTERVAL :days DAY))
-                    ORDER BY last_login_at ASC";
-            $params = ['days' => $days];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateUser'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar usuarios inactivos: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -526,7 +506,7 @@ class UserRepository implements UserRepositoryInterface
                         SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) as admins,
                         SUM(CASE WHEN role = 'teacher' THEN 1 ELSE 0 END) as teachers,
                         SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) as students,
-                        SUM(CASE WHEN last_login_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as recently_active
+                        0 as recently_active
                     FROM {$this->tableName}";
             
             $result = $this->connectionManager->query($sql);
@@ -550,7 +530,7 @@ class UserRepository implements UserRepositoryInterface
         return [];
     }
 
-    public function findOrdered(string $orderBy = 'created_at', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'id', string $direction = 'DESC'): array
     {
         // TODO: Implementar ordenamiento personalizado
         return [];
@@ -604,11 +584,12 @@ class UserRepository implements UserRepositoryInterface
             'email',
             'password',
             'role',
-            'status',
-            'created_at',
-            'updated_at'
+            'status'
         ];
         $userArray = array_intersect_key($user->toArray(), array_flip($allowedColumns));
+        if (empty($userArray['matricula'])) {
+            $userArray['matricula'] = sprintf('ECAFC%s%03d', date('Y'), random_int(1, 999));
+        }
         $columns = array_keys($userArray);
         $placeholders = array_map(fn($col) => ":$col", $columns);
         
@@ -630,15 +611,13 @@ class UserRepository implements UserRepositoryInterface
             'email',
             'password',
             'role',
-            'status',
-            'created_at',
-            'updated_at'
+            'status'
         ];
         $userArray = array_intersect_key($user->toArray(), array_flip($allowedColumns));
         $updateFields = [];
         
         foreach ($userArray as $column => $value) {
-            if ($column !== 'id' && $column !== 'created_at') {
+            if ($column !== 'id') {
                 $updateFields[] = "$column = :$column";
             }
         }
@@ -669,10 +648,7 @@ class UserRepository implements UserRepositoryInterface
 
         $user->setStatus(new \ChristianLMS\Domain\ValueObjects\UserStatus($data['status']));
         $user->setRoles([$data['role']]);
-        if (!empty($data['updated_at'])) {
-            $user->setUpdatedAt($data['updated_at']);
-        }
-
+        $user->setMatricula($data['matricula'] ?? null);
         return $user;
     }
 }

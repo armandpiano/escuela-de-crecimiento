@@ -35,6 +35,10 @@ class Course
     private UserId $professorId;
     private ?SubjectId $subjectId;
     private ?string $academicPeriodId;
+    private ?string $dayOfWeek = null;
+    private ?string $startTime = null;
+    private ?string $endTime = null;
+    private ?string $location = null;
     private int $maxStudents;
     private int $currentStudents;
     private ?string $startDate;
@@ -132,6 +136,26 @@ class Course
     public function getAcademicPeriodId(): ?string
     {
         return $this->academicPeriodId;
+    }
+
+    public function getDayOfWeek(): ?string
+    {
+        return $this->dayOfWeek;
+    }
+
+    public function getStartTime(): ?string
+    {
+        return $this->startTime;
+    }
+
+    public function getEndTime(): ?string
+    {
+        return $this->endTime;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
     }
 
     public function getMaxStudents(): int
@@ -256,6 +280,30 @@ class Course
     public function setAcademicPeriodId(?string $academicPeriodId): self
     {
         $this->academicPeriodId = $academicPeriodId;
+        return $this;
+    }
+
+    public function setDayOfWeek(?string $dayOfWeek): self
+    {
+        $this->dayOfWeek = $dayOfWeek;
+        return $this;
+    }
+
+    public function setStartTime(?string $startTime): self
+    {
+        $this->startTime = $startTime;
+        return $this;
+    }
+
+    public function setEndTime(?string $endTime): self
+    {
+        $this->endTime = $endTime;
+        return $this;
+    }
+
+    public function setLocation(?string $location): self
+    {
+        $this->location = $location;
         return $this;
     }
 
@@ -500,6 +548,10 @@ class Course
             'professor_id' => $this->professorId->getValue(),
             'subject_id' => $this->subjectId?->getValue(),
             'academic_period_id' => $this->academicPeriodId,
+            'day_of_week' => $this->dayOfWeek,
+            'start_time' => $this->startTime,
+            'end_time' => $this->endTime,
+            'location' => $this->location,
             'max_students' => $this->maxStudents,
             'current_students' => $this->currentStudents,
             'available_spots' => $this->getAvailableSpots(),

@@ -117,7 +117,6 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                         <th>Periodo</th>
                                         <th>Horario</th>
                                         <th>Estado</th>
-                                        <th>Fecha</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -129,7 +128,6 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                             <td><?= htmlspecialchars($enrollment['period_name']) ?></td>
                                             <td><?= htmlspecialchars($enrollment['day_of_week'] . ' ' . $enrollment['start_time'] . '-' . $enrollment['end_time']) ?></td>
                                             <td><span class="badge bg-info"><?= htmlspecialchars($enrollment['status']) ?></span></td>
-                                            <td><?= htmlspecialchars($enrollment['enrollment_date']) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>

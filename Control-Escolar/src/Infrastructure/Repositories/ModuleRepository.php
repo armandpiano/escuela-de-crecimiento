@@ -44,8 +44,8 @@ class ModuleRepository
     public function create(array $data): string
     {
         try {
-            $sql = "INSERT INTO {$this->tableName} (name, sort_order, is_active, created_at, updated_at)
-                    VALUES (:name, :sort_order, :is_active, NOW(), NOW())";
+            $sql = "INSERT INTO {$this->tableName} (name, sort_order, is_active)
+                    VALUES (:name, :sort_order, :is_active)";
             return $this->connectionManager->insert($sql, [
                 'name' => $data['name'],
                 'sort_order' => $data['sort_order'] ?? 0,
@@ -62,8 +62,7 @@ class ModuleRepository
             $sql = "UPDATE {$this->tableName}
                     SET name = :name,
                         sort_order = :sort_order,
-                        is_active = :is_active,
-                        updated_at = NOW()
+                        is_active = :is_active
                     WHERE id = :id";
             return $this->connectionManager->execute($sql, [
                 'id' => $id,

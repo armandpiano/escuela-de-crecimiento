@@ -39,7 +39,7 @@ class SubjectPrerequisiteRepository
                 SELECT DISTINCT c.subject_id
                 FROM enrollments e
                 INNER JOIN courses c ON c.id = e.course_id
-                WHERE e.student_id = :student_id
+                WHERE e.user_id = :student_id
                   AND e.status = 'completed'
             ";
             $completed = $this->connectionManager->select($completedSql, ['student_id' => $studentId]);

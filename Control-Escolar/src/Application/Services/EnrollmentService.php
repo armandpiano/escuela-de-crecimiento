@@ -42,15 +42,17 @@ class EnrollmentService
                 throw new DatabaseException('No hay un periodo académico activo para este curso.');
             }
 
-            $now = new \DateTimeImmutable();
-            $start = new \DateTimeImmutable($period['enrollment_start_date']);
-            $end = new \DateTimeImmutable($period['enrollment_end_date']);
-            if ($now < $start || $now > $end) {
-                throw new DatabaseException('La ventana de inscripción está cerrada.');
+            if (!empty($period['enrollment_start']) && !empty($period['enrollment_end'])) {
+                $now = new \DateTimeImmutable();
+                $start = new \DateTimeImmutable($period['enrollment_start']);
+                $end = new \DateTimeImmutable($period['enrollment_end']);
+                if ($now < $start || $now > $end) {
+                    throw new DatabaseException('La ventana de inscripción está cerrada.');
+                }
             }
 
             $exists = $this->connectionManager->fetch(
-                "SELECT 1 FROM enrollments WHERE student_id = :student_id AND course_id = :course_id LIMIT 1",
+                "SELECT 1 FROM enrollments WHERE user_id = :student_id AND course_id = :course_id LIMIT 1",
                 [
                     'student_id' => $studentId,
                     'course_id' => $courseId
@@ -72,7 +74,7 @@ class EnrollmentService
                     "SELECT 1
                      FROM enrollments e
                      INNER JOIN courses c ON c.id = e.course_id
-                     WHERE e.student_id = :student_id
+                     WHERE e.user_id = :student_id
                        AND c.academic_period_id = :period_id
                        AND c.day_of_week = :day_of_week
                        AND c.start_time < :end_time
@@ -93,12 +95,11 @@ class EnrollmentService
             }
 
             $this->connectionManager->execute(
-                "INSERT INTO enrollments (student_id, course_id, academic_period_id, status, enrolled_by, override_seriation, override_schedule, created_at)
-                 VALUES (:student_id, :course_id, :academic_period_id, 'active', :enrolled_by, :override_seriation, :override_schedule, NOW())",
+                "INSERT INTO enrollments (user_id, course_id, status, enrolled_by, override_seriation, override_schedule)
+                 VALUES (:student_id, :course_id, 'enrolled', :enrolled_by, :override_seriation, :override_schedule)",
                 [
                     'student_id' => $studentId,
                     'course_id' => $courseId,
-                    'academic_period_id' => $course['academic_period_id'],
                     'enrolled_by' => $enrolledBy,
                     'override_seriation' => $overrideSeriation ? 1 : 0,
                     'override_schedule' => $overrideSchedule ? 1 : 0
