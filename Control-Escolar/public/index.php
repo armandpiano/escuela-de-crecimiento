@@ -369,7 +369,14 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $termId, array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolledBy, bool $overrideSeriation, bool $overrideSchedule): void
+function createEnrollment(
+    PDO $pdo,
+    int $studentId,
+    int $courseId,
+    ?int $enrolledBy,
+    bool $overrideSeriation = false,
+    bool $overrideSchedule = false
+): void
 {
     $stmt = $pdo->prepare("SELECT * FROM courses WHERE id = :course_id LIMIT 1");
     $stmt->execute(['course_id' => $courseId]);
@@ -933,6 +940,20 @@ switch ($route['action']) {
                 $courseId = (int) ($_POST['course_id'] ?? 0);
                 if (!$courseId) {
                     throw new Exception('Selecciona un curso válido.');
+                }
+
+                $overrideSeriation = isset($_POST['overrideSeriation'])
+                    ? filter_var($_POST['overrideSeriation'], FILTER_VALIDATE_BOOLEAN)
+                    : false;
+                $overrideSchedule = isset($_POST['overrideSchedule'])
+                    ? filter_var($_POST['overrideSchedule'], FILTER_VALIDATE_BOOLEAN)
+                    : false;
+
+                if (isset($_POST['override_seriation'])) {
+                    $overrideSeriation = filter_var($_POST['override_seriation'], FILTER_VALIDATE_BOOLEAN);
+                }
+                if (isset($_POST['override_schedule'])) {
+                    $overrideSchedule = filter_var($_POST['override_schedule'], FILTER_VALIDATE_BOOLEAN);
                 }
 
                 $enrolledBy = null;
