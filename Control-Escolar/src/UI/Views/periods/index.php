@@ -56,9 +56,8 @@ if (!isset($_SESSION['user_id'])) {
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Código</th>
-                                    <th>Tipo</th>
-                                    <th>Fechas</th>
                                     <th>Inscripciones</th>
+                                    <th>Fechas</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -66,26 +65,24 @@ if (!isset($_SESSION['user_id'])) {
                             <tbody>
                                 <?php if (empty($periods)): ?>
                                     <tr>
-                                        <td colspan="7" class="text-center text-muted">No hay periodos registrados.</td>
+                                        <td colspan="6" class="text-center text-muted">No hay periodos registrados.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($periods as $period): ?>
                                         <tr>
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($period['name'] ?? '') ?></div>
-                                                <small class="text-muted">#<?= htmlspecialchars($period['period_number'] ?? 'N/A') ?></small>
                                             </td>
                                             <td><span class="badge bg-primary"><?= htmlspecialchars($period['code'] ?? 'N/A') ?></span></td>
-                                            <td><?= htmlspecialchars($period['type'] ?? 'General') ?></td>
                                             <td>
-                                                <?= htmlspecialchars($period['start_date'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['inscriptions_start'] ?? 'N/A') ?>
                                                 -
-                                                <?= htmlspecialchars($period['end_date'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['inscriptions_end'] ?? 'N/A') ?>
                                             </td>
                                             <td>
-                                                <?= htmlspecialchars($period['enrollment_start_date'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['term_start'] ?? 'N/A') ?>
                                                 -
-                                                <?= htmlspecialchars($period['enrollment_end_date'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['term_end'] ?? 'N/A') ?>
                                             </td>
                                             <td>
                                                 <span class="badge bg-<?= ($period['status'] ?? '') === 'active' ? 'success' : 'secondary' ?>">
@@ -100,13 +97,10 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $period['id'] ?>"
                                                     data-name="<?= htmlspecialchars($period['name'] ?? '', ENT_QUOTES) ?>"
                                                     data-code="<?= htmlspecialchars($period['code'] ?? '', ENT_QUOTES) ?>"
-                                                    data-type="<?= htmlspecialchars($period['type'] ?? '', ENT_QUOTES) ?>"
-                                                    data-start-date="<?= htmlspecialchars($period['start_date'] ?? '', ENT_QUOTES) ?>"
-                                                    data-end-date="<?= htmlspecialchars($period['end_date'] ?? '', ENT_QUOTES) ?>"
-                                                    data-enrollment-start-date="<?= htmlspecialchars($period['enrollment_start_date'] ?? '', ENT_QUOTES) ?>"
-                                                    data-enrollment-end-date="<?= htmlspecialchars($period['enrollment_end_date'] ?? '', ENT_QUOTES) ?>"
-                                                    data-period-number="<?= htmlspecialchars($period['period_number'] ?? '', ENT_QUOTES) ?>"
-                                                    data-max-students="<?= htmlspecialchars($period['max_students_per_course'] ?? '', ENT_QUOTES) ?>"
+                                                    data-inscriptions-start="<?= htmlspecialchars($period['inscriptions_start'] ?? '', ENT_QUOTES) ?>"
+                                                    data-inscriptions-end="<?= htmlspecialchars($period['inscriptions_end'] ?? '', ENT_QUOTES) ?>"
+                                                    data-term-start="<?= htmlspecialchars($period['term_start'] ?? '', ENT_QUOTES) ?>"
+                                                    data-term-end="<?= htmlspecialchars($period['term_end'] ?? '', ENT_QUOTES) ?>"
                                                     data-status="<?= htmlspecialchars($period['status'] ?? '', ENT_QUOTES) ?>"
                                                 >
                                                     <i class="fas fa-edit"></i>
@@ -160,14 +154,14 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Tipo</label>
-                                <input type="text" class="form-control" name="type" placeholder="Ej: Semestre">
+                                <label class="form-label">Inicio de inscripciones</label>
+                                <input type="date" class="form-control" name="inscriptions_start">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Número de periodo</label>
-                                <input type="number" class="form-control" name="period_number" min="1">
+                                <label class="form-label">Fin de inscripciones</label>
+                                <input type="date" class="form-control" name="inscriptions_end">
                             </div>
                         </div>
                     </div>
@@ -175,35 +169,13 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha inicio</label>
-                                <input type="date" class="form-control" name="start_date">
+                                <input type="date" class="form-control" name="term_start">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha fin</label>
-                                <input type="date" class="form-control" name="end_date">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Inicio de inscripciones</label>
-                                <input type="date" class="form-control" name="enrollment_start_date">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Fin de inscripciones</label>
-                                <input type="date" class="form-control" name="enrollment_end_date">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Cupo máximo por curso</label>
-                                <input type="number" class="form-control" name="max_students_per_course" min="1">
+                                <input type="date" class="form-control" name="term_end">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -258,14 +230,14 @@ if (!isset($_SESSION['user_id'])) {
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Tipo</label>
-                                <input type="text" class="form-control" id="editPeriodType" name="type">
+                                <label class="form-label">Inicio de inscripciones</label>
+                                <input type="date" class="form-control" id="editInscriptionStart" name="inscriptions_start">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Número de periodo</label>
-                                <input type="number" class="form-control" id="editPeriodNumber" name="period_number" min="1">
+                                <label class="form-label">Fin de inscripciones</label>
+                                <input type="date" class="form-control" id="editInscriptionEnd" name="inscriptions_end">
                             </div>
                         </div>
                     </div>
@@ -273,35 +245,13 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha inicio</label>
-                                <input type="date" class="form-control" id="editPeriodStart" name="start_date">
+                                <input type="date" class="form-control" id="editTermStart" name="term_start">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha fin</label>
-                                <input type="date" class="form-control" id="editPeriodEnd" name="end_date">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Inicio de inscripciones</label>
-                                <input type="date" class="form-control" id="editEnrollmentStart" name="enrollment_start_date">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Fin de inscripciones</label>
-                                <input type="date" class="form-control" id="editEnrollmentEnd" name="enrollment_end_date">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Cupo máximo por curso</label>
-                                <input type="number" class="form-control" id="editPeriodMaxStudents" name="max_students_per_course" min="1">
+                                <input type="date" class="form-control" id="editTermEnd" name="term_end">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -363,13 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editPeriodId').value = dataset.id || '';
             document.getElementById('editPeriodName').value = dataset.name || '';
             document.getElementById('editPeriodCode').value = dataset.code || '';
-            document.getElementById('editPeriodType').value = dataset.type || '';
-            document.getElementById('editPeriodStart').value = dataset.startDate || '';
-            document.getElementById('editPeriodEnd').value = dataset.endDate || '';
-            document.getElementById('editEnrollmentStart').value = dataset.enrollmentStartDate || '';
-            document.getElementById('editEnrollmentEnd').value = dataset.enrollmentEndDate || '';
-            document.getElementById('editPeriodNumber').value = dataset.periodNumber || '';
-            document.getElementById('editPeriodMaxStudents').value = dataset.maxStudents || '';
+            document.getElementById('editInscriptionStart').value = dataset.inscriptionsStart || '';
+            document.getElementById('editInscriptionEnd').value = dataset.inscriptionsEnd || '';
+            document.getElementById('editTermStart').value = dataset.termStart || '';
+            document.getElementById('editTermEnd').value = dataset.termEnd || '';
             document.getElementById('editPeriodStatus').value = dataset.status || 'inactive';
             const modal = new bootstrap.Modal(document.getElementById('editPeriodModal'));
             modal.show();

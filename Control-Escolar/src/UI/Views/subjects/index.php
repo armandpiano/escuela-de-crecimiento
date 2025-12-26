@@ -158,10 +158,8 @@ if (!isset($_SESSION['user_id'])) {
                                     <th><input type="checkbox" id="selectAllSubjects"></th>
                                     <th>Código</th>
                                     <th>Nombre de la Materia</th>
-                                    <th>Departamento</th>
-                                    <th>Nivel</th>
-                                    <th>Créditos</th>
-                                    <th>Estado</th>
+                                    <th>Módulo</th>
+                                    <th>Descripción</th>
                                     <th>Cursos</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -169,28 +167,18 @@ if (!isset($_SESSION['user_id'])) {
                             <tbody>
                                 <?php if (empty($subjects)): ?>
                                     <tr>
-                                        <td colspan="9" class="text-center text-muted">No hay materias registradas.</td>
+                                        <td colspan="7" class="text-center text-muted">No hay materias registradas.</td>
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($subjects as $subject): ?>
-                                        <?php
-                                        $subjectPrereqs = $prereqMap[$subject['id']] ?? [];
-                                        ?>
                                         <tr>
                                             <td><input type="checkbox" class="subject-checkbox" value="<?= (int) $subject['id'] ?>"></td>
                                             <td><span class="badge bg-primary"><?= htmlspecialchars($subject['code'] ?? 'N/A') ?></span></td>
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($subject['name'] ?? '') ?></div>
-                                                <small class="text-muted"><?= htmlspecialchars($subject['department'] ?? 'Sin departamento') ?></small>
                                             </td>
-                                            <td><?= htmlspecialchars($subject['department'] ?? 'N/A') ?></td>
-                                            <td><?= htmlspecialchars($subject['grade_level'] ?? 'N/A') ?></td>
-                                            <td><?= htmlspecialchars($subject['credits'] ?? 'N/A') ?></td>
-                                            <td>
-                                                <span class="badge bg-<?= ($subject['status'] ?? '') === 'active' ? 'success' : 'secondary' ?>">
-                                                    <?= htmlspecialchars($subject['status'] ?? 'N/A') ?>
-                                                </span>
-                                            </td>
+                                            <td><?= htmlspecialchars($subject['module'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($subject['description'] ?? 'Sin descripción') ?></td>
                                             <td><?= (int) ($subject['course_count'] ?? 0) ?> cursos</td>
                                             <td>
                                                 <div class="btn-group" role="group">
@@ -201,13 +189,8 @@ if (!isset($_SESSION['user_id'])) {
                                                         data-id="<?= (int) $subject['id'] ?>"
                                                         data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                         data-code="<?= htmlspecialchars($subject['code'] ?? '', ENT_QUOTES) ?>"
-                                                        data-department="<?= htmlspecialchars($subject['department'] ?? '', ENT_QUOTES) ?>"
-                                                        data-grade-level="<?= htmlspecialchars($subject['grade_level'] ?? '', ENT_QUOTES) ?>"
-                                                        data-credits="<?= htmlspecialchars($subject['credits'] ?? '', ENT_QUOTES) ?>"
-                                                        data-hours-per-week="<?= htmlspecialchars($subject['hours_per_week'] ?? '', ENT_QUOTES) ?>"
-                                                        data-status="<?= htmlspecialchars($subject['status'] ?? '', ENT_QUOTES) ?>"
+                                                        data-module="<?= htmlspecialchars($subject['module'] ?? '', ENT_QUOTES) ?>"
                                                         data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
-                                                        data-prerequisites="<?= htmlspecialchars(implode(',', $subjectPrereqs), ENT_QUOTES) ?>"
                                                     >
                                                         <i class="fas fa-edit"></i>
                                                     </button>
@@ -240,7 +223,7 @@ if (!isset($_SESSION['user_id'])) {
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h6 class="mb-0"><?= htmlspecialchars($subject['code'] ?? 'N/A') ?></h6>
-                                                <small class="text-muted"><?= htmlspecialchars($subject['department'] ?? 'Sin departamento') ?></small>
+                                                <small class="text-muted"><?= htmlspecialchars($subject['module'] ?? 'Sin módulo') ?></small>
                                             </div>
                                             <input type="checkbox" class="subject-checkbox" value="<?= (int) $subject['id'] ?>">
                                         </div>
@@ -248,16 +231,8 @@ if (!isset($_SESSION['user_id'])) {
                                             <h5 class="card-title"><?= htmlspecialchars($subject['name'] ?? '') ?></h5>
                                             <p class="card-text"><?= htmlspecialchars($subject['description'] ?? 'Sin descripción.') ?></p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge bg-info"><?= htmlspecialchars($subject['grade_level'] ?? 'N/A') ?></span>
-                                                <span class="badge bg-<?= ($subject['status'] ?? '') === 'active' ? 'success' : 'secondary' ?>">
-                                                    <?= htmlspecialchars($subject['status'] ?? 'N/A') ?>
-                                                </span>
-                                            </div>
-                                            <div class="mt-2">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-star"></i> <?= htmlspecialchars($subject['credits'] ?? 'N/A') ?> créditos
-                                                    <i class="fas fa-clock ms-2"></i> <?= htmlspecialchars($subject['hours_per_week'] ?? 'N/A') ?>h/semana
-                                                </small>
+                                                <span class="badge bg-info"><?= htmlspecialchars($subject['module'] ?? 'N/A') ?></span>
+                                                <span class="badge bg-secondary"><?= (int) ($subject['course_count'] ?? 0) ?> cursos</span>
                                             </div>
                                         </div>
                                         <div class="card-footer">
@@ -269,13 +244,8 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $subject['id'] ?>"
                                                     data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                     data-code="<?= htmlspecialchars($subject['code'] ?? '', ENT_QUOTES) ?>"
-                                                    data-department="<?= htmlspecialchars($subject['department'] ?? '', ENT_QUOTES) ?>"
-                                                    data-grade-level="<?= htmlspecialchars($subject['grade_level'] ?? '', ENT_QUOTES) ?>"
-                                                    data-credits="<?= htmlspecialchars($subject['credits'] ?? '', ENT_QUOTES) ?>"
-                                                    data-hours-per-week="<?= htmlspecialchars($subject['hours_per_week'] ?? '', ENT_QUOTES) ?>"
-                                                    data-status="<?= htmlspecialchars($subject['status'] ?? '', ENT_QUOTES) ?>"
+                                                    data-module="<?= htmlspecialchars($subject['module'] ?? '', ENT_QUOTES) ?>"
                                                     data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
-                                                    data-prerequisites="<?= htmlspecialchars(implode(',', $prereqMap[$subject['id']] ?? []), ENT_QUOTES) ?>"
                                                 >
                                                     <i class="fas fa-edit"></i> Editar
                                                 </button>
@@ -334,8 +304,8 @@ if (!isset($_SESSION['user_id'])) {
                                 <div class="form-text">Código único de identificación (ej: MAT-001)</div>
                             </div>
                             <div class="mb-3">
-                                <label for="subjectDepartment" class="form-label">Departamento</label>
-                                <input type="text" class="form-control" id="subjectDepartment" name="department" placeholder="Ej: Ciencias">
+                                <label for="subjectModule" class="form-label">Módulo</label>
+                                <input type="text" class="form-control" id="subjectModule" name="module" placeholder="Ej: Básico">
                             </div>
                             <div class="mb-3">
                                 <label for="subjectDescription" class="form-label">Descripción</label>
@@ -344,42 +314,7 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-primary border-bottom pb-2 mb-3">Configuración Académica</h6>
-                            <div class="mb-3">
-                                <label for="subjectGradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="subjectGradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectCredits" class="form-label">Créditos *</label>
-                                <input type="number" class="form-control" id="subjectCredits" name="credits" min="1" max="10" value="3" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectHours" class="form-label">Horas Semanales *</label>
-                                <input type="number" class="form-control" id="subjectHours" name="hours_per_week" min="1" max="40" value="5" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectStatus" class="form-label">Estado *</label>
-                                <select class="form-select" id="subjectStatus" name="status" required>
-                                    <option value="active">Activa</option>
-                                    <option value="inactive">Inactiva</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="subjectPrerequisites" class="form-label">Seriación (prerrequisitos)</label>
-                                <select class="form-select" id="subjectPrerequisites" name="prerequisite_ids[]" multiple>
-                                    <?php foreach ($subjects as $subject): ?>
-                                        <option value="<?= (int) $subject['id'] ?>"><?= htmlspecialchars($subject['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <div class="form-text">Selecciona materias que deben cursarse antes.</div>
-                            </div>
+                            <p class="text-muted mb-0">Completa los datos básicos para crear la materia.</p>
                         </div>
                     </div>
                 </div>
@@ -422,8 +357,8 @@ if (!isset($_SESSION['user_id'])) {
                                 <input type="text" class="form-control" id="editSubjectCode" name="code" required readonly>
                             </div>
                             <div class="mb-3">
-                                <label for="editSubjectDepartment" class="form-label">Departamento</label>
-                                <input type="text" class="form-control" id="editSubjectDepartment" name="department">
+                                <label for="editSubjectModule" class="form-label">Módulo</label>
+                                <input type="text" class="form-control" id="editSubjectModule" name="module">
                             </div>
                             <div class="mb-3">
                                 <label for="editSubjectDescription" class="form-label">Descripción</label>
@@ -432,41 +367,7 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-primary border-bottom pb-2 mb-3">Configuración Académica</h6>
-                            <div class="mb-3">
-                                <label for="editSubjectGradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="editSubjectGradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectCredits" class="form-label">Créditos *</label>
-                                <input type="number" class="form-control" id="editSubjectCredits" name="credits" min="1" max="10" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectHours" class="form-label">Horas Semanales *</label>
-                                <input type="number" class="form-control" id="editSubjectHours" name="hours_per_week" min="1" max="40" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectStatus" class="form-label">Estado *</label>
-                                <select class="form-select" id="editSubjectStatus" name="status" required>
-                                    <option value="active">Activa</option>
-                                    <option value="inactive">Inactiva</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editSubjectPrerequisites" class="form-label">Seriación (prerrequisitos)</label>
-                                <select class="form-select" id="editSubjectPrerequisites" name="prerequisite_ids[]" multiple>
-                                    <?php foreach ($subjects as $subject): ?>
-                                        <option value="<?= (int) $subject['id'] ?>"><?= htmlspecialchars($subject['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                            <p class="text-muted mb-0">Actualiza el módulo o descripción según sea necesario.</p>
                         </div>
                     </div>
                 </div>
@@ -579,18 +480,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editSubjectId').value = dataset.id || '';
             document.getElementById('editSubjectName').value = dataset.name || '';
             document.getElementById('editSubjectCode').value = dataset.code || '';
-            document.getElementById('editSubjectDepartment').value = dataset.department || '';
+            document.getElementById('editSubjectModule').value = dataset.module || '';
             document.getElementById('editSubjectDescription').value = dataset.description || '';
-            document.getElementById('editSubjectGradeLevel').value = dataset.gradeLevel || '';
-            document.getElementById('editSubjectCredits').value = dataset.credits || '';
-            document.getElementById('editSubjectHours').value = dataset.hoursPerWeek || '';
-            document.getElementById('editSubjectStatus').value = dataset.status || 'active';
-
-            const selectedPrereqs = (dataset.prerequisites || '').split(',').filter(Boolean);
-            const prereqSelect = document.getElementById('editSubjectPrerequisites');
-            Array.from(prereqSelect.options).forEach((option) => {
-                option.selected = selectedPrereqs.includes(option.value);
-            });
 
             const modal = new bootstrap.Modal(document.getElementById('editSubjectModal'));
             modal.show();

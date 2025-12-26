@@ -68,8 +68,9 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                     <tr>
                                         <th>Módulo</th>
                                         <th>Materia</th>
+                                        <th>Grupo</th>
                                         <th>Horario</th>
-                                        <th>Profesores</th>
+                                        <th>Modalidad</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -80,8 +81,9 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($course['subject_name']) ?></div>
                                             </td>
-                                            <td><?= htmlspecialchars($course['day_of_week'] . ' ' . $course['start_time'] . '-' . $course['end_time']) ?></td>
-                                            <td><?= htmlspecialchars($course['teachers'] ?: 'Por asignar') ?></td>
+                                            <td><?= htmlspecialchars($course['group_name'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($course['schedule_label'] ?? 'Por definir') ?></td>
+                                            <td><?= htmlspecialchars($course['modality'] ?? 'N/A') ?></td>
                                             <td>
                                                 <form method="POST" action="<?= htmlspecialchars($basePath . '/enrollments') ?>">
                                                     <input type="hidden" name="course_id" value="<?= (int) $course['id'] ?>">
@@ -126,10 +128,10 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($enrollment['subject_name']) ?></div>
                                             </td>
-                                            <td><?= htmlspecialchars($enrollment['period_name']) ?></td>
-                                            <td><?= htmlspecialchars($enrollment['day_of_week'] . ' ' . $enrollment['start_time'] . '-' . $enrollment['end_time']) ?></td>
+                                            <td><?= htmlspecialchars($enrollment['term_name']) ?></td>
+                                            <td><?= htmlspecialchars($enrollment['schedule_label'] ?? 'Por definir') ?></td>
                                             <td><span class="badge bg-info"><?= htmlspecialchars($enrollment['status']) ?></span></td>
-                                            <td><?= htmlspecialchars($enrollment['enrollment_date']) ?></td>
+                                            <td><?= htmlspecialchars($enrollment['enrollment_at']) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
