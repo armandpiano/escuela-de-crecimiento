@@ -937,6 +937,8 @@ switch ($route['action']) {
 
                 $enrolledBy = null;
                 $targetStudentId = $userId;
+                $overrideSeriation = false;
+                $overrideSchedule = false;
 
                 if ($userRole !== 'student') {
                     $enrolledBy = $userId;
@@ -944,9 +946,8 @@ switch ($route['action']) {
                     if (!$targetStudentId) {
                         throw new Exception('Selecciona un estudiante válido.');
                     }
-                } else {
-                    $overrideSeriation = false;
-                    $overrideSchedule = false;
+                    $overrideSeriation = !empty($_POST['override_seriation']);
+                    $overrideSchedule = !empty($_POST['override_schedule']);
                 }
 
                 createEnrollment($pdo, $targetStudentId, $courseId, $enrolledBy, $overrideSeriation, $overrideSchedule);
