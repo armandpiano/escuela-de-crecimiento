@@ -177,7 +177,7 @@ if (!isset($_SESSION['user_id'])) {
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($subject['name'] ?? '') ?></div>
                                             </td>
-                                            <td><?= htmlspecialchars($subject['module'] ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($subject['module_name'] ?? 'N/A') ?></td>
                                             <td><?= htmlspecialchars($subject['description'] ?? 'Sin descripción') ?></td>
                                             <td><?= (int) ($subject['course_count'] ?? 0) ?> cursos</td>
                                             <td>
@@ -189,7 +189,7 @@ if (!isset($_SESSION['user_id'])) {
                                                         data-id="<?= (int) $subject['id'] ?>"
                                                         data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                         data-code="<?= htmlspecialchars($subject['code'] ?? '', ENT_QUOTES) ?>"
-                                                        data-module="<?= htmlspecialchars($subject['module'] ?? '', ENT_QUOTES) ?>"
+                                                        data-module-id="<?= (int) ($subject['module_id'] ?? 0) ?>"
                                                         data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
                                                     >
                                                         <i class="fas fa-edit"></i>
@@ -223,7 +223,7 @@ if (!isset($_SESSION['user_id'])) {
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h6 class="mb-0"><?= htmlspecialchars($subject['code'] ?? 'N/A') ?></h6>
-                                                <small class="text-muted"><?= htmlspecialchars($subject['module'] ?? 'Sin módulo') ?></small>
+                                                <small class="text-muted"><?= htmlspecialchars($subject['module_name'] ?? 'Sin módulo') ?></small>
                                             </div>
                                             <input type="checkbox" class="subject-checkbox" value="<?= (int) $subject['id'] ?>">
                                         </div>
@@ -231,7 +231,7 @@ if (!isset($_SESSION['user_id'])) {
                                             <h5 class="card-title"><?= htmlspecialchars($subject['name'] ?? '') ?></h5>
                                             <p class="card-text"><?= htmlspecialchars($subject['description'] ?? 'Sin descripción.') ?></p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge bg-info"><?= htmlspecialchars($subject['module'] ?? 'N/A') ?></span>
+                                                <span class="badge bg-info"><?= htmlspecialchars($subject['module_name'] ?? 'N/A') ?></span>
                                                 <span class="badge bg-secondary"><?= (int) ($subject['course_count'] ?? 0) ?> cursos</span>
                                             </div>
                                         </div>
@@ -244,7 +244,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $subject['id'] ?>"
                                                     data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                     data-code="<?= htmlspecialchars($subject['code'] ?? '', ENT_QUOTES) ?>"
-                                                    data-module="<?= htmlspecialchars($subject['module'] ?? '', ENT_QUOTES) ?>"
+                                                    data-module-id="<?= (int) ($subject['module_id'] ?? 0) ?>"
                                                     data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
                                                 >
                                                     <i class="fas fa-edit"></i> Editar
@@ -305,7 +305,12 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="subjectModule" class="form-label">Módulo</label>
-                                <input type="text" class="form-control" id="subjectModule" name="module" placeholder="Ej: Básico">
+                                <select class="form-select" id="subjectModule" name="module_id">
+                                    <option value="">Seleccionar módulo</option>
+                                    <?php foreach ($modules as $module): ?>
+                                        <option value="<?= (int) $module['id'] ?>"><?= htmlspecialchars($module['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="subjectDescription" class="form-label">Descripción</label>
@@ -358,7 +363,12 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="editSubjectModule" class="form-label">Módulo</label>
-                                <input type="text" class="form-control" id="editSubjectModule" name="module">
+                                <select class="form-select" id="editSubjectModule" name="module_id">
+                                    <option value="">Seleccionar módulo</option>
+                                    <?php foreach ($modules as $module): ?>
+                                        <option value="<?= (int) $module['id'] ?>"><?= htmlspecialchars($module['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="editSubjectDescription" class="form-label">Descripción</label>
@@ -480,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editSubjectId').value = dataset.id || '';
             document.getElementById('editSubjectName').value = dataset.name || '';
             document.getElementById('editSubjectCode').value = dataset.code || '';
-            document.getElementById('editSubjectModule').value = dataset.module || '';
+            document.getElementById('editSubjectModule').value = dataset.moduleId || '';
             document.getElementById('editSubjectDescription').value = dataset.description || '';
 
             const modal = new bootstrap.Modal(document.getElementById('editSubjectModal'));

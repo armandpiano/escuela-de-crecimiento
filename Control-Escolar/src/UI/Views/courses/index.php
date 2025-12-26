@@ -137,8 +137,6 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-status="<?= htmlspecialchars($course['status'] ?? '', ENT_QUOTES) ?>"
                                                     data-schedule-label="<?= htmlspecialchars($course['schedule_label'] ?? '', ENT_QUOTES) ?>"
                                                     data-modality="<?= htmlspecialchars($course['modality'] ?? '', ENT_QUOTES) ?>"
-                                                    data-zoom-url="<?= htmlspecialchars($course['zoom_url'] ?? '', ENT_QUOTES) ?>"
-                                                    data-pdf-path="<?= htmlspecialchars($course['pdf_path'] ?? '', ENT_QUOTES) ?>"
                                                     data-capacity="<?= (int) ($course['capacity'] ?? 0) ?>"
                                                 >
                                                     <i class="fas fa-edit"></i>
@@ -148,7 +146,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     class="btn btn-sm btn-outline-danger"
                                                     data-course-delete
                                                     data-id="<?= (int) $course['id'] ?>"
-                                                    data-name="<?= htmlspecialchars($course['name'] ?? '', ENT_QUOTES) ?>"
+                                                    data-name="<?= htmlspecialchars($course['group_name'] ?? '', ENT_QUOTES) ?>"
                                                 >
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -246,22 +244,10 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="courseModality" class="form-label">Modalidad</label>
                                 <input type="text" class="form-control" id="courseModality" name="modality" placeholder="Ej: Presencial">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="courseZoomUrl" class="form-label">Zoom URL</label>
-                                <input type="url" class="form-control" id="courseZoomUrl" name="zoom_url" placeholder="https://">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="coursePdfPath" class="form-label">Ruta PDF</label>
-                                <input type="text" class="form-control" id="coursePdfPath" name="pdf_path" placeholder="/archivos/curso.pdf">
                             </div>
                         </div>
                     </div>
@@ -354,22 +340,10 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="editCourseModality" class="form-label">Modalidad</label>
                                 <input type="text" class="form-control" id="editCourseModality" name="modality">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="editCourseZoomUrl" class="form-label">Zoom URL</label>
-                                <input type="url" class="form-control" id="editCourseZoomUrl" name="zoom_url">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label for="editCoursePdfPath" class="form-label">Ruta PDF</label>
-                                <input type="text" class="form-control" id="editCoursePdfPath" name="pdf_path">
                             </div>
                         </div>
                     </div>
@@ -441,8 +415,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editCourseSchedule').value = dataset.scheduleLabel || '';
             document.getElementById('editCourseCapacity').value = dataset.capacity || '';
             document.getElementById('editCourseModality').value = dataset.modality || '';
-            document.getElementById('editCourseZoomUrl').value = dataset.zoomUrl || '';
-            document.getElementById('editCoursePdfPath').value = dataset.pdfPath || '';
 
             const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
             modal.show();

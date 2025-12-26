@@ -288,11 +288,11 @@ function getActiveTerm(PDO $pdo): ?array
 function isEnrollmentWindowOpen(array $term): bool
 {
     $now = new DateTimeImmutable();
-    if (empty($term['inscriptions_start']) || empty($term['inscriptions_end'])) {
+    if (empty($term['enrollment_start']) || empty($term['enrollment_end'])) {
         return true;
     }
-    $start = new DateTimeImmutable($term['inscriptions_start']);
-    $end = new DateTimeImmutable($term['inscriptions_end']);
+    $start = new DateTimeImmutable($term['enrollment_start']);
+    $end = new DateTimeImmutable($term['enrollment_end']);
     return $now >= $start && $now <= $end;
 }
 
@@ -311,8 +311,25 @@ function getCompletedSubjectIds(PDO $pdo, int $studentId): array
 
 function getEligibleSubjectIds(PDO $pdo, int $studentId): array
 {
-    $stmt = $pdo->prepare("SELECT id FROM subjects ORDER BY name ASC");
-    $stmt->execute();
+    $stmt = $pdo->prepare("
+        SELECT s.id
+        FROM subjects s
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM subject_prerequisites sp
+            LEFT JOIN student_subject_history ssh
+              ON ssh.subject_id = sp.prerequisite_subject_id
+             AND ssh.student_id = :student_id
+            WHERE sp.subject_id = s.id
+              AND (
+                  ssh.passed IS NULL
+                  OR ssh.passed = 0
+                  OR (sp.min_grade IS NOT NULL AND ssh.final_grade < sp.min_grade)
+              )
+        )
+        ORDER BY s.name ASC
+    ");
+    $stmt->execute(['student_id' => $studentId]);
     return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
 }
 
@@ -350,9 +367,10 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $termId, array
                c.group_name,
                c.modality,
                s.name AS subject_name,
-               s.module AS module_name
+               m.name AS module_name
         FROM courses c
         INNER JOIN subjects s ON s.id = c.subject_id
+        LEFT JOIN modules m ON m.id = s.module_id
         WHERE c.term_id = :term_id
           AND c.status = 'published'
           AND c.subject_id IN ({$eligibleList})
@@ -408,8 +426,8 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
     }
 
     $insertStmt = $pdo->prepare("
-        INSERT INTO enrollments (student_id, course_id, enrollment_at, status, created_at, updated_at)
-        VALUES (:student_id, :course_id, NOW(), 'active', NOW(), NOW())
+        INSERT INTO enrollments (student_id, course_id, enrollment_at, status, payment_status, total_amount, paid_amount)
+        VALUES (:student_id, :course_id, NOW(), 'active', 'pending', 0, 0)
     ");
     $insertStmt->execute([
         'student_id' => $studentId,
@@ -473,6 +491,12 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
 function createDashboard($basePath = '/Control-Escolar', array $dashboardData = []) {
     $userName = $_SESSION['user_name'] ?? 'Usuario';
     $userRole = $_SESSION['user_role'] ?? 'student';
+    $stats = $dashboardData['stats'] ?? [
+        'courses' => 0,
+        'students' => 0,
+        'teachers' => 0,
+        'enrollments' => 0
+    ];
     
     ob_start();
     ?>
@@ -500,7 +524,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                     <div class="card-body">
                         <i class="fas fa-book fa-2x text-primary mb-2"></i>
                         <h5 class="card-title">Cursos</h5>
-                        <p class="card-text display-6 text-primary">4</p>
+                        <p class="card-text display-6 text-primary"><?= (int) $stats['courses'] ?></p>
                     </div>
                 </div>
             </div>
@@ -509,7 +533,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                     <div class="card-body">
                         <i class="fas fa-users fa-2x text-success mb-2"></i>
                         <h5 class="card-title">Estudiantes</h5>
-                        <p class="card-text display-6 text-success">0</p>
+                        <p class="card-text display-6 text-success"><?= (int) $stats['students'] ?></p>
                     </div>
                 </div>
             </div>
@@ -518,7 +542,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                     <div class="card-body">
                         <i class="fas fa-chalkboard-teacher fa-2x text-warning mb-2"></i>
                         <h5 class="card-title">Profesores</h5>
-                        <p class="card-text display-6 text-warning">0</p>
+                        <p class="card-text display-6 text-warning"><?= (int) $stats['teachers'] ?></p>
                     </div>
                 </div>
             </div>
@@ -527,7 +551,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                     <div class="card-body">
                         <i class="fas fa-clipboard-list fa-2x text-info mb-2"></i>
                         <h5 class="card-title">Inscripciones</h5>
-                        <p class="card-text display-6 text-info">0</p>
+                        <p class="card-text display-6 text-info"><?= (int) $stats['enrollments'] ?></p>
                     </div>
                 </div>
             </div>
@@ -650,11 +674,11 @@ function processLogin($basePath, $dbConfig) {
             $email = $_POST['email'];
             $password = $_POST['password'];
             
-            $stmt = $pdo->prepare("SELECT id, name, email, password, role, status FROM users WHERE email = ? AND status = 'active'");
+            $stmt = $pdo->prepare("SELECT id, name, email, password_hash, role, status FROM users WHERE email = ? AND status = 'active'");
             $stmt->execute([$email]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($user && password_verify($password, $user['password'])) {
+            if ($user && password_verify($password, $user['password_hash'])) {
                 // Login exitoso
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
@@ -749,9 +773,50 @@ switch ($route['action']) {
             exit();
         }
 
-        $dashboardData = [];
+        $dashboardData = [
+            'stats' => [
+                'courses' => 0,
+                'students' => 0,
+                'teachers' => 0,
+                'enrollments' => 0
+            ],
+            'teacherCourses' => []
+        ];
+
+        $pdo = getPdoConnection($dbConfig);
+        $activeTerm = getActiveTerm($pdo);
+
+        $dashboardData['stats']['courses'] = (int) $pdo->query("SELECT COUNT(*) FROM courses WHERE status = 'active'")->fetchColumn();
+        $dashboardData['stats']['students'] = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
+        $dashboardData['stats']['teachers'] = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
+
+        if ($activeTerm) {
+            $enrollmentStmt = $pdo->prepare("
+                SELECT COUNT(*) 
+                FROM enrollments e
+                INNER JOIN courses c ON c.id = e.course_id
+                WHERE c.term_id = :term_id
+            ");
+            $enrollmentStmt->execute(['term_id' => $activeTerm['id']]);
+            $dashboardData['stats']['enrollments'] = (int) $enrollmentStmt->fetchColumn();
+        }
+
         if (($_SESSION['user_role'] ?? '') === 'teacher') {
-            $dashboardData['teacherCourses'] = [];
+            $teacherId = (int) ($_SESSION['user_id'] ?? 0);
+            $teacherCoursesStmt = $pdo->prepare("
+                SELECT c.id,
+                       c.schedule_label,
+                       s.name AS subject_name,
+                       t.name AS term_name
+                FROM course_teachers ct
+                INNER JOIN courses c ON c.id = ct.course_id
+                INNER JOIN subjects s ON s.id = c.subject_id
+                INNER JOIN terms t ON t.id = c.term_id
+                WHERE ct.teacher_id = :teacher_id
+                ORDER BY t.start_date DESC, s.name ASC
+            ");
+            $teacherCoursesStmt->execute(['teacher_id' => $teacherId]);
+            $dashboardData['teacherCourses'] = $teacherCoursesStmt->fetchAll(PDO::FETCH_ASSOC);
         }
         
         echo loadLayout(
@@ -778,8 +843,6 @@ switch ($route['action']) {
                     $status = $_POST['status'] ?? 'draft';
                     $scheduleLabel = trim($_POST['schedule_label'] ?? '');
                     $modality = trim($_POST['modality'] ?? '');
-                    $zoomUrl = trim($_POST['zoom_url'] ?? '');
-                    $pdfPath = trim($_POST['pdf_path'] ?? '');
                     $capacity = (int) ($_POST['capacity'] ?? 0);
 
                     if ($groupName === '' || !$subjectId || !$termId) {
@@ -788,9 +851,9 @@ switch ($route['action']) {
 
                     $stmt = $pdo->prepare("
                         INSERT INTO courses
-                            (term_id, subject_id, group_name, schedule_label, modality, zoom_url, pdf_path, capacity, status, created_at, updated_at)
+                            (term_id, subject_id, group_name, schedule_label, modality, capacity, status)
                         VALUES
-                            (:term_id, :subject_id, :group_name, :schedule_label, :modality, :zoom_url, :pdf_path, :capacity, :status, NOW(), NOW())
+                            (:term_id, :subject_id, :group_name, :schedule_label, :modality, :capacity, :status)
                     ");
                     $stmt->execute([
                         'term_id' => $termId,
@@ -798,8 +861,6 @@ switch ($route['action']) {
                         'group_name' => $groupName,
                         'schedule_label' => $scheduleLabel ?: null,
                         'modality' => $modality ?: null,
-                        'zoom_url' => $zoomUrl ?: null,
-                        'pdf_path' => $pdfPath ?: null,
                         'capacity' => $capacity ?: null,
                         'status' => $status
                     ]);
@@ -813,8 +874,6 @@ switch ($route['action']) {
                     $status = $_POST['status'] ?? 'draft';
                     $scheduleLabel = trim($_POST['schedule_label'] ?? '');
                     $modality = trim($_POST['modality'] ?? '');
-                    $zoomUrl = trim($_POST['zoom_url'] ?? '');
-                    $pdfPath = trim($_POST['pdf_path'] ?? '');
                     $capacity = (int) ($_POST['capacity'] ?? 0);
 
                     if (!$courseId || $groupName === '' || !$subjectId || !$termId) {
@@ -828,11 +887,8 @@ switch ($route['action']) {
                             group_name = :group_name,
                             schedule_label = :schedule_label,
                             modality = :modality,
-                            zoom_url = :zoom_url,
-                            pdf_path = :pdf_path,
                             capacity = :capacity,
-                            status = :status,
-                            updated_at = NOW()
+                            status = :status
                         WHERE id = :id
                     ");
                     $stmt->execute([
@@ -842,8 +898,6 @@ switch ($route['action']) {
                         'group_name' => $groupName,
                         'schedule_label' => $scheduleLabel ?: null,
                         'modality' => $modality ?: null,
-                        'zoom_url' => $zoomUrl ?: null,
-                        'pdf_path' => $pdfPath ?: null,
                         'capacity' => $capacity ?: null,
                         'status' => $status
                     ]);
@@ -899,7 +953,7 @@ switch ($route['action']) {
         $subjectsStmt = $pdo->query("SELECT id, name FROM subjects ORDER BY name ASC");
         $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $termsStmt = $pdo->query("SELECT id, name FROM terms ORDER BY term_start DESC");
+        $termsStmt = $pdo->query("SELECT id, name FROM terms ORDER BY start_date DESC");
         $terms = $termsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(
@@ -990,11 +1044,12 @@ switch ($route['action']) {
         $coursesStmt = $pdo->prepare("
             SELECT c.id,
                s.name AS subject_name,
-               s.module AS module_name,
+               m.name AS module_name,
                c.schedule_label,
                c.group_name
             FROM courses c
             INNER JOIN subjects s ON s.id = c.subject_id
+            LEFT JOIN modules m ON m.id = s.module_id
             WHERE c.term_id = :term_id
               AND c.status = 'published'
             ORDER BY s.name ASC
@@ -1030,7 +1085,7 @@ switch ($route['action']) {
                 if ($action === 'create_subject') {
                     $name = trim($_POST['name'] ?? '');
                     $code = trim($_POST['code'] ?? '');
-                    $module = trim($_POST['module'] ?? '');
+                    $moduleId = (int) ($_POST['module_id'] ?? 0);
                     $description = trim($_POST['description'] ?? '');
 
                     if ($name === '' || $code === '') {
@@ -1039,14 +1094,14 @@ switch ($route['action']) {
 
                     $stmt = $pdo->prepare("
                         INSERT INTO subjects
-                            (code, name, module, description, created_at, updated_at)
+                            (code, name, module_id, description, created_at, updated_at)
                         VALUES
-                            (:code, :name, :module, :description, NOW(), NOW())
+                            (:code, :name, :module_id, :description, NOW(), NOW())
                     ");
                     $stmt->execute([
                         'code' => $code,
                         'name' => $name,
-                        'module' => $module ?: null,
+                        'module_id' => $moduleId ?: null,
                         'description' => $description
                     ]);
 
@@ -1054,7 +1109,7 @@ switch ($route['action']) {
                 } elseif ($action === 'update_subject') {
                     $subjectId = (int) ($_POST['id'] ?? 0);
                     $name = trim($_POST['name'] ?? '');
-                    $module = trim($_POST['module'] ?? '');
+                    $moduleId = (int) ($_POST['module_id'] ?? 0);
                     $description = trim($_POST['description'] ?? '');
 
                     if (!$subjectId || $name === '') {
@@ -1064,7 +1119,7 @@ switch ($route['action']) {
                     $stmt = $pdo->prepare("
                         UPDATE subjects
                         SET name = :name,
-                            module = :module,
+                            module_id = :module_id,
                             description = :description,
                             updated_at = NOW()
                         WHERE id = :id
@@ -1072,7 +1127,7 @@ switch ($route['action']) {
                     $stmt->execute([
                         'id' => $subjectId,
                         'name' => $name,
-                        'module' => $module ?: null,
+                        'module_id' => $moduleId ?: null,
                         'description' => $description
                     ]);
 
@@ -1092,13 +1147,18 @@ switch ($route['action']) {
 
         $subjectsStmt = $pdo->query("
             SELECT s.*,
+                   m.name AS module_name,
                    COUNT(DISTINCT c.id) AS course_count
             FROM subjects s
+            LEFT JOIN modules m ON m.id = s.module_id
             LEFT JOIN courses c ON c.subject_id = s.id
             GROUP BY s.id
             ORDER BY s.name ASC
         ");
         $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $modulesStmt = $pdo->query("SELECT id, name FROM modules ORDER BY sort_order ASC, name ASC");
+        $modules = $modulesStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(
             __DIR__ . '/../src/UI/Views/subjects/index.php',
@@ -1106,6 +1166,7 @@ switch ($route['action']) {
             $route['base_path'],
             [
                 'subjects' => $subjects,
+                'modules' => $modules,
                 'errorMessage' => $errorMessage,
                 'successMessage' => $successMessage
             ]
@@ -1125,10 +1186,10 @@ switch ($route['action']) {
                 if ($action === 'create_period') {
                     $name = trim($_POST['name'] ?? '');
                     $code = trim($_POST['code'] ?? '');
-                    $inscriptionsStart = $_POST['inscriptions_start'] ?? null;
-                    $inscriptionsEnd = $_POST['inscriptions_end'] ?? null;
-                    $termStart = $_POST['term_start'] ?? null;
-                    $termEnd = $_POST['term_end'] ?? null;
+                    $enrollmentStart = $_POST['enrollment_start'] ?? null;
+                    $enrollmentEnd = $_POST['enrollment_end'] ?? null;
+                    $startDate = $_POST['start_date'] ?? null;
+                    $endDate = $_POST['end_date'] ?? null;
                     $status = $_POST['status'] ?? 'inactive';
 
                     if ($name === '' || $code === '') {
@@ -1137,27 +1198,27 @@ switch ($route['action']) {
 
                     $stmt = $pdo->prepare("
                         INSERT INTO terms
-                            (code, name, inscriptions_start, inscriptions_end, term_start, term_end, status, created_at, updated_at)
+                            (code, name, enrollment_start, enrollment_end, start_date, end_date, status)
                         VALUES
-                            (:code, :name, :inscriptions_start, :inscriptions_end, :term_start, :term_end, :status, NOW(), NOW())
+                            (:code, :name, :enrollment_start, :enrollment_end, :start_date, :end_date, :status)
                     ");
                     $stmt->execute([
                         'code' => $code,
                         'name' => $name,
-                        'inscriptions_start' => $inscriptionsStart ?: null,
-                        'inscriptions_end' => $inscriptionsEnd ?: null,
-                        'term_start' => $termStart ?: null,
-                        'term_end' => $termEnd ?: null,
+                        'enrollment_start' => $enrollmentStart ?: null,
+                        'enrollment_end' => $enrollmentEnd ?: null,
+                        'start_date' => $startDate ?: null,
+                        'end_date' => $endDate ?: null,
                         'status' => $status
                     ]);
                     $successMessage = 'Periodo académico creado correctamente.';
                 } elseif ($action === 'update_period') {
                     $periodId = (int) ($_POST['id'] ?? 0);
                     $name = trim($_POST['name'] ?? '');
-                    $inscriptionsStart = $_POST['inscriptions_start'] ?? null;
-                    $inscriptionsEnd = $_POST['inscriptions_end'] ?? null;
-                    $termStart = $_POST['term_start'] ?? null;
-                    $termEnd = $_POST['term_end'] ?? null;
+                    $enrollmentStart = $_POST['enrollment_start'] ?? null;
+                    $enrollmentEnd = $_POST['enrollment_end'] ?? null;
+                    $startDate = $_POST['start_date'] ?? null;
+                    $endDate = $_POST['end_date'] ?? null;
                     $status = $_POST['status'] ?? 'inactive';
 
                     if (!$periodId || $name === '') {
@@ -1167,21 +1228,20 @@ switch ($route['action']) {
                     $stmt = $pdo->prepare("
                         UPDATE terms
                         SET name = :name,
-                            inscriptions_start = :inscriptions_start,
-                            inscriptions_end = :inscriptions_end,
-                            term_start = :term_start,
-                            term_end = :term_end,
-                            status = :status,
-                            updated_at = NOW()
+                            enrollment_start = :enrollment_start,
+                            enrollment_end = :enrollment_end,
+                            start_date = :start_date,
+                            end_date = :end_date,
+                            status = :status
                         WHERE id = :id
                     ");
                     $stmt->execute([
                         'id' => $periodId,
                         'name' => $name,
-                        'inscriptions_start' => $inscriptionsStart ?: null,
-                        'inscriptions_end' => $inscriptionsEnd ?: null,
-                        'term_start' => $termStart ?: null,
-                        'term_end' => $termEnd ?: null,
+                        'enrollment_start' => $enrollmentStart ?: null,
+                        'enrollment_end' => $enrollmentEnd ?: null,
+                        'start_date' => $startDate ?: null,
+                        'end_date' => $endDate ?: null,
                         'status' => $status
                     ]);
                     $successMessage = 'Periodo académico actualizado correctamente.';
@@ -1198,7 +1258,7 @@ switch ($route['action']) {
             }
         }
 
-        $periodsStmt = $pdo->query("SELECT * FROM terms ORDER BY term_start DESC");
+        $periodsStmt = $pdo->query("SELECT * FROM terms ORDER BY start_date DESC");
         $periods = $periodsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(

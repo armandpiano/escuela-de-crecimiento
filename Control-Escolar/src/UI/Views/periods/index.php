@@ -75,14 +75,14 @@ if (!isset($_SESSION['user_id'])) {
                                             </td>
                                             <td><span class="badge bg-primary"><?= htmlspecialchars($period['code'] ?? 'N/A') ?></span></td>
                                             <td>
-                                                <?= htmlspecialchars($period['inscriptions_start'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['enrollment_start'] ?? 'N/A') ?>
                                                 -
-                                                <?= htmlspecialchars($period['inscriptions_end'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['enrollment_end'] ?? 'N/A') ?>
                                             </td>
                                             <td>
-                                                <?= htmlspecialchars($period['term_start'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['start_date'] ?? 'N/A') ?>
                                                 -
-                                                <?= htmlspecialchars($period['term_end'] ?? 'N/A') ?>
+                                                <?= htmlspecialchars($period['end_date'] ?? 'N/A') ?>
                                             </td>
                                             <td>
                                                 <span class="badge bg-<?= ($period['status'] ?? '') === 'active' ? 'success' : 'secondary' ?>">
@@ -97,10 +97,10 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $period['id'] ?>"
                                                     data-name="<?= htmlspecialchars($period['name'] ?? '', ENT_QUOTES) ?>"
                                                     data-code="<?= htmlspecialchars($period['code'] ?? '', ENT_QUOTES) ?>"
-                                                    data-inscriptions-start="<?= htmlspecialchars($period['inscriptions_start'] ?? '', ENT_QUOTES) ?>"
-                                                    data-inscriptions-end="<?= htmlspecialchars($period['inscriptions_end'] ?? '', ENT_QUOTES) ?>"
-                                                    data-term-start="<?= htmlspecialchars($period['term_start'] ?? '', ENT_QUOTES) ?>"
-                                                    data-term-end="<?= htmlspecialchars($period['term_end'] ?? '', ENT_QUOTES) ?>"
+                                                    data-enrollment-start="<?= htmlspecialchars($period['enrollment_start'] ?? '', ENT_QUOTES) ?>"
+                                                    data-enrollment-end="<?= htmlspecialchars($period['enrollment_end'] ?? '', ENT_QUOTES) ?>"
+                                                    data-start-date="<?= htmlspecialchars($period['start_date'] ?? '', ENT_QUOTES) ?>"
+                                                    data-end-date="<?= htmlspecialchars($period['end_date'] ?? '', ENT_QUOTES) ?>"
                                                     data-status="<?= htmlspecialchars($period['status'] ?? '', ENT_QUOTES) ?>"
                                                 >
                                                     <i class="fas fa-edit"></i>
@@ -155,13 +155,13 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Inicio de inscripciones</label>
-                                <input type="date" class="form-control" name="inscriptions_start">
+                                <input type="date" class="form-control" name="enrollment_start">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fin de inscripciones</label>
-                                <input type="date" class="form-control" name="inscriptions_end">
+                                <input type="date" class="form-control" name="enrollment_end">
                             </div>
                         </div>
                     </div>
@@ -169,13 +169,13 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha inicio</label>
-                                <input type="date" class="form-control" name="term_start">
+                                <input type="date" class="form-control" name="start_date">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha fin</label>
-                                <input type="date" class="form-control" name="term_end">
+                                <input type="date" class="form-control" name="end_date">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -231,13 +231,13 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Inicio de inscripciones</label>
-                                <input type="date" class="form-control" id="editInscriptionStart" name="inscriptions_start">
+                                <input type="date" class="form-control" id="editInscriptionStart" name="enrollment_start">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fin de inscripciones</label>
-                                <input type="date" class="form-control" id="editInscriptionEnd" name="inscriptions_end">
+                                <input type="date" class="form-control" id="editInscriptionEnd" name="enrollment_end">
                             </div>
                         </div>
                     </div>
@@ -245,13 +245,13 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha inicio</label>
-                                <input type="date" class="form-control" id="editTermStart" name="term_start">
+                                <input type="date" class="form-control" id="editTermStart" name="start_date">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Fecha fin</label>
-                                <input type="date" class="form-control" id="editTermEnd" name="term_end">
+                                <input type="date" class="form-control" id="editTermEnd" name="end_date">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -313,10 +313,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('editPeriodId').value = dataset.id || '';
             document.getElementById('editPeriodName').value = dataset.name || '';
             document.getElementById('editPeriodCode').value = dataset.code || '';
-            document.getElementById('editInscriptionStart').value = dataset.inscriptionsStart || '';
-            document.getElementById('editInscriptionEnd').value = dataset.inscriptionsEnd || '';
-            document.getElementById('editTermStart').value = dataset.termStart || '';
-            document.getElementById('editTermEnd').value = dataset.termEnd || '';
+            document.getElementById('editInscriptionStart').value = dataset.enrollmentStart || '';
+            document.getElementById('editInscriptionEnd').value = dataset.enrollmentEnd || '';
+            document.getElementById('editTermStart').value = dataset.startDate || '';
+            document.getElementById('editTermEnd').value = dataset.endDate || '';
             document.getElementById('editPeriodStatus').value = dataset.status || 'inactive';
             const modal = new bootstrap.Modal(document.getElementById('editPeriodModal'));
             modal.show();
