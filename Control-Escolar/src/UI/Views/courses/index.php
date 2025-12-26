@@ -16,6 +16,20 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
+    <?php if (!empty($errorMessage)): ?>
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i>
+            <?= htmlspecialchars($errorMessage) ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (!empty($successMessage)): ?>
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <?= htmlspecialchars($successMessage) ?>
+        </div>
+    <?php endif; ?>
+
     <!-- Barra de acciones -->
     <div class="row mb-4">
         <div class="col-12">
@@ -37,33 +51,22 @@ if (!isset($_SESSION['user_id'])) {
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <form class="row g-3" id="courseFilters">
+                    <form class="row g-3" id="courseFilters" method="GET" action="<?= htmlspecialchars($basePath . '/courses') ?>">
                         <div class="col-md-3">
                             <label for="statusFilter" class="form-label">Estado</label>
                             <select class="form-select" id="statusFilter" name="status">
                                 <option value="">Todos los estados</option>
-                                <option value="active">Activo</option>
-                                <option value="inactive">Inactivo</option>
-                                <option value="draft">Borrador</option>
+                                <option value="active" <?= ($filters['status'] ?? '') === 'active' ? 'selected' : '' ?>>Activo</option>
+                                <option value="published" <?= ($filters['status'] ?? '') === 'published' ? 'selected' : '' ?>>Publicado</option>
+                                <option value="inactive" <?= ($filters['status'] ?? '') === 'inactive' ? 'selected' : '' ?>>Inactivo</option>
+                                <option value="draft" <?= ($filters['status'] ?? '') === 'draft' ? 'selected' : '' ?>>Borrador</option>
                             </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="searchFilter" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="searchFilter" name="search" placeholder="Buscar por grupo o materia..." value="<?= htmlspecialchars($filters['search'] ?? '') ?>">
                         </div>
                         <div class="col-md-3">
-                            <label for="gradeLevelFilter" class="form-label">Nivel</label>
-                            <select class="form-select" id="gradeLevelFilter" name="grade_level">
-                                <option value="">Todos los niveles</option>
-                                <option value="1">1° Grado</option>
-                                <option value="2">2° Grado</option>
-                                <option value="3">3° Grado</option>
-                                <option value="4">4° Grado</option>
-                                <option value="5">5° Grado</option>
-                                <option value="6">6° Grado</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="searchFilter" class="form-label">Buscar</label>
-                            <input type="text" class="form-control" id="searchFilter" name="search" placeholder="Buscar por nombre o código...">
-                        </div>
-                        <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-outline-primary">
@@ -90,25 +93,69 @@ if (!isset($_SESSION['user_id'])) {
                             <thead>
                                 <tr>
                                     <th><input type="checkbox" id="selectAll"></th>
-                                    <th>Código</th>
-                                    <th>Nombre del Curso</th>
-                                    <th>Nivel</th>
-                                    <th>Período</th>
+                                    <th>Grupo</th>
+                                    <th>Materia</th>
+                                    <th>Periodo</th>
+                                    <th>Horario</th>
+                                    <th>Modalidad</th>
                                     <th>Estado</th>
-                                    <th>Inscripciones</th>
+                                    <th>Cupo</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Los datos se cargarán dinámicamente -->
-                                <tr>
-                                    <td colspan="8" class="text-center">
-                                        <div class="spinner-border" role="status">
-                                            <span class="visually-hidden">Cargando...</span>
-                                        </div>
-                                        <p class="mt-2">Cargando cursos...</p>
-                                    </td>
-                                </tr>
+                                <?php if (empty($courses)): ?>
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted">No hay cursos registrados.</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($courses as $course): ?>
+                                        <?php
+                                        $capacity = $course['capacity'] ?? null;
+                                        $enrollmentCount = (int) ($course['enrollment_count'] ?? 0);
+                                        ?>
+                                        <tr>
+                                            <td><input type="checkbox" class="course-checkbox" value="<?= (int) $course['id'] ?>"></td>
+                                            <td><span class="badge bg-primary"><?= htmlspecialchars($course['group_name'] ?? 'N/A') ?></span></td>
+                                            <td><?= htmlspecialchars($course['subject_name'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($course['term_name'] ?? 'Sin periodo') ?></td>
+                                            <td><?= htmlspecialchars($course['schedule_label'] ?? 'Por definir') ?></td>
+                                            <td><?= htmlspecialchars($course['modality'] ?? 'N/A') ?></td>
+                                            <td><span class="badge bg-<?= in_array(($course['status'] ?? ''), ['active', 'published'], true) ? 'success' : (($course['status'] ?? '') === 'draft' ? 'warning' : 'secondary') ?>">
+                                                <?= htmlspecialchars($course['status'] ?? 'N/A') ?>
+                                            </span></td>
+                                            <td><?= $capacity ? sprintf('%d / %d', $enrollmentCount, $capacity) : $enrollmentCount ?></td>
+                                            <td>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    data-course-edit
+                                                    data-id="<?= (int) $course['id'] ?>"
+                                                    data-group-name="<?= htmlspecialchars($course['group_name'] ?? '', ENT_QUOTES) ?>"
+                                                    data-subject-id="<?= (int) ($course['subject_id'] ?? 0) ?>"
+                                                    data-term-id="<?= (int) ($course['term_id'] ?? 0) ?>"
+                                                    data-status="<?= htmlspecialchars($course['status'] ?? '', ENT_QUOTES) ?>"
+                                                    data-schedule-label="<?= htmlspecialchars($course['schedule_label'] ?? '', ENT_QUOTES) ?>"
+                                                    data-modality="<?= htmlspecialchars($course['modality'] ?? '', ENT_QUOTES) ?>"
+                                                    data-zoom-url="<?= htmlspecialchars($course['zoom_url'] ?? '', ENT_QUOTES) ?>"
+                                                    data-pdf-path="<?= htmlspecialchars($course['pdf_path'] ?? '', ENT_QUOTES) ?>"
+                                                    data-capacity="<?= (int) ($course['capacity'] ?? 0) ?>"
+                                                >
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    data-course-delete
+                                                    data-id="<?= (int) $course['id'] ?>"
+                                                    data-name="<?= htmlspecialchars($course['name'] ?? '', ENT_QUOTES) ?>"
+                                                >
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -135,37 +182,14 @@ if (!isset($_SESSION['user_id'])) {
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="createCourseForm">
+            <form id="createCourseForm" method="POST" action="<?= htmlspecialchars($basePath . '/courses') ?>">
                 <div class="modal-body">
+                    <input type="hidden" name="action" value="create_course">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="courseName" class="form-label">Nombre del Curso *</label>
-                                <input type="text" class="form-control" id="courseName" name="name" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="courseCode" class="form-label">Código del Curso *</label>
-                                <input type="text" class="form-control" id="courseCode" name="code" required>
-                                <div class="form-text">Código único de identificación</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="gradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="gradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
+                                <label for="courseGroupName" class="form-label">Nombre del Grupo *</label>
+                                <input type="text" class="form-control" id="courseGroupName" name="group_name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -174,23 +198,72 @@ if (!isset($_SESSION['user_id'])) {
                                 <select class="form-select" id="courseStatus" name="status" required>
                                     <option value="draft">Borrador</option>
                                     <option value="active">Activo</option>
+                                    <option value="published">Publicado</option>
                                     <option value="inactive">Inactivo</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="courseDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="courseDescription" name="description" rows="3"></textarea>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseSubject" class="form-label">Materia *</label>
+                                <select class="form-select" id="courseSubject" name="subject_id" required>
+                                    <option value="">Seleccionar materia</option>
+                                    <?php foreach ($subjects as $subject): ?>
+                                        <option value="<?= (int) $subject['id'] ?>"><?= htmlspecialchars($subject['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseTerm" class="form-label">Periodo Académico *</label>
+                                <select class="form-select" id="courseTerm" name="term_id" required>
+                                    <option value="">Seleccionar periodo</option>
+                                    <?php foreach ($terms as $term): ?>
+                                        <option value="<?= (int) $term['id'] ?>"><?= htmlspecialchars($term['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="academicPeriod" class="form-label">Período Académico</label>
-                        <select class="form-select" id="academicPeriod" name="academic_period_id">
-                            <option value="">Seleccionar período</option>
-                            <!-- Opciones se cargarán dinámicamente -->
-                        </select>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseSchedule" class="form-label">Horario</label>
+                                <input type="text" class="form-control" id="courseSchedule" name="schedule_label" placeholder="Ej: Sábados 9:00-11:00">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseCapacity" class="form-label">Cupo máximo</label>
+                                <input type="number" class="form-control" id="courseCapacity" name="capacity" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="courseModality" class="form-label">Modalidad</label>
+                                <input type="text" class="form-control" id="courseModality" name="modality" placeholder="Ej: Presencial">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="courseZoomUrl" class="form-label">Zoom URL</label>
+                                <input type="url" class="form-control" id="courseZoomUrl" name="zoom_url" placeholder="https://">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="coursePdfPath" class="form-label">Ruta PDF</label>
+                                <input type="text" class="form-control" id="coursePdfPath" name="pdf_path" placeholder="/archivos/curso.pdf">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -216,38 +289,15 @@ if (!isset($_SESSION['user_id'])) {
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editCourseForm">
+            <form id="editCourseForm" method="POST" action="<?= htmlspecialchars($basePath . '/courses') ?>">
                 <div class="modal-body">
                     <input type="hidden" id="editCourseId" name="id">
-                    <!-- Los mismos campos que en crear curso -->
+                    <input type="hidden" name="action" value="update_course">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="editCourseName" class="form-label">Nombre del Curso *</label>
-                                <input type="text" class="form-control" id="editCourseName" name="name" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="editCourseCode" class="form-label">Código del Curso *</label>
-                                <input type="text" class="form-control" id="editCourseCode" name="code" required readonly>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="editGradeLevel" class="form-label">Nivel *</label>
-                                <select class="form-select" id="editGradeLevel" name="grade_level" required>
-                                    <option value="">Seleccionar nivel</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
+                                <label for="editCourseGroupName" class="form-label">Nombre del Grupo *</label>
+                                <input type="text" class="form-control" id="editCourseGroupName" name="group_name" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -256,23 +306,72 @@ if (!isset($_SESSION['user_id'])) {
                                 <select class="form-select" id="editCourseStatus" name="status" required>
                                     <option value="draft">Borrador</option>
                                     <option value="active">Activo</option>
+                                    <option value="published">Publicado</option>
                                     <option value="inactive">Inactivo</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="editCourseDescription" class="form-label">Descripción</label>
-                        <textarea class="form-control" id="editCourseDescription" name="description" rows="3"></textarea>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCourseSubject" class="form-label">Materia *</label>
+                                <select class="form-select" id="editCourseSubject" name="subject_id" required>
+                                    <option value="">Seleccionar materia</option>
+                                    <?php foreach ($subjects as $subject): ?>
+                                        <option value="<?= (int) $subject['id'] ?>"><?= htmlspecialchars($subject['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCourseTerm" class="form-label">Periodo Académico *</label>
+                                <select class="form-select" id="editCourseTerm" name="term_id" required>
+                                    <option value="">Seleccionar periodo</option>
+                                    <?php foreach ($terms as $term): ?>
+                                        <option value="<?= (int) $term['id'] ?>"><?= htmlspecialchars($term['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="editAcademicPeriod" class="form-label">Período Académico</label>
-                        <select class="form-select" id="editAcademicPeriod" name="academic_period_id">
-                            <option value="">Seleccionar período</option>
-                            <!-- Opciones se cargarán dinámicamente -->
-                        </select>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCourseSchedule" class="form-label">Horario</label>
+                                <input type="text" class="form-control" id="editCourseSchedule" name="schedule_label">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editCourseCapacity" class="form-label">Cupo máximo</label>
+                                <input type="number" class="form-control" id="editCourseCapacity" name="capacity" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="editCourseModality" class="form-label">Modalidad</label>
+                                <input type="text" class="form-control" id="editCourseModality" name="modality">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="editCourseZoomUrl" class="form-label">Zoom URL</label>
+                                <input type="url" class="form-control" id="editCourseZoomUrl" name="zoom_url">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="editCoursePdfPath" class="form-label">Ruta PDF</label>
+                                <input type="text" class="form-control" id="editCoursePdfPath" name="pdf_path">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -306,59 +405,24 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 <p><strong>Curso:</strong> <span id="deleteCourseName"></span></p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteCourse">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            </div>
+            <form method="POST" action="<?= htmlspecialchars($basePath . '/courses') ?>">
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="delete_course">
+                    <input type="hidden" id="deleteCourseId" name="id">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Variables globales
-    let currentPage = 1;
-    let filters = {};
-    
-    // Cargar cursos iniciales
-    loadCourses();
-    
-    // Cargar períodos académicos para los selects
-    loadAcademicPeriods();
-    
-    // Event listeners para filtros
-    document.getElementById('courseFilters').addEventListener('submit', function(e) {
-        e.preventDefault();
-        filters = {
-            status: document.getElementById('statusFilter').value,
-            grade_level: document.getElementById('gradeLevelFilter').value,
-            search: document.getElementById('searchFilter').value
-        };
-        currentPage = 1;
-        loadCourses();
-    });
-    
-    // Event listener para crear curso
-    document.getElementById('createCourseForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        createCourse();
-    });
-    
-    // Event listener para editar curso
-    document.getElementById('editCourseForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        updateCourse();
-    });
-    
-    // Event listener para eliminar curso
-    document.getElementById('confirmDeleteCourse').addEventListener('click', function() {
-        deleteCourse();
-    });
-    
     // Event listener para seleccionar todos
     document.getElementById('selectAll').addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('.course-checkbox');
@@ -366,173 +430,35 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.checked = this.checked;
         });
     });
-    
-    // Función para cargar cursos
-    function loadCourses() {
-        const tbody = document.querySelector('#coursesTable tbody');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                    <p class="mt-2">Cargando cursos...</p>
-                </td>
-            </tr>
-        `;
-        
-        // Simulación de carga de datos (en implementación real, hacer petición AJAX)
-        setTimeout(() => {
-            tbody.innerHTML = `
-                <tr>
-                    <td><input type="checkbox" class="course-checkbox" value="1"></td>
-                    <td><span class="badge bg-primary">CUR-001</span></td>
-                    <td>Matemáticas Básicas</td>
-                    <td>1° Grado</td>
-                    <td>2024-S1</td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td>25/30</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="editCourse(1)">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="viewCourse(1)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCourseConfirm(1, 'Matemáticas Básicas')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td><input type="checkbox" class="course-checkbox" value="2"></td>
-                    <td><span class="badge bg-primary">CUR-002</span></td>
-                    <td>Estudios Bíblicos</td>
-                    <td>2° Grado</td>
-                    <td>2024-S1</td>
-                    <td><span class="badge bg-warning">Borrador</span></td>
-                    <td>0/25</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary" onclick="editCourse(2)">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="viewCourse(2)">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteCourseConfirm(2, 'Estudios Bíblicos')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }, 1000);
-    }
-    
-    // Función para cargar períodos académicos
-    function loadAcademicPeriods() {
-        // Simulación de carga de períodos (en implementación real, hacer petición AJAX)
-        const periods = [
-            { id: 1, name: '2024-S1 (Primer Semestre)' },
-            { id: 2, name: '2024-S2 (Segundo Semestre)' },
-            { id: 3, name: '2024-T1 (Primer Trimestre)' }
-        ];
-        
-        const selects = ['academicPeriod', 'editAcademicPeriod'];
-        selects.forEach(selectId => {
-            const select = document.getElementById(selectId);
-            periods.forEach(period => {
-                const option = document.createElement('option');
-                option.value = period.id;
-                option.textContent = period.name;
-                select.appendChild(option);
-            });
+    document.querySelectorAll('[data-course-edit]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const dataset = button.dataset;
+            document.getElementById('editCourseId').value = dataset.id || '';
+            document.getElementById('editCourseGroupName').value = dataset.groupName || '';
+            document.getElementById('editCourseSubject').value = dataset.subjectId || '';
+            document.getElementById('editCourseTerm').value = dataset.termId || '';
+            document.getElementById('editCourseStatus').value = dataset.status || 'draft';
+            document.getElementById('editCourseSchedule').value = dataset.scheduleLabel || '';
+            document.getElementById('editCourseCapacity').value = dataset.capacity || '';
+            document.getElementById('editCourseModality').value = dataset.modality || '';
+            document.getElementById('editCourseZoomUrl').value = dataset.zoomUrl || '';
+            document.getElementById('editCoursePdfPath').value = dataset.pdfPath || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
+            modal.show();
         });
-    }
-    
-    // Función para crear curso
-    function createCourse() {
-        const formData = new FormData(document.getElementById('createCourseForm'));
-        
-        // Validación básica
-        if (!formData.get('name') || !formData.get('code') || !formData.get('grade_level')) {
-            showAlert('Por favor complete todos los campos requeridos', 'warning');
-            return;
-        }
-        
-        // Simulación de creación (en implementación real, hacer petición AJAX)
-        showAlert('Curso creado exitosamente', 'success');
-        bootstrap.Modal.getInstance(document.getElementById('createCourseModal')).hide();
-        document.getElementById('createCourseForm').reset();
-        loadCourses();
-    }
-    
-    // Función para actualizar curso
-    function updateCourse() {
-        const formData = new FormData(document.getElementById('editCourseForm'));
-        
-        // Validación básica
-        if (!formData.get('name') || !formData.get('code') || !formData.get('grade_level')) {
-            showAlert('Por favor complete todos los campos requeridos', 'warning');
-            return;
-        }
-        
-        // Simulación de actualización (en implementación real, hacer petición AJAX)
-        showAlert('Curso actualizado exitosamente', 'success');
-        bootstrap.Modal.getInstance(document.getElementById('editCourseModal')).hide();
-        loadCourses();
-    }
-    
-    // Función para eliminar curso
-    function deleteCourse() {
-        const courseId = document.getElementById('deleteCourseModal').dataset.courseId;
-        
-        // Simulación de eliminación (en implementación real, hacer petición AJAX)
-        showAlert('Curso eliminado exitosamente', 'success');
-        bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal')).hide();
-        loadCourses();
-    }
-    
-    // Función para mostrar alerta
-    function showAlert(message, type) {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        
-        document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.container-fluid').firstChild);
-        
-        // Auto-ocultar después de 5 segundos
-        setTimeout(() => {
-            bootstrap.Alert.getOrCreateInstance(alertDiv).close();
-        }, 5000);
-    }
+    });
+
+    document.querySelectorAll('[data-course-delete]').forEach((button) => {
+        button.addEventListener('click', () => {
+            document.getElementById('deleteCourseId').value = button.dataset.id || '';
+            document.getElementById('deleteCourseName').textContent = button.dataset.name || '';
+
+            const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
+            modal.show();
+        });
+    });
 });
-
-// Funciones globales para botones de acción
-function editCourse(courseId) {
-    // Cargar datos del curso y abrir modal de edición
-    document.getElementById('editCourseId').value = courseId;
-    document.getElementById('editCourseCode').value = 'CUR-00' + courseId;
-    document.getElementById('editCourseName').value = courseId == 1 ? 'Matemáticas Básicas' : 'Estudios Bíblicos';
-    
-    const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
-    modal.show();
-}
-
-function viewCourse(courseId) {
-    // Implementar vista de detalles del curso
-    showAlert('Funcionalidad de vista detallada próximamente', 'info');
-}
-
-function deleteCourseConfirm(courseId, courseName) {
-    document.getElementById('deleteCourseModal').dataset.courseId = courseId;
-    document.getElementById('deleteCourseName').textContent = courseName;
-    
-    const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
-    modal.show();
-}
 </script>
 
 <style>

@@ -67,7 +67,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                         <option value="">Selecciona un curso</option>
                                         <?php foreach ($adminCourses as $course): ?>
                                             <option value="<?= (int) $course['id'] ?>">
-                                                <?= htmlspecialchars($course['module_name'] . ' - ' . $course['subject_name'] . ' (' . $course['day_of_week'] . ' ' . $course['start_time'] . '-' . $course['end_time'] . ')') ?>
+                                                <?= htmlspecialchars($course['module_name'] . ' - ' . $course['subject_name'] . ' (' . ($course['group_name'] ?? 'Grupo') . ', ' . ($course['schedule_label'] ?? 'Horario') . ')') ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>

@@ -278,21 +278,21 @@ function getPdoConnection(array $dbConfig): PDO
     );
 }
 
-function getActiveAcademicPeriod(PDO $pdo): ?array
+function getActiveTerm(PDO $pdo): ?array
 {
-    $stmt = $pdo->prepare("SELECT * FROM academic_periods WHERE status = 'active' LIMIT 1");
+    $stmt = $pdo->prepare("SELECT * FROM terms WHERE status = 'active' LIMIT 1");
     $stmt->execute();
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
-function isEnrollmentWindowOpen(array $period): bool
+function isEnrollmentWindowOpen(array $term): bool
 {
     $now = new DateTimeImmutable();
-    if (empty($period['enrollment_start_date']) || empty($period['enrollment_end_date'])) {
+    if (empty($term['inscriptions_start']) || empty($term['inscriptions_end'])) {
         return true;
     }
-    $start = new DateTimeImmutable($period['enrollment_start_date']);
-    $end = new DateTimeImmutable($period['enrollment_end_date']);
+    $start = new DateTimeImmutable($term['inscriptions_start']);
+    $end = new DateTimeImmutable($term['inscriptions_end']);
     return $now >= $start && $now <= $end;
 }
 
@@ -311,21 +311,7 @@ function getCompletedSubjectIds(PDO $pdo, int $studentId): array
 
 function getEligibleSubjectIds(PDO $pdo, int $studentId): array
 {
-    $completed = getCompletedSubjectIds($pdo, $studentId);
-    $completedList = $completed ? implode(',', array_map('intval', $completed)) : '0';
-
-    $stmt = $pdo->prepare("
-        SELECT s.id
-        FROM subjects s
-        WHERE s.is_active = 1
-          AND NOT EXISTS (
-            SELECT 1
-            FROM subject_prerequisites sp
-            WHERE sp.subject_id = s.id
-              AND sp.prerequisite_subject_id NOT IN ({$completedList})
-          )
-        ORDER BY s.sort_order ASC
-    ");
+    $stmt = $pdo->prepare("SELECT id FROM subjects ORDER BY name ASC");
     $stmt->execute();
     return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'id');
 }
@@ -335,24 +321,22 @@ function getStudentEnrollments(PDO $pdo, int $studentId): array
     $stmt = $pdo->prepare("
         SELECT e.id,
                e.status,
-               e.enrollment_date,
-               c.day_of_week,
-               c.start_time,
-               c.end_time,
+               e.enrollment_at,
+               c.schedule_label,
                s.name AS subject_name,
-               ap.name AS period_name
+               t.name AS term_name
         FROM enrollments e
         INNER JOIN courses c ON c.id = e.course_id
         INNER JOIN subjects s ON s.id = c.subject_id
-        INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
+        INNER JOIN terms t ON t.id = c.term_id
         WHERE e.student_id = :student_id
-        ORDER BY e.enrollment_date DESC
+        ORDER BY e.enrollment_at DESC
     ");
     $stmt->execute(['student_id' => $studentId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, array $eligibleSubjectIds): array
+function getStudentAvailableCourses(PDO $pdo, int $studentId, int $termId, array $eligibleSubjectIds): array
 {
     if (!$eligibleSubjectIds) {
         return [];
@@ -362,29 +346,24 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $periodId, arr
 
     $stmt = $pdo->prepare("
         SELECT c.id,
-               c.day_of_week,
-               c.start_time,
-               c.end_time,
+               c.schedule_label,
+               c.group_name,
+               c.modality,
                s.name AS subject_name,
-               m.name AS module_name,
-               GROUP_CONCAT(u.name SEPARATOR ', ') AS teachers
+               s.module AS module_name
         FROM courses c
         INNER JOIN subjects s ON s.id = c.subject_id
-        INNER JOIN modules m ON m.id = s.module_id
-        LEFT JOIN course_teachers ct ON ct.course_id = c.id
-        LEFT JOIN users u ON u.id = ct.teacher_id
-        WHERE c.academic_period_id = :period_id
-          AND c.is_visible = 1
+        WHERE c.term_id = :term_id
           AND c.status = 'published'
           AND c.subject_id IN ({$eligibleList})
           AND c.id NOT IN (
               SELECT course_id FROM enrollments WHERE student_id = :student_id
           )
         GROUP BY c.id
-        ORDER BY s.sort_order ASC
+        ORDER BY s.name ASC
     ");
     $stmt->execute([
-        'period_id' => $periodId,
+        'term_id' => $termId,
         'student_id' => $studentId
     ]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -400,15 +379,15 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
         throw new Exception('Curso no encontrado.');
     }
 
-    $periodStmt = $pdo->prepare("SELECT * FROM academic_periods WHERE id = :id LIMIT 1");
-    $periodStmt->execute(['id' => $course['academic_period_id']]);
-    $period = $periodStmt->fetch(PDO::FETCH_ASSOC);
+    $termStmt = $pdo->prepare("SELECT * FROM terms WHERE id = :id LIMIT 1");
+    $termStmt->execute(['id' => $course['term_id']]);
+    $term = $termStmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$period || $period['status'] !== 'active') {
+    if (!$term || $term['status'] !== 'active') {
         throw new Exception('No hay un periodo académico activo para este curso.');
     }
 
-    if (!isEnrollmentWindowOpen($period)) {
+    if (!isEnrollmentWindowOpen($term)) {
         throw new Exception('La ventana de inscripción está cerrada.');
     }
 
@@ -428,42 +407,13 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
         }
     }
 
-    if (!$overrideSchedule) {
-        $conflictStmt = $pdo->prepare("
-            SELECT 1
-            FROM enrollments e
-            INNER JOIN courses c ON c.id = e.course_id
-            WHERE e.student_id = :student_id
-              AND c.academic_period_id = :period_id
-              AND c.day_of_week = :day_of_week
-              AND (
-                (c.start_time < :end_time AND c.end_time > :start_time)
-              )
-            LIMIT 1
-        ");
-        $conflictStmt->execute([
-            'student_id' => $studentId,
-            'period_id' => $course['academic_period_id'],
-            'day_of_week' => $course['day_of_week'],
-            'start_time' => $course['start_time'],
-            'end_time' => $course['end_time']
-        ]);
-        if ($conflictStmt->fetch()) {
-            throw new Exception('Tienes un choque de horario en este periodo.');
-        }
-    }
-
     $insertStmt = $pdo->prepare("
-        INSERT INTO enrollments (student_id, course_id, academic_period_id, status, enrolled_by, override_seriation, override_schedule, created_at)
-        VALUES (:student_id, :course_id, :academic_period_id, 'active', :enrolled_by, :override_seriation, :override_schedule, NOW())
+        INSERT INTO enrollments (student_id, course_id, enrollment_at, status, created_at, updated_at)
+        VALUES (:student_id, :course_id, NOW(), 'active', NOW(), NOW())
     ");
     $insertStmt->execute([
         'student_id' => $studentId,
         'course_id' => $courseId,
-        'academic_period_id' => $course['academic_period_id'],
-        'enrolled_by' => $enrolledBy,
-        'override_seriation' => $overrideSeriation ? 1 : 0,
-        'override_schedule' => $overrideSchedule ? 1 : 0
     ]);
 }
 
@@ -605,8 +555,8 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                     <?php foreach ($dashboardData['teacherCourses'] as $course): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($course['subject_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($course['day_of_week'] . ' ' . $course['start_time'] . '-' . $course['end_time']); ?></td>
-                                            <td><?php echo htmlspecialchars($course['period_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($course['schedule_label'] ?? 'Por definir'); ?></td>
+                                            <td><?php echo htmlspecialchars($course['term_name'] ?? 'Sin periodo'); ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -801,23 +751,7 @@ switch ($route['action']) {
 
         $dashboardData = [];
         if (($_SESSION['user_role'] ?? '') === 'teacher') {
-            $pdo = getPdoConnection($dbConfig);
-            $stmt = $pdo->prepare("
-                SELECT s.name AS subject_name,
-                       c.day_of_week,
-                       c.start_time,
-                       c.end_time,
-                       ap.name AS period_name
-                FROM course_teachers ct
-                INNER JOIN courses c ON c.id = ct.course_id
-                INNER JOIN subjects s ON s.id = c.subject_id
-                INNER JOIN academic_periods ap ON ap.id = c.academic_period_id
-                WHERE ct.teacher_id = :teacher_id
-                  AND ap.status = 'active'
-                ORDER BY s.sort_order ASC
-            ");
-            $stmt->execute(['teacher_id' => (int) $_SESSION['user_id']]);
-            $dashboardData['teacherCourses'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $dashboardData['teacherCourses'] = [];
         }
         
         echo loadLayout(
@@ -830,10 +764,156 @@ switch ($route['action']) {
     case 'courses':
         requireAuth($route['base_path']);
         requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST['action'] ?? '';
+            try {
+                if ($action === 'create_course') {
+                    $groupName = trim($_POST['group_name'] ?? '');
+                    $subjectId = (int) ($_POST['subject_id'] ?? 0);
+                    $termId = (int) ($_POST['term_id'] ?? 0);
+                    $status = $_POST['status'] ?? 'draft';
+                    $scheduleLabel = trim($_POST['schedule_label'] ?? '');
+                    $modality = trim($_POST['modality'] ?? '');
+                    $zoomUrl = trim($_POST['zoom_url'] ?? '');
+                    $pdfPath = trim($_POST['pdf_path'] ?? '');
+                    $capacity = (int) ($_POST['capacity'] ?? 0);
+
+                    if ($groupName === '' || !$subjectId || !$termId) {
+                        throw new Exception('Completa los campos obligatorios del curso.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO courses
+                            (term_id, subject_id, group_name, schedule_label, modality, zoom_url, pdf_path, capacity, status, created_at, updated_at)
+                        VALUES
+                            (:term_id, :subject_id, :group_name, :schedule_label, :modality, :zoom_url, :pdf_path, :capacity, :status, NOW(), NOW())
+                    ");
+                    $stmt->execute([
+                        'term_id' => $termId,
+                        'subject_id' => $subjectId,
+                        'group_name' => $groupName,
+                        'schedule_label' => $scheduleLabel ?: null,
+                        'modality' => $modality ?: null,
+                        'zoom_url' => $zoomUrl ?: null,
+                        'pdf_path' => $pdfPath ?: null,
+                        'capacity' => $capacity ?: null,
+                        'status' => $status
+                    ]);
+
+                    $successMessage = 'Curso creado correctamente.';
+                } elseif ($action === 'update_course') {
+                    $courseId = (int) ($_POST['id'] ?? 0);
+                    $groupName = trim($_POST['group_name'] ?? '');
+                    $subjectId = (int) ($_POST['subject_id'] ?? 0);
+                    $termId = (int) ($_POST['term_id'] ?? 0);
+                    $status = $_POST['status'] ?? 'draft';
+                    $scheduleLabel = trim($_POST['schedule_label'] ?? '');
+                    $modality = trim($_POST['modality'] ?? '');
+                    $zoomUrl = trim($_POST['zoom_url'] ?? '');
+                    $pdfPath = trim($_POST['pdf_path'] ?? '');
+                    $capacity = (int) ($_POST['capacity'] ?? 0);
+
+                    if (!$courseId || $groupName === '' || !$subjectId || !$termId) {
+                        throw new Exception('Completa los campos obligatorios del curso.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        UPDATE courses
+                        SET term_id = :term_id,
+                            subject_id = :subject_id,
+                            group_name = :group_name,
+                            schedule_label = :schedule_label,
+                            modality = :modality,
+                            zoom_url = :zoom_url,
+                            pdf_path = :pdf_path,
+                            capacity = :capacity,
+                            status = :status,
+                            updated_at = NOW()
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        'id' => $courseId,
+                        'term_id' => $termId,
+                        'subject_id' => $subjectId,
+                        'group_name' => $groupName,
+                        'schedule_label' => $scheduleLabel ?: null,
+                        'modality' => $modality ?: null,
+                        'zoom_url' => $zoomUrl ?: null,
+                        'pdf_path' => $pdfPath ?: null,
+                        'capacity' => $capacity ?: null,
+                        'status' => $status
+                    ]);
+
+                    $successMessage = 'Curso actualizado correctamente.';
+                } elseif ($action === 'delete_course') {
+                    $courseId = (int) ($_POST['id'] ?? 0);
+                    if (!$courseId) {
+                        throw new Exception('Curso inválido.');
+                    }
+                    $pdo->prepare("DELETE FROM courses WHERE id = :id")->execute(['id' => $courseId]);
+                    $successMessage = 'Curso eliminado correctamente.';
+                }
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $filters = [
+            'status' => $_GET['status'] ?? '',
+            'search' => trim($_GET['search'] ?? '')
+        ];
+
+        $conditions = [];
+        $params = [];
+        if ($filters['status'] !== '') {
+            $conditions[] = 'c.status = :status';
+            $params['status'] = $filters['status'];
+        }
+        if ($filters['search'] !== '') {
+            $conditions[] = '(c.group_name LIKE :search OR s.name LIKE :search)';
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+
+        $whereClause = $conditions ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+
+        $coursesStmt = $pdo->prepare("
+            SELECT c.*,
+                   s.name AS subject_name,
+                   t.name AS term_name,
+                   COUNT(e.id) AS enrollment_count
+            FROM courses c
+            LEFT JOIN subjects s ON s.id = c.subject_id
+            LEFT JOIN terms t ON t.id = c.term_id
+            LEFT JOIN enrollments e ON e.course_id = c.id
+            {$whereClause}
+            GROUP BY c.id
+            ORDER BY c.id DESC
+        ");
+        $coursesStmt->execute($params);
+        $courses = $coursesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $subjectsStmt = $pdo->query("SELECT id, name FROM subjects ORDER BY name ASC");
+        $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $termsStmt = $pdo->query("SELECT id, name FROM terms ORDER BY term_start DESC");
+        $terms = $termsStmt->fetchAll(PDO::FETCH_ASSOC);
+
         echo renderPage(
             __DIR__ . '/../src/UI/Views/courses/index.php',
             'Cursos - Control Escolar',
-            $route['base_path']
+            $route['base_path'],
+            [
+                'courses' => $courses,
+                'subjects' => $subjects,
+                'terms' => $terms,
+                'filters' => $filters,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
         );
         break;
         
@@ -842,8 +922,8 @@ switch ($route['action']) {
         $pdo = getPdoConnection($dbConfig);
         $userId = (int) ($_SESSION['user_id'] ?? 0);
         $userRole = $_SESSION['user_role'] ?? '';
-        $activePeriod = getActiveAcademicPeriod($pdo);
-        $enrollmentWindowOpen = $activePeriod ? isEnrollmentWindowOpen($activePeriod) : false;
+        $activeTerm = getActiveTerm($pdo);
+        $enrollmentWindowOpen = $activeTerm ? isEnrollmentWindowOpen($activeTerm) : false;
 
         $errorMessage = null;
         $successMessage = null;
@@ -855,8 +935,6 @@ switch ($route['action']) {
                     throw new Exception('Selecciona un curso válido.');
                 }
 
-                $overrideSeriation = !empty($_POST['override_seriation']);
-                $overrideSchedule = !empty($_POST['override_schedule']);
                 $enrolledBy = null;
                 $targetStudentId = $userId;
 
@@ -879,8 +957,8 @@ switch ($route['action']) {
         }
 
         if ($userRole === 'student') {
-            $eligibleSubjects = $activePeriod ? getEligibleSubjectIds($pdo, $userId) : [];
-            $availableCourses = $activePeriod ? getStudentAvailableCourses($pdo, $userId, (int) $activePeriod['id'], $eligibleSubjects) : [];
+            $eligibleSubjects = $activeTerm ? getEligibleSubjectIds($pdo, $userId) : [];
+            $availableCourses = $activeTerm ? getStudentAvailableCourses($pdo, $userId, (int) $activeTerm['id'], $eligibleSubjects) : [];
             $studentEnrollments = getStudentEnrollments($pdo, $userId);
 
             echo renderPage(
@@ -888,7 +966,7 @@ switch ($route['action']) {
                 'Mis Inscripciones - Control Escolar',
                 $route['base_path'],
                 [
-                    'activePeriod' => $activePeriod,
+                    'activePeriod' => $activeTerm,
                     'enrollmentWindowOpen' => $enrollmentWindowOpen,
                     'availableCourses' => $availableCourses,
                     'studentEnrollments' => $studentEnrollments,
@@ -911,19 +989,16 @@ switch ($route['action']) {
         $coursesStmt = $pdo->prepare("
             SELECT c.id,
                s.name AS subject_name,
-               m.name AS module_name,
-               c.day_of_week,
-               c.start_time,
-               c.end_time
+               s.module AS module_name,
+               c.schedule_label,
+               c.group_name
             FROM courses c
             INNER JOIN subjects s ON s.id = c.subject_id
-            INNER JOIN modules m ON m.id = s.module_id
-            WHERE c.academic_period_id = :period_id
-              AND c.is_visible = 1
+            WHERE c.term_id = :term_id
               AND c.status = 'published'
-            ORDER BY s.sort_order ASC
+            ORDER BY s.name ASC
         ");
-        $coursesStmt->execute(['period_id' => $activePeriod['id'] ?? 0]);
+        $coursesStmt->execute(['term_id' => $activeTerm['id'] ?? 0]);
         $adminCourses = $coursesStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(
@@ -931,7 +1006,7 @@ switch ($route['action']) {
             'Gestión de Inscripciones - Control Escolar',
             $route['base_path'],
             [
-                'activePeriod' => $activePeriod,
+                'activePeriod' => $activeTerm,
                 'enrollmentWindowOpen' => $enrollmentWindowOpen,
                 'students' => $students,
                 'adminCourses' => $adminCourses,
@@ -944,10 +1019,196 @@ switch ($route['action']) {
     case 'subjects':
         requireAuth($route['base_path']);
         requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST['action'] ?? '';
+            try {
+                if ($action === 'create_subject') {
+                    $name = trim($_POST['name'] ?? '');
+                    $code = trim($_POST['code'] ?? '');
+                    $module = trim($_POST['module'] ?? '');
+                    $description = trim($_POST['description'] ?? '');
+
+                    if ($name === '' || $code === '') {
+                        throw new Exception('Completa los campos obligatorios de la materia.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO subjects
+                            (code, name, module, description, created_at, updated_at)
+                        VALUES
+                            (:code, :name, :module, :description, NOW(), NOW())
+                    ");
+                    $stmt->execute([
+                        'code' => $code,
+                        'name' => $name,
+                        'module' => $module ?: null,
+                        'description' => $description
+                    ]);
+
+                    $successMessage = 'Materia creada correctamente.';
+                } elseif ($action === 'update_subject') {
+                    $subjectId = (int) ($_POST['id'] ?? 0);
+                    $name = trim($_POST['name'] ?? '');
+                    $module = trim($_POST['module'] ?? '');
+                    $description = trim($_POST['description'] ?? '');
+
+                    if (!$subjectId || $name === '') {
+                        throw new Exception('Completa los campos obligatorios de la materia.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        UPDATE subjects
+                        SET name = :name,
+                            module = :module,
+                            description = :description,
+                            updated_at = NOW()
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        'id' => $subjectId,
+                        'name' => $name,
+                        'module' => $module ?: null,
+                        'description' => $description
+                    ]);
+
+                    $successMessage = 'Materia actualizada correctamente.';
+                } elseif ($action === 'delete_subject') {
+                    $subjectId = (int) ($_POST['id'] ?? 0);
+                    if (!$subjectId) {
+                        throw new Exception('Materia inválida.');
+                    }
+                    $pdo->prepare("DELETE FROM subjects WHERE id = :id")->execute(['id' => $subjectId]);
+                    $successMessage = 'Materia eliminada correctamente.';
+                }
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $subjectsStmt = $pdo->query("
+            SELECT s.*,
+                   COUNT(DISTINCT c.id) AS course_count
+            FROM subjects s
+            LEFT JOIN courses c ON c.subject_id = s.id
+            GROUP BY s.id
+            ORDER BY s.name ASC
+        ");
+        $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
+
         echo renderPage(
             __DIR__ . '/../src/UI/Views/subjects/index.php',
             'Materias - Control Escolar',
-            $route['base_path']
+            $route['base_path'],
+            [
+                'subjects' => $subjects,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
+        );
+        break;
+
+    case 'periods':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST['action'] ?? '';
+            try {
+                if ($action === 'create_period') {
+                    $name = trim($_POST['name'] ?? '');
+                    $code = trim($_POST['code'] ?? '');
+                    $inscriptionsStart = $_POST['inscriptions_start'] ?? null;
+                    $inscriptionsEnd = $_POST['inscriptions_end'] ?? null;
+                    $termStart = $_POST['term_start'] ?? null;
+                    $termEnd = $_POST['term_end'] ?? null;
+                    $status = $_POST['status'] ?? 'inactive';
+
+                    if ($name === '' || $code === '') {
+                        throw new Exception('Completa los campos obligatorios del periodo.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        INSERT INTO terms
+                            (code, name, inscriptions_start, inscriptions_end, term_start, term_end, status, created_at, updated_at)
+                        VALUES
+                            (:code, :name, :inscriptions_start, :inscriptions_end, :term_start, :term_end, :status, NOW(), NOW())
+                    ");
+                    $stmt->execute([
+                        'code' => $code,
+                        'name' => $name,
+                        'inscriptions_start' => $inscriptionsStart ?: null,
+                        'inscriptions_end' => $inscriptionsEnd ?: null,
+                        'term_start' => $termStart ?: null,
+                        'term_end' => $termEnd ?: null,
+                        'status' => $status
+                    ]);
+                    $successMessage = 'Periodo académico creado correctamente.';
+                } elseif ($action === 'update_period') {
+                    $periodId = (int) ($_POST['id'] ?? 0);
+                    $name = trim($_POST['name'] ?? '');
+                    $inscriptionsStart = $_POST['inscriptions_start'] ?? null;
+                    $inscriptionsEnd = $_POST['inscriptions_end'] ?? null;
+                    $termStart = $_POST['term_start'] ?? null;
+                    $termEnd = $_POST['term_end'] ?? null;
+                    $status = $_POST['status'] ?? 'inactive';
+
+                    if (!$periodId || $name === '') {
+                        throw new Exception('Completa los campos obligatorios del periodo.');
+                    }
+
+                    $stmt = $pdo->prepare("
+                        UPDATE terms
+                        SET name = :name,
+                            inscriptions_start = :inscriptions_start,
+                            inscriptions_end = :inscriptions_end,
+                            term_start = :term_start,
+                            term_end = :term_end,
+                            status = :status,
+                            updated_at = NOW()
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        'id' => $periodId,
+                        'name' => $name,
+                        'inscriptions_start' => $inscriptionsStart ?: null,
+                        'inscriptions_end' => $inscriptionsEnd ?: null,
+                        'term_start' => $termStart ?: null,
+                        'term_end' => $termEnd ?: null,
+                        'status' => $status
+                    ]);
+                    $successMessage = 'Periodo académico actualizado correctamente.';
+                } elseif ($action === 'delete_period') {
+                    $periodId = (int) ($_POST['id'] ?? 0);
+                    if (!$periodId) {
+                        throw new Exception('Periodo inválido.');
+                    }
+                    $pdo->prepare("DELETE FROM terms WHERE id = :id")->execute(['id' => $periodId]);
+                    $successMessage = 'Periodo académico eliminado correctamente.';
+                }
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $periodsStmt = $pdo->query("SELECT * FROM terms ORDER BY term_start DESC");
+        $periods = $periodsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/periods/index.php',
+            'Periodos Académicos - Control Escolar',
+            $route['base_path'],
+            [
+                'periods' => $periods,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
         );
         break;
         
