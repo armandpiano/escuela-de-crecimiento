@@ -20,11 +20,16 @@ use ChristianLMS\Infrastructure\Persistence\Database\Exceptions\ConnectionExcept
  */
 class ConnectionManager
 {
-    private array $config;
-    private ?PDO $mainConnection = null;
-    private ?PDO $readConnection = null;
-    private ?PDO $writeConnection = null;
-    private array $connectionPool = [];
+    /** @var array */
+    private $config;
+    /** @var PDO|null */
+    private $mainConnection= null;
+    /** @var PDO|null */
+    private $readConnection= null;
+    /** @var PDO|null */
+    private $writeConnection= null;
+    /** @var array */
+    private $connectionPool= [];
 
     public function __construct(array $config)
     {

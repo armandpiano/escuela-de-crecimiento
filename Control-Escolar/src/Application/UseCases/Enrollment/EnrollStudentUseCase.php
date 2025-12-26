@@ -29,8 +29,10 @@ use ChristianLMS\Domain\ValueObjects\{
  */
 class EnrollStudentUseCase
 {
-    private ApplicationServices $applicationServices;
-    private EmailService $emailService;
+    /** @var ApplicationServices */
+    private $applicationServices;
+    /** @var EmailService */
+    private $emailService;
 
     public function __construct(
         ApplicationServices $applicationServices,
@@ -55,7 +57,7 @@ class EnrollStudentUseCase
             $userRepository = $this->applicationServices->getUserRepository();
 
             // Verificar que el estudiante existe
-            $studentId = new UserId($request->getStudentId());
+            $studentId = UserId::fromString($request->getStudentId());
             $student = $userRepository->findById($studentId);
             if (!$student || !$student->isStudent()) {
                 return new EnrollStudentResponse(false, 'El estudiante especificado no es válido');
@@ -196,12 +198,18 @@ class EnrollStudentUseCase
  */
 class EnrollStudentRequest
 {
-    private string $studentId;
-    private string $courseId;
-    private string $academicPeriodId;
-    private ?string $paymentStatus;
-    private float $paymentAmount;
-    private ?string $notes;
+    /** @var string */
+    private $studentId;
+    /** @var string */
+    private $courseId;
+    /** @var string */
+    private $academicPeriodId;
+    /** @var string|null */
+    private $paymentStatus;
+    /** @var float */
+    private $paymentAmount;
+    /** @var string|null */
+    private $notes;
 
     // Getters
     public function getStudentId(): string { return $this->studentId; }
@@ -225,9 +233,12 @@ class EnrollStudentRequest
  */
 class EnrollStudentResponse
 {
-    private bool $success;
-    private string $message;
-    private ?Enrollment $enrollment;
+    /** @var bool */
+    private $success;
+    /** @var string */
+    private $message;
+    /** @var Enrollment|null */
+    private $enrollment;
 
     public function __construct(bool $success, string $message, ?Enrollment $enrollment = null)
     {

@@ -12,7 +12,8 @@ use ChristianLMS\Infrastructure\Repositories\CourseTeacherRepository;
 
 class CourseTeacherService
 {
-    private CourseTeacherRepository $repository;
+    /** @var CourseTeacherRepository */
+    private $repository;
 
     public function __construct(CourseTeacherRepository $repository)
     {

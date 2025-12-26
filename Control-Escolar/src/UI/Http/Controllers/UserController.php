@@ -24,9 +24,12 @@ use ChristianLMS\Infrastructure\Ports\UserRepositoryInterface;
  */
 class UserController
 {
-    private RegisterUserUseCase $registerUserUseCase;
-    private AuthenticateUserUseCase $authenticateUserUseCase;
-    private UserRepositoryInterface $userRepository;
+    /** @var RegisterUserUseCase */
+    private $registerUserUseCase;
+    /** @var AuthenticateUserUseCase */
+    private $authenticateUserUseCase;
+    /** @var UserRepositoryInterface */
+    private $userRepository;
 
     public function __construct(
         RegisterUserUseCase $registerUserUseCase,

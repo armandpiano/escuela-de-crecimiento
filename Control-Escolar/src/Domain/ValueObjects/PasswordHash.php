@@ -16,9 +16,12 @@ namespace ChristianLMS\Domain\ValueObjects;
  */
 class PasswordHash
 {
-    private string $value;
-    private ?string $algorithm = null;
-    private ?int $cost = null;
+    /** @var string */
+    private $value;
+    /** @var string|null */
+    private $algorithm= null;
+    /** @var int|null */
+    private $cost= null;
 
     /**
      * Constructor

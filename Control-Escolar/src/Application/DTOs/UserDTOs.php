@@ -21,19 +21,32 @@ use ChristianLMS\Domain\ValueObjects\{
  */
 class CreateUserDTO
 {
-    public string $firstName;
-    public string $lastName;
-    public string $email;
-    public ?string $password = null;
-    public ?string $gender = null;
-    public ?string $phone = null;
-    public ?string $address = null;
-    public ?string $profilePhoto = null;
-    public array $roles = [];
-    public ?string $status = null;
-    public array $metadata = [];
-    public bool $sendVerificationEmail = true;
-    public bool $autoActivate = false;
+    /** @var string */
+    public $firstName;
+    /** @var string */
+    public $lastName;
+    /** @var string */
+    public $email;
+    /** @var string|null */
+    public $password= null;
+    /** @var string|null */
+    public $gender= null;
+    /** @var string|null */
+    public $phone= null;
+    /** @var string|null */
+    public $address= null;
+    /** @var string|null */
+    public $profilePhoto= null;
+    /** @var array */
+    public $roles= [];
+    /** @var string|null */
+    public $status= null;
+    /** @var array */
+    public $metadata= [];
+    /** @var bool */
+    public $sendVerificationEmail= true;
+    /** @var bool */
+    public $autoActivate= false;
 
     public function __construct(
         string $firstName,
@@ -162,23 +175,40 @@ class CreateUserDTO
  */
 class UserResponseDTO
 {
-    public UserId $id;
-    public string $firstName;
-    public string $lastName;
-    public string $fullName;
-    public string $email;
-    public UserStatus $status;
-    public UserGender $gender;
-    public ?string $phone = null;
-    public ?string $address = null;
-    public ?string $profilePhoto = null;
-    public array $roles = [];
-    public array $metadata = [];
-    public ?string $lastLoginAt = null;
-    public int $loginAttempts = 0;
-    public ?string $lockedUntil = null;
-    public ?string $createdAt = null;
-    public ?string $updatedAt = null;
+    /** @var UserId */
+    public $id;
+    /** @var string */
+    public $firstName;
+    /** @var string */
+    public $lastName;
+    /** @var string */
+    public $fullName;
+    /** @var string */
+    public $email;
+    /** @var UserStatus */
+    public $status;
+    /** @var UserGender */
+    public $gender;
+    /** @var string|null */
+    public $phone= null;
+    /** @var string|null */
+    public $address= null;
+    /** @var string|null */
+    public $profilePhoto= null;
+    /** @var array */
+    public $roles= [];
+    /** @var array */
+    public $metadata= [];
+    /** @var string|null */
+    public $lastLoginAt= null;
+    /** @var int */
+    public $loginAttempts= 0;
+    /** @var string|null */
+    public $lockedUntil= null;
+    /** @var string|null */
+    public $createdAt= null;
+    /** @var string|null */
+    public $updatedAt= null;
 
     /**
      * Crear DTO desde entidad User
@@ -334,16 +364,26 @@ class UserResponseDTO
  */
 class UpdateUserDTO
 {
-    public ?string $firstName = null;
-    public ?string $lastName = null;
-    public ?string $email = null;
-    public ?string $gender = null;
-    public ?string $phone = null;
-    public ?string $address = null;
-    public ?string $profilePhoto = null;
-    public array $roles = [];
-    public ?string $status = null;
-    public array $metadata = [];
+    /** @var string|null */
+    public $firstName= null;
+    /** @var string|null */
+    public $lastName= null;
+    /** @var string|null */
+    public $email= null;
+    /** @var string|null */
+    public $gender= null;
+    /** @var string|null */
+    public $phone= null;
+    /** @var string|null */
+    public $address= null;
+    /** @var string|null */
+    public $profilePhoto= null;
+    /** @var array */
+    public $roles= [];
+    /** @var string|null */
+    public $status= null;
+    /** @var array */
+    public $metadata= [];
 
     /**
      * Crear DTO desde array

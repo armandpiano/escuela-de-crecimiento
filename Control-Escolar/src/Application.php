@@ -25,12 +25,18 @@ use ChristianLMS\Infrastructure\Ports\UserRepositoryInterface;
  */
 class Application
 {
-    private static ?self $instance = null;
-    private array $config;
-    private ConnectionManager $connectionManager;
-    private SchemaManager $schemaManager;
-    private EmailService $emailService;
-    private array $services = [];
+    /** @var self|null */
+    private static $instance= null;
+    /** @var array */
+    private $config;
+    /** @var ConnectionManager */
+    private $connectionManager;
+    /** @var SchemaManager */
+    private $schemaManager;
+    /** @var EmailService */
+    private $emailService;
+    /** @var array */
+    private $services= [];
 
     private function __construct()
     {
@@ -167,19 +173,19 @@ class Application
     {
         $expectedTables = [
             'users' => [
-                'columns' => ['id', 'first_name', 'last_name', 'email', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'name', 'email', 'password_hash', 'google_id', 'role', 'status', 'created_at', 'updated_at']
             ],
             'courses' => [
-                'columns' => ['id', 'name', 'code', 'professor_id', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'term_id', 'subject_id', 'group_name', 'schedule_label', 'modality', 'zoom_url', 'pdf_path', 'capacity', 'status', 'created_at', 'updated_at']
             ],
             'subjects' => [
-                'columns' => ['id', 'name', 'code', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'code', 'name', 'module_id', 'module', 'description', 'is_active', 'created_at', 'updated_at']
             ],
-            'academic_periods' => [
-                'columns' => ['id', 'name', 'code', 'start_date', 'end_date', 'is_current', 'created_at', 'updated_at']
+            'terms' => [
+                'columns' => ['id', 'code', 'name', 'start_date', 'inscriptions_start', 'inscriptions_end', 'term_start', 'term_end', 'status', 'created_at', 'updated_at', 'enrollment_start', 'enrollment_end']
             ],
             'enrollments' => [
-                'columns' => ['id', 'student_id', 'course_id', 'academic_period_id', 'status', 'created_at', 'updated_at']
+                'columns' => ['id', 'student_id', 'course_id', 'enrollment_at', 'status', 'payment_status', 'total_amount', 'paid_amount', 'notes', 'created_at', 'updated_at']
             ]
         ];
 

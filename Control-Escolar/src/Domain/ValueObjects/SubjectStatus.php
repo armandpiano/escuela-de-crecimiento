@@ -19,9 +19,12 @@ class SubjectStatus
     public const INACTIVE = 'inactive';
     public const DEPRECATED = 'deprecated';
 
-    private string $value;
+    /** @var string */
+    private $value;
 
-    private static array $validStatuses = [
+    /** @var array */
+
+    private static $validStatuses = [
         self::ACTIVE,
         self::INACTIVE,
         self::DEPRECATED

@@ -18,7 +18,8 @@ use ChristianLMS\Infrastructure\Persistence\Database\Exceptions\ConnectionExcept
  */
 class SchemaManager
 {
-    private ConnectionManager $connectionManager;
+    /** @var ConnectionManager */
+    private $connectionManager;
 
     public function __construct(ConnectionManager $connectionManager)
     {

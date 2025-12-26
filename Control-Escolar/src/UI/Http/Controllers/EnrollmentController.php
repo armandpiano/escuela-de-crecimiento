@@ -23,8 +23,10 @@ use ChristianLMS\Infrastructure\Repositories\UserRepository;
  */
 class EnrollmentController
 {
-    private EnrollStudentUseCase $enrollStudentUseCase;
-    private ApplicationServices $applicationServices;
+    /** @var EnrollStudentUseCase */
+    private $enrollStudentUseCase;
+    /** @var ApplicationServices */
+    private $applicationServices;
 
     public function __construct()
     {

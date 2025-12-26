@@ -19,8 +19,10 @@ use ChristianLMS\Infrastructure\Mail\Exceptions\EmailException;
  */
 class EmailService
 {
-    private array $config;
-    private \PHPMailer\PHPMailer\PHPMailer $mailer;
+    /** @var array */
+    private $config;
+    /** @var \PHPMailer\PHPMailer\PHPMailer */
+    private $mailer;
 
     public function __construct(array $config)
     {

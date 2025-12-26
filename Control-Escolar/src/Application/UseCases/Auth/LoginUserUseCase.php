@@ -20,8 +20,10 @@ use ChristianLMS\Domain\ValueObjects\Email;
  */
 class LoginUserUseCase
 {
-    private ApplicationServices $applicationServices;
-    private EmailService $emailService;
+    /** @var ApplicationServices */
+    private $applicationServices;
+    /** @var EmailService */
+    private $emailService;
 
     public function __construct(
         ApplicationServices $applicationServices,
@@ -144,10 +146,14 @@ class LoginUserUseCase
  */
 class LoginUserRequest
 {
-    private string $email;
-    private string $password;
-    private bool $remember;
-    private ?string $ipAddress;
+    /** @var string */
+    private $email;
+    /** @var string */
+    private $password;
+    /** @var bool */
+    private $remember;
+    /** @var string|null */
+    private $ipAddress;
 
     public function __construct(string $email, string $password, bool $remember = false, ?string $ipAddress = null)
     {
@@ -175,10 +181,14 @@ class LoginUserRequest
  */
 class LoginUserResponse
 {
-    private bool $success;
-    private string $message;
-    private ?object $user;
-    private ?string $redirectUrl;
+    /** @var bool */
+    private $success;
+    /** @var string */
+    private $message;
+    /** @var object|null */
+    private $user;
+    /** @var string|null */
+    private $redirectUrl;
 
     public function __construct(bool $success, string $message, ?object $user = null, ?string $redirectUrl = null)
     {

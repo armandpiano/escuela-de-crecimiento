@@ -16,10 +16,14 @@ namespace ChristianLMS\Domain\ValueObjects;
  */
 class Email
 {
-    private string $value;
-    private string $localPart;
-    private string $domain;
-    private ?string $displayName = null;
+    /** @var string */
+    private $value;
+    /** @var string */
+    private $localPart;
+    /** @var string */
+    private $domain;
+    /** @var string|null */
+    private $displayName= null;
 
     /**
      * Constructor

@@ -314,19 +314,17 @@ function getEligibleSubjectIds(PDO $pdo, int $studentId): array
     $stmt = $pdo->prepare("
         SELECT s.id
         FROM subjects s
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM subject_prerequisites sp
-            LEFT JOIN student_subject_history ssh
-              ON ssh.subject_id = sp.prerequisite_subject_id
-             AND ssh.student_id = :student_id
-            WHERE sp.subject_id = s.id
-              AND (
-                  ssh.passed IS NULL
-                  OR ssh.passed = 0
-                  OR (sp.min_grade IS NOT NULL AND ssh.final_grade < sp.min_grade)
-              )
-        )
+        WHERE s.is_active = 1
+          AND NOT EXISTS (
+              SELECT 1
+              FROM subject_prerequisites sp
+              LEFT JOIN student_subject_history ssh
+                ON ssh.subject_id = sp.prerequisite_subject_id
+               AND ssh.student_id = :student_id
+               AND ssh.passed = 1
+              WHERE sp.subject_id = s.id
+                AND ssh.id IS NULL
+          )
         ORDER BY s.name ASC
     ");
     $stmt->execute(['student_id' => $studentId]);
@@ -372,7 +370,7 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $termId, array
         INNER JOIN subjects s ON s.id = c.subject_id
         LEFT JOIN modules m ON m.id = s.module_id
         WHERE c.term_id = :term_id
-          AND c.status = 'published'
+          AND c.status = 'open'
           AND c.subject_id IN ({$eligibleList})
           AND c.id NOT IN (
               SELECT course_id FROM enrollments WHERE student_id = :student_id
@@ -786,7 +784,7 @@ switch ($route['action']) {
         $pdo = getPdoConnection($dbConfig);
         $activeTerm = getActiveTerm($pdo);
 
-        $dashboardData['stats']['courses'] = (int) $pdo->query("SELECT COUNT(*) FROM courses WHERE status = 'active'")->fetchColumn();
+        $dashboardData['stats']['courses'] = (int) $pdo->query("SELECT COUNT(*) FROM courses WHERE status = 'open'")->fetchColumn();
         $dashboardData['stats']['students'] = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
         $dashboardData['stats']['teachers'] = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
 
@@ -813,7 +811,7 @@ switch ($route['action']) {
                 INNER JOIN subjects s ON s.id = c.subject_id
                 INNER JOIN terms t ON t.id = c.term_id
                 WHERE ct.teacher_id = :teacher_id
-                ORDER BY t.start_date DESC, s.name ASC
+                ORDER BY t.term_start DESC, s.name ASC
             ");
             $teacherCoursesStmt->execute(['teacher_id' => $teacherId]);
             $dashboardData['teacherCourses'] = $teacherCoursesStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -953,7 +951,7 @@ switch ($route['action']) {
         $subjectsStmt = $pdo->query("SELECT id, name FROM subjects ORDER BY name ASC");
         $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $termsStmt = $pdo->query("SELECT id, name FROM terms ORDER BY start_date DESC");
+        $termsStmt = $pdo->query("SELECT id, name FROM terms ORDER BY term_start DESC");
         $terms = $termsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(
@@ -1051,7 +1049,7 @@ switch ($route['action']) {
             INNER JOIN subjects s ON s.id = c.subject_id
             LEFT JOIN modules m ON m.id = s.module_id
             WHERE c.term_id = :term_id
-              AND c.status = 'published'
+              AND c.status = 'open'
             ORDER BY s.name ASC
         ");
         $coursesStmt->execute(['term_id' => $activeTerm['id'] ?? 0]);
@@ -1190,7 +1188,7 @@ switch ($route['action']) {
                     $enrollmentEnd = $_POST['enrollment_end'] ?? null;
                     $startDate = $_POST['start_date'] ?? null;
                     $endDate = $_POST['end_date'] ?? null;
-                    $status = $_POST['status'] ?? 'inactive';
+                    $status = $_POST['status'] ?? 'draft';
 
                     if ($name === '' || $code === '') {
                         throw new Exception('Completa los campos obligatorios del periodo.');
@@ -1198,17 +1196,17 @@ switch ($route['action']) {
 
                     $stmt = $pdo->prepare("
                         INSERT INTO terms
-                            (code, name, enrollment_start, enrollment_end, start_date, end_date, status)
+                            (code, name, enrollment_start, enrollment_end, term_start, term_end, status)
                         VALUES
-                            (:code, :name, :enrollment_start, :enrollment_end, :start_date, :end_date, :status)
+                            (:code, :name, :enrollment_start, :enrollment_end, :term_start, :term_end, :status)
                     ");
                     $stmt->execute([
                         'code' => $code,
                         'name' => $name,
                         'enrollment_start' => $enrollmentStart ?: null,
                         'enrollment_end' => $enrollmentEnd ?: null,
-                        'start_date' => $startDate ?: null,
-                        'end_date' => $endDate ?: null,
+                        'term_start' => $startDate ?: null,
+                        'term_end' => $endDate ?: null,
                         'status' => $status
                     ]);
                     $successMessage = 'Periodo académico creado correctamente.';
@@ -1219,7 +1217,7 @@ switch ($route['action']) {
                     $enrollmentEnd = $_POST['enrollment_end'] ?? null;
                     $startDate = $_POST['start_date'] ?? null;
                     $endDate = $_POST['end_date'] ?? null;
-                    $status = $_POST['status'] ?? 'inactive';
+                    $status = $_POST['status'] ?? 'draft';
 
                     if (!$periodId || $name === '') {
                         throw new Exception('Completa los campos obligatorios del periodo.');
@@ -1230,8 +1228,8 @@ switch ($route['action']) {
                         SET name = :name,
                             enrollment_start = :enrollment_start,
                             enrollment_end = :enrollment_end,
-                            start_date = :start_date,
-                            end_date = :end_date,
+                            term_start = :term_start,
+                            term_end = :term_end,
                             status = :status
                         WHERE id = :id
                     ");
@@ -1240,8 +1238,8 @@ switch ($route['action']) {
                         'name' => $name,
                         'enrollment_start' => $enrollmentStart ?: null,
                         'enrollment_end' => $enrollmentEnd ?: null,
-                        'start_date' => $startDate ?: null,
-                        'end_date' => $endDate ?: null,
+                        'term_start' => $startDate ?: null,
+                        'term_end' => $endDate ?: null,
                         'status' => $status
                     ]);
                     $successMessage = 'Periodo académico actualizado correctamente.';
@@ -1258,7 +1256,7 @@ switch ($route['action']) {
             }
         }
 
-        $periodsStmt = $pdo->query("SELECT * FROM terms ORDER BY start_date DESC");
+        $periodsStmt = $pdo->query("SELECT * FROM terms ORDER BY term_start DESC");
         $periods = $periodsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(

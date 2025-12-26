@@ -13,8 +13,10 @@ use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
 
 class SubjectPrerequisiteRepository
 {
-    private ConnectionManager $connectionManager;
-    private string $tableName = 'subject_prerequisites';
+    /** @var ConnectionManager */
+    private $connectionManager;
+    /** @var string */
+    private $tableName= 'subject_prerequisites';
 
     public function __construct(ConnectionManager $connectionManager)
     {
@@ -56,7 +58,7 @@ class SubjectPrerequisiteRepository
                     WHERE sp.subject_id = s.id
                       AND sp.prerequisite_subject_id NOT IN ({$completedList})
                   )
-                ORDER BY s.sort_order ASC
+                ORDER BY s.name ASC
             ";
             $results = $this->connectionManager->select($sql);
             return array_column($results, 'id');

@@ -36,10 +36,14 @@ use ChristianLMS\Domain\ValueObjects\{
  */
 class RegisterUserUseCase
 {
-    private UserRepositoryInterface $userRepository;
-    private PasswordService $passwordService;
-    private EmailService $emailService;
-    private ValidationService $validationService;
+    /** @var UserRepositoryInterface */
+    private $userRepository;
+    /** @var PasswordService */
+    private $passwordService;
+    /** @var EmailService */
+    private $emailService;
+    /** @var ValidationService */
+    private $validationService;
 
     public function __construct(
         UserRepositoryInterface $userRepository,
@@ -189,7 +193,7 @@ class RegisterUserUseCase
             $user->setStatus(UserStatus::fromString($data->status));
         } else {
             // Por defecto, usuarios se crean como pendientes de activación
-            $user->setStatus(UserStatus::PENDING);
+            $user->setStatus(UserStatus::pending());
         }
 
         // Agregar metadata adicional
@@ -242,8 +246,10 @@ class RegisterUserUseCase
  */
 class AuthenticateUserUseCase
 {
-    private UserRepositoryInterface $userRepository;
-    private PasswordService $passwordService;
+    /** @var UserRepositoryInterface */
+    private $userRepository;
+    /** @var PasswordService */
+    private $passwordService;
 
     public function __construct(
         UserRepositoryInterface $userRepository,

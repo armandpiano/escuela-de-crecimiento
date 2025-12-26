@@ -27,21 +27,36 @@ class Subject
 {
     use Timestampable, SoftDeleteable;
 
-    private SubjectId $id;
-    private string $name;
-    private SubjectCode $code;
-    private ?string $description;
-    private ?string $department;
-    private ?GradeLevel $gradeLevel;
-    private bool $isCore;
-    private float $credits;
-    private float $hoursPerWeek;
-    private ?array $prerequisites;
-    private ?string $learningOutcomes;
-    private ?string $bibliography;
-    private ?array $resources;
-    private SubjectStatus $status;
-    private array $metadata = [];
+    /** @var SubjectId */
+    private $id;
+    /** @var string */
+    private $name;
+    /** @var SubjectCode */
+    private $code;
+    /** @var string|null */
+    private $description;
+    /** @var string|null */
+    private $department;
+    /** @var GradeLevel|null */
+    private $gradeLevel;
+    /** @var bool */
+    private $isCore;
+    /** @var float */
+    private $credits;
+    /** @var float */
+    private $hoursPerWeek;
+    /** @var array|null */
+    private $prerequisites;
+    /** @var string|null */
+    private $learningOutcomes;
+    /** @var string|null */
+    private $bibliography;
+    /** @var array|null */
+    private $resources;
+    /** @var SubjectStatus */
+    private $status;
+    /** @var array */
+    private $metadata= [];
 
     /**
      * Constructor
@@ -304,7 +319,7 @@ class Subject
             'code' => $this->code->getValue(),
             'description' => $this->description,
             'department' => $this->department,
-            'grade_level' => $this->gradeLevel?->getValue(),
+            'grade_level' => $this->gradeLevel ? $this->gradeLevel->getValue() : null,
             'is_core' => $this->isCore,
             'credits' => $this->credits,
             'hours_per_week' => $this->hoursPerWeek,

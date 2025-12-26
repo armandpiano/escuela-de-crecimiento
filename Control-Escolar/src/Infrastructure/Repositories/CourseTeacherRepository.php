@@ -13,8 +13,10 @@ use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
 
 class CourseTeacherRepository
 {
-    private ConnectionManager $connectionManager;
-    private string $tableName = 'course_teachers';
+    /** @var ConnectionManager */
+    private $connectionManager;
+    /** @var string */
+    private $tableName= 'course_teachers';
 
     public function __construct(ConnectionManager $connectionManager)
     {
@@ -65,17 +67,17 @@ class CourseTeacherRepository
                 FROM {$this->tableName} ct
                 INNER JOIN courses c ON c.id = ct.course_id
                 WHERE ct.teacher_id = :teacher_id
-                  AND c.academic_period_id = :academic_period_id
-                  AND c.day_of_week = :day_of_week
-                  AND c.start_time < :end_time
-                  AND c.end_time > :start_time
+                  AND c.term_id = :term_id
+                  AND c.schedule_label LIKE :day_of_week
+                  AND c.schedule_label LIKE :start_time
+                  AND c.schedule_label LIKE :end_time
             ";
             $params = [
                 'teacher_id' => $teacherId,
-                'academic_period_id' => $academicPeriodId,
-                'day_of_week' => $dayOfWeek,
-                'start_time' => $startTime,
-                'end_time' => $endTime
+                'term_id' => $academicPeriodId,
+                'day_of_week' => '%' . $dayOfWeek . '%',
+                'start_time' => '%' . $startTime . '%',
+                'end_time' => '%' . $endTime . '%'
             ];
 
             if ($ignoreCourseId) {

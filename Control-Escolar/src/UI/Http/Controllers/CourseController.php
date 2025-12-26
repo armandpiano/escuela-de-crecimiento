@@ -22,8 +22,10 @@ use ChristianLMS\Infrastructure\Repositories\UserRepository;
  */
 class CourseController
 {
-    private CreateCourseUseCase $createCourseUseCase;
-    private ApplicationServices $applicationServices;
+    /** @var CreateCourseUseCase */
+    private $createCourseUseCase;
+    /** @var ApplicationServices */
+    private $applicationServices;
 
     public function __construct()
     {

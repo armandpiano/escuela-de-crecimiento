@@ -12,7 +12,8 @@ use ChristianLMS\Infrastructure\Repositories\ModuleRepository;
 
 class ModuleService
 {
-    private ModuleRepository $moduleRepository;
+    /** @var ModuleRepository */
+    private $moduleRepository;
 
     public function __construct(ModuleRepository $moduleRepository)
     {

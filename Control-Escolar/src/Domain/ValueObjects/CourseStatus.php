@@ -21,9 +21,12 @@ class CourseStatus
     public const CANCELLED = 'cancelled';
     public const ARCHIVED = 'archived';
 
-    private string $value;
+    /** @var string */
+    private $value;
 
-    private static array $validStatuses = [
+    /** @var array */
+
+    private static $validStatuses = [
         self::DRAFT,
         self::ACTIVE,
         self::COMPLETED,

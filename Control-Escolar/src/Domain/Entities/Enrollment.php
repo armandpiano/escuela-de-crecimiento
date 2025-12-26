@@ -29,23 +29,40 @@ class Enrollment
 {
     use Timestampable, SoftDeleteable;
 
-    private EnrollmentId $id;
-    private UserId $studentId;
-    private CourseId $courseId;
-    private AcademicPeriodId $academicPeriodId;
-    private string $enrollmentDate;
-    private EnrollmentStatus $status;
-    private ?float $finalGrade;
-    private ?string $letterGrade;
-    private float $creditsEarned;
-    private float $attendancePercentage;
-    private PaymentStatus $paymentStatus;
-    private float $paymentAmount;
-    private ?string $paymentDate;
-    private ?string $dropDate;
-    private ?string $completionDate;
-    private ?string $notes;
-    private array $metadata = [];
+    /** @var EnrollmentId */
+    private $id;
+    /** @var UserId */
+    private $studentId;
+    /** @var CourseId */
+    private $courseId;
+    /** @var AcademicPeriodId */
+    private $academicPeriodId;
+    /** @var string */
+    private $enrollmentDate;
+    /** @var EnrollmentStatus */
+    private $status;
+    /** @var float|null */
+    private $finalGrade;
+    /** @var string|null */
+    private $letterGrade;
+    /** @var float */
+    private $creditsEarned;
+    /** @var float */
+    private $attendancePercentage;
+    /** @var PaymentStatus */
+    private $paymentStatus;
+    /** @var float */
+    private $paymentAmount;
+    /** @var string|null */
+    private $paymentDate;
+    /** @var string|null */
+    private $dropDate;
+    /** @var string|null */
+    private $completionDate;
+    /** @var string|null */
+    private $notes;
+    /** @var array */
+    private $metadata= [];
 
     /**
      * Constructor
@@ -78,7 +95,7 @@ class Enrollment
     ): self {
         $enrollment = new self(
             EnrollmentId::generate(),
-            new UserId($studentId),
+            UserId::fromString($studentId),
             new CourseId($courseId),
             new AcademicPeriodId($academicPeriodId)
         );
@@ -417,22 +434,35 @@ class Enrollment
             return 0.0;
         }
 
-        return match($this->letterGrade) {
-            'A+' => 4.0,
-            'A' => 4.0,
-            'A-' => 3.7,
-            'B+' => 3.3,
-            'B' => 3.0,
-            'B-' => 2.7,
-            'C+' => 2.3,
-            'C' => 2.0,
-            'C-' => 1.7,
-            'D+' => 1.3,
-            'D' => 1.0,
-            'D-' => 0.7,
-            'F' => 0.0,
-            default => 0.0
-        };
+        switch ($this->letterGrade) {
+            case 'A+':
+            case 'A':
+                return 4.0;
+            case 'A-':
+                return 3.7;
+            case 'B+':
+                return 3.3;
+            case 'B':
+                return 3.0;
+            case 'B-':
+                return 2.7;
+            case 'C+':
+                return 2.3;
+            case 'C':
+                return 2.0;
+            case 'C-':
+                return 1.7;
+            case 'D+':
+                return 1.3;
+            case 'D':
+                return 1.0;
+            case 'D-':
+                return 0.7;
+            case 'F':
+                return 0.0;
+            default:
+                return 0.0;
+        }
     }
 
     /**

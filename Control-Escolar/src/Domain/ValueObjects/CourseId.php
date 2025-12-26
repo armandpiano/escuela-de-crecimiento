@@ -15,7 +15,8 @@ namespace ChristianLMS\Domain\ValueObjects;
  */
 class CourseId
 {
-    private string $value;
+    /** @var string */
+    private $value;
 
     public function __construct(string $value)
     {
@@ -23,8 +24,8 @@ class CourseId
             throw new \InvalidArgumentException('El ID del curso no puede estar vacío');
         }
         
-        if (!preg_match('/^[a-f0-9\-]{36}$/', $value)) {
-            throw new \InvalidArgumentException('El ID del curso debe ser un UUID válido');
+        if (!ctype_digit($value) && !preg_match('/^[a-f0-9\\-]{36}$/', $value)) {
+            throw new \InvalidArgumentException('El ID del curso debe ser numérico o un UUID válido');
         }
         
         $this->value = $value;

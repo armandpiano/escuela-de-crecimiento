@@ -12,7 +12,8 @@ use ChristianLMS\Infrastructure\Repositories\SubjectPrerequisiteRepository;
 
 class SubjectPrerequisiteService
 {
-    private SubjectPrerequisiteRepository $repository;
+    /** @var SubjectPrerequisiteRepository */
+    private $repository;
 
     public function __construct(SubjectPrerequisiteRepository $repository)
     {

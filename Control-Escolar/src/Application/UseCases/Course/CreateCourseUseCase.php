@@ -29,9 +29,12 @@ use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
  */
 class CreateCourseUseCase
 {
-    private CourseRepositoryInterface $courseRepository;
-    private ApplicationServices $applicationServices;
-    private EmailService $emailService;
+    /** @var CourseRepositoryInterface */
+    private $courseRepository;
+    /** @var ApplicationServices */
+    private $applicationServices;
+    /** @var EmailService */
+    private $emailService;
 
     public function __construct(
         CourseRepositoryInterface $courseRepository,
@@ -59,7 +62,7 @@ class CreateCourseUseCase
             }
 
             // Verificar que el profesor existe y es válido
-            $professorId = new UserId($request->getProfessorId());
+            $professorId = UserId::fromString($request->getProfessorId());
             $professor = $this->applicationServices->getUserRepository()->findById($professorId);
             if (!$professor || (!$professor->isTeacher() && !$professor->isAdmin())) {
                 return new CreateCourseResponse(false, 'El profesor especificado no es válido');
@@ -203,26 +206,46 @@ class CreateCourseUseCase
  */
 class CreateCourseRequest
 {
-    private string $name;
-    private string $code;
-    private string $professorId;
-    private ?string $subjectId;
-    private ?string $description;
-    private int $maxStudents;
-    private float $credits;
-    private float $hoursPerWeek;
-    private ?string $startDate;
-    private ?string $endDate;
-    private ?array $schedule;
-    private bool $isVirtual;
-    private ?string $virtualPlatform;
-    private ?string $virtualLink;
-    private ?string $learningObjectives;
-    private ?string $syllabus;
-    private ?string $assessmentMethods;
-    private ?array $prerequisites;
-    private ?array $materials;
-    private ?array $gradingScale;
+    /** @var string */
+    private $name;
+    /** @var string */
+    private $code;
+    /** @var string */
+    private $professorId;
+    /** @var string|null */
+    private $subjectId;
+    /** @var string|null */
+    private $description;
+    /** @var int */
+    private $maxStudents;
+    /** @var float */
+    private $credits;
+    /** @var float */
+    private $hoursPerWeek;
+    /** @var string|null */
+    private $startDate;
+    /** @var string|null */
+    private $endDate;
+    /** @var array|null */
+    private $schedule;
+    /** @var bool */
+    private $isVirtual;
+    /** @var string|null */
+    private $virtualPlatform;
+    /** @var string|null */
+    private $virtualLink;
+    /** @var string|null */
+    private $learningObjectives;
+    /** @var string|null */
+    private $syllabus;
+    /** @var string|null */
+    private $assessmentMethods;
+    /** @var array|null */
+    private $prerequisites;
+    /** @var array|null */
+    private $materials;
+    /** @var array|null */
+    private $gradingScale;
 
     // Getters
     public function getName(): string { return $this->name; }
@@ -274,9 +297,12 @@ class CreateCourseRequest
  */
 class CreateCourseResponse
 {
-    private bool $success;
-    private string $message;
-    private ?Course $course;
+    /** @var bool */
+    private $success;
+    /** @var string */
+    private $message;
+    /** @var Course|null */
+    private $course;
 
     public function __construct(bool $success, string $message, ?Course $course = null)
     {

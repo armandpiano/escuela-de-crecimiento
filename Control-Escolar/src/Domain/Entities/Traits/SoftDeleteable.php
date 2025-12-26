@@ -16,7 +16,8 @@ namespace ChristianLMS\Domain\Entities\Traits;
  */
 trait SoftDeleteable
 {
-    private ?string $deletedAt = null;
+    /** @var string|null */
+    private $deletedAt= null;
 
     /**
      * Marcar como eliminado (soft delete)

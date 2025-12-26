@@ -10,15 +10,19 @@ namespace ChristianLMS\Infrastructure\Repositories;
 
 use ChristianLMS\Infrastructure\Persistence\Database\ConnectionManager;
 use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
+use ChristianLMS\Infrastructure\Persistence\Schema\SchemaMap;
 
 class ModuleRepository
 {
-    private ConnectionManager $connectionManager;
-    private string $tableName = 'modules';
+    /** @var ConnectionManager */
+    private $connectionManager;
+    /** @var string */
+    private $tableName = 'modules';
 
     public function __construct(ConnectionManager $connectionManager)
     {
         $this->connectionManager = $connectionManager;
+        $this->tableName = SchemaMap::table('modules');
     }
 
     public function findAll(): array
@@ -44,11 +48,12 @@ class ModuleRepository
     public function create(array $data): string
     {
         try {
-            $sql = "INSERT INTO {$this->tableName} (name, sort_order, is_active, created_at, updated_at)
-                    VALUES (:name, :sort_order, :is_active, NOW(), NOW())";
+            $sql = "INSERT INTO {$this->tableName} (code, name, sort_order, is_active, created_at, updated_at)
+                    VALUES (:code, :name, :sort_order, :is_active, NOW(), NOW())";
             return $this->connectionManager->insert($sql, [
+                'code' => $data['code'],
                 'name' => $data['name'],
-                'sort_order' => $data['sort_order'] ?? 0,
+                'sort_order' => $data['sort_order'] ?? 1,
                 'is_active' => $data['is_active'] ?? 1
             ]);
         } catch (\Exception $e) {
@@ -60,15 +65,17 @@ class ModuleRepository
     {
         try {
             $sql = "UPDATE {$this->tableName}
-                    SET name = :name,
+                    SET code = :code,
+                        name = :name,
                         sort_order = :sort_order,
                         is_active = :is_active,
                         updated_at = NOW()
                     WHERE id = :id";
             return $this->connectionManager->execute($sql, [
                 'id' => $id,
+                'code' => $data['code'],
                 'name' => $data['name'],
-                'sort_order' => $data['sort_order'] ?? 0,
+                'sort_order' => $data['sort_order'] ?? 1,
                 'is_active' => $data['is_active'] ?? 1
             ]);
         } catch (\Exception $e) {

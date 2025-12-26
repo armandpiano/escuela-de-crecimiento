@@ -16,8 +16,10 @@ namespace ChristianLMS\Domain\Entities\Traits;
  */
 trait Timestampable
 {
-    private ?string $createdAt = null;
-    private ?string $updatedAt = null;
+    /** @var string|null */
+    private $createdAt= null;
+    /** @var string|null */
+    private $updatedAt= null;
 
     /**
      * Establecer fecha de creación

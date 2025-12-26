@@ -16,7 +16,8 @@ namespace ChristianLMS\Domain\ValueObjects;
  */
 class UserId
 {
-    private string $value;
+    /** @var string */
+    private $value;
 
     /**
      * Constructor

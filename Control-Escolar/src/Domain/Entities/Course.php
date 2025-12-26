@@ -28,31 +28,56 @@ class Course
 {
     use Timestampable, SoftDeleteable;
 
-    private CourseId $id;
-    private string $name;
-    private CourseCode $code;
-    private ?string $description;
-    private UserId $professorId;
-    private ?SubjectId $subjectId;
-    private ?string $academicPeriodId;
-    private int $maxStudents;
-    private int $currentStudents;
-    private ?string $startDate;
-    private ?string $endDate;
-    private ?array $schedule;
-    private float $credits;
-    private float $hoursPerWeek;
-    private CourseStatus $status;
-    private bool $isVirtual;
-    private ?string $virtualPlatform;
-    private ?string $virtualLink;
-    private ?array $prerequisites;
-    private ?string $learningObjectives;
-    private ?string $syllabus;
-    private ?array $materials;
-    private ?string $assessmentMethods;
-    private ?array $gradingScale;
-    private array $metadata = [];
+    /** @var CourseId */
+    private $id;
+    /** @var string */
+    private $name;
+    /** @var CourseCode */
+    private $code;
+    /** @var string|null */
+    private $description;
+    /** @var UserId */
+    private $professorId;
+    /** @var SubjectId|null */
+    private $subjectId;
+    /** @var string|null */
+    private $academicPeriodId;
+    /** @var int */
+    private $maxStudents;
+    /** @var int */
+    private $currentStudents;
+    /** @var string|null */
+    private $startDate;
+    /** @var string|null */
+    private $endDate;
+    /** @var array|null */
+    private $schedule;
+    /** @var float */
+    private $credits;
+    /** @var float */
+    private $hoursPerWeek;
+    /** @var CourseStatus */
+    private $status;
+    /** @var bool */
+    private $isVirtual;
+    /** @var string|null */
+    private $virtualPlatform;
+    /** @var string|null */
+    private $virtualLink;
+    /** @var array|null */
+    private $prerequisites;
+    /** @var string|null */
+    private $learningObjectives;
+    /** @var string|null */
+    private $syllabus;
+    /** @var array|null */
+    private $materials;
+    /** @var string|null */
+    private $assessmentMethods;
+    /** @var array|null */
+    private $gradingScale;
+    /** @var array */
+    private $metadata= [];
 
     /**
      * Constructor
@@ -90,7 +115,7 @@ class Course
             CourseId::generate(),
             $name,
             new CourseCode($code),
-            new UserId($professorId),
+            UserId::fromString($professorId),
             $subjectId ? new SubjectId($subjectId) : null
         );
         
@@ -498,7 +523,7 @@ class Course
             'code' => $this->code->getValue(),
             'description' => $this->description,
             'professor_id' => $this->professorId->getValue(),
-            'subject_id' => $this->subjectId?->getValue(),
+            'subject_id' => $this->subjectId ? $this->subjectId->getValue() : null,
             'academic_period_id' => $this->academicPeriodId,
             'max_students' => $this->maxStudents,
             'current_students' => $this->currentStudents,

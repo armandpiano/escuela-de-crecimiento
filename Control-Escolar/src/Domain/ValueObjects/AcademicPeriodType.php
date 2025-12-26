@@ -22,9 +22,12 @@ class AcademicPeriodType
     public const MONTHLY = 'monthly';
     public const CUSTOM = 'custom';
 
-    private string $value;
+    /** @var string */
+    private $value;
 
-    private static array $validTypes = [
+    /** @var array */
+
+    private static $validTypes = [
         self::SEMESTRE,
         self::CUATRIMESTRE,
         self::TRIMESTRE,
@@ -123,15 +126,21 @@ class AcademicPeriodType
      */
     public function getTypicalWeeks(): int
     {
-        return match($this->value) {
-            self::SEMESTRE => 18,
-            self::CUATRIMESTRE => 16,
-            self::TRIMESTRE => 12,
-            self::BIMESTRE => 8,
-            self::MONTHLY => 4,
-            self::CUSTOM => 0,
-            default => 0
-        };
+        switch ($this->value) {
+            case self::SEMESTRE:
+                return 18;
+            case self::CUATRIMESTRE:
+                return 16;
+            case self::TRIMESTRE:
+                return 12;
+            case self::BIMESTRE:
+                return 8;
+            case self::MONTHLY:
+                return 4;
+            case self::CUSTOM:
+            default:
+                return 0;
+        }
     }
 
     /**
@@ -139,15 +148,22 @@ class AcademicPeriodType
      */
     public function getDisplayName(): string
     {
-        return match($this->value) {
-            self::SEMESTRE => 'Semestre',
-            self::CUATRIMESTRE => 'Cuatrimestre',
-            self::TRIMESTRE => 'Trimestre',
-            self::BIMESTRE => 'Bimestre',
-            self::MONTHLY => 'Mensual',
-            self::CUSTOM => 'Personalizado',
-            default => $this->value
-        };
+        switch ($this->value) {
+            case self::SEMESTRE:
+                return 'Semestre';
+            case self::CUATRIMESTRE:
+                return 'Cuatrimestre';
+            case self::TRIMESTRE:
+                return 'Trimestre';
+            case self::BIMESTRE:
+                return 'Bimestre';
+            case self::MONTHLY:
+                return 'Mensual';
+            case self::CUSTOM:
+                return 'Personalizado';
+            default:
+                return $this->value;
+        }
     }
 
     /**

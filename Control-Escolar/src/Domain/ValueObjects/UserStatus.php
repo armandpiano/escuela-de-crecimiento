@@ -1,7 +1,7 @@
 <?php
 /**
  * =============================================================================
- * ENUM USER STATUS
+ * VALUE OBJECT USER STATUS
  * Christian LMS System - Domain Layer
  * =============================================================================
  */
@@ -9,32 +9,67 @@
 namespace ChristianLMS\Domain\ValueObjects;
 
 /**
- * Enum UserStatus
- * 
+ * Value Object UserStatus
+ *
  * Representa los posibles estados de un usuario en el sistema.
  */
-enum UserStatus: string
+class UserStatus
 {
-    case ACTIVE = 'active';
-    case INACTIVE = 'inactive';
-    case SUSPENDED = 'suspended';
-    case PENDING = 'pending';
-    case BANNED = 'banned';
-    case DELETED = 'deleted';
+    public const ACTIVE = 'active';
+    public const INACTIVE = 'inactive';
+    public const SUSPENDED = 'suspended';
+    public const PENDING = 'pending';
+    public const BANNED = 'banned';
+    public const DELETED = 'deleted';
+
+    /** @var string */
+    private $value;
+
+    /** @var array */
+    private static $validStatuses = [
+        self::ACTIVE,
+        self::INACTIVE,
+        self::SUSPENDED,
+        self::PENDING,
+        self::BANNED,
+        self::DELETED,
+    ];
+
+    public function __construct(string $value)
+    {
+        if (!in_array($value, self::$validStatuses, true)) {
+            throw new \InvalidArgumentException('Estado de usuario inválido');
+        }
+
+        $this->value = $value;
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
 
     /**
      * Obtener etiqueta legible
      */
     public function getLabel(): string
     {
-        return match($this) {
-            self::ACTIVE => 'Activo',
-            self::INACTIVE => 'Inactivo',
-            self::SUSPENDED => 'Suspendido',
-            self::PENDING => 'Pendiente',
-            self::BANNED => 'Baneado',
-            self::DELETED => 'Eliminado',
-        };
+        switch ($this->value) {
+            case self::ACTIVE:
+                return 'Activo';
+            case self::INACTIVE:
+                return 'Inactivo';
+            case self::SUSPENDED:
+                return 'Suspendido';
+            case self::PENDING:
+                return 'Pendiente';
+            case self::BANNED:
+                return 'Baneado';
+            case self::DELETED:
+                return 'Eliminado';
+            default:
+                return 'Desconocido';
+        }
     }
 
     /**
@@ -42,14 +77,22 @@ enum UserStatus: string
      */
     public function getDescription(): string
     {
-        return match($this) {
-            self::ACTIVE => 'Usuario activo que puede acceder al sistema',
-            self::INACTIVE => 'Usuario inactivo temporalmente',
-            self::SUSPENDED => 'Usuario suspendido por violaciones',
-            self::PENDING => 'Usuario pendiente de activación',
-            self::BANNED => 'Usuario permanentemente baneado',
-            self::DELETED => 'Usuario eliminado del sistema',
-        };
+        switch ($this->value) {
+            case self::ACTIVE:
+                return 'Usuario activo que puede acceder al sistema';
+            case self::INACTIVE:
+                return 'Usuario inactivo temporalmente';
+            case self::SUSPENDED:
+                return 'Usuario suspendido por violaciones';
+            case self::PENDING:
+                return 'Usuario pendiente de activación';
+            case self::BANNED:
+                return 'Usuario permanentemente baneado';
+            case self::DELETED:
+                return 'Usuario eliminado del sistema';
+            default:
+                return 'Estado no reconocido';
+        }
     }
 
     /**
@@ -57,14 +100,22 @@ enum UserStatus: string
      */
     public function getColor(): string
     {
-        return match($this) {
-            self::ACTIVE => '#28a745',
-            self::INACTIVE => '#6c757d',
-            self::SUSPENDED => '#ffc107',
-            self::PENDING => '#17a2b8',
-            self::BANNED => '#dc3545',
-            self::DELETED => '#343a40',
-        };
+        switch ($this->value) {
+            case self::ACTIVE:
+                return '#28a745';
+            case self::INACTIVE:
+                return '#6c757d';
+            case self::SUSPENDED:
+                return '#ffc107';
+            case self::PENDING:
+                return '#17a2b8';
+            case self::BANNED:
+                return '#dc3545';
+            case self::DELETED:
+                return '#343a40';
+            default:
+                return '#6c757d';
+        }
     }
 
     /**
@@ -72,14 +123,22 @@ enum UserStatus: string
      */
     public function getIcon(): string
     {
-        return match($this) {
-            self::ACTIVE => 'fas fa-check-circle',
-            self::INACTIVE => 'fas fa-pause-circle',
-            self::SUSPENDED => 'fas fa-exclamation-triangle',
-            self::PENDING => 'fas fa-clock',
-            self::BANNED => 'fas fa-ban',
-            self::DELETED => 'fas fa-trash',
-        };
+        switch ($this->value) {
+            case self::ACTIVE:
+                return 'fas fa-check-circle';
+            case self::INACTIVE:
+                return 'fas fa-pause-circle';
+            case self::SUSPENDED:
+                return 'fas fa-exclamation-triangle';
+            case self::PENDING:
+                return 'fas fa-clock';
+            case self::BANNED:
+                return 'fas fa-ban';
+            case self::DELETED:
+                return 'fas fa-trash';
+            default:
+                return 'fas fa-user';
+        }
     }
 
     /**
@@ -87,7 +146,7 @@ enum UserStatus: string
      */
     public function canAccess(): bool
     {
-        return in_array($this, [self::ACTIVE, self::PENDING]);
+        return in_array($this->value, [self::ACTIVE, self::PENDING], true);
     }
 
     /**
@@ -95,7 +154,17 @@ enum UserStatus: string
      */
     public function canLogin(): bool
     {
-        return $this === self::ACTIVE;
+        return $this->value === self::ACTIVE;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->value === self::ACTIVE;
+    }
+
+    public function isInactive(): bool
+    {
+        return $this->value === self::INACTIVE;
     }
 
     /**
@@ -103,7 +172,7 @@ enum UserStatus: string
      */
     public function isBlocked(): bool
     {
-        return in_array($this, [self::SUSPENDED, self::BANNED, self::DELETED]);
+        return in_array($this->value, [self::SUSPENDED, self::BANNED, self::DELETED], true);
     }
 
     /**
@@ -111,7 +180,7 @@ enum UserStatus: string
      */
     public function isTemporary(): bool
     {
-        return in_array($this, [self::INACTIVE, self::SUSPENDED, self::PENDING]);
+        return in_array($this->value, [self::INACTIVE, self::SUSPENDED, self::PENDING], true);
     }
 
     /**
@@ -119,14 +188,20 @@ enum UserStatus: string
      */
     public function getAllowedTransitions(): array
     {
-        return match($this) {
-            self::PENDING => [self::ACTIVE, self::INACTIVE, self::BANNED],
-            self::ACTIVE => [self::INACTIVE, self::SUSPENDED, self::BANNED],
-            self::INACTIVE => [self::ACTIVE, self::SUSPENDED, self::BANNED],
-            self::SUSPENDED => [self::ACTIVE, self::INACTIVE, self::BANNED],
-            self::BANNED => [], // No se puede cambiar desde baneado
-            self::DELETED => [], // No se puede cambiar desde eliminado
-        };
+        switch ($this->value) {
+            case self::PENDING:
+                return [self::ACTIVE, self::INACTIVE, self::BANNED];
+            case self::ACTIVE:
+                return [self::INACTIVE, self::SUSPENDED, self::BANNED];
+            case self::INACTIVE:
+                return [self::ACTIVE, self::SUSPENDED, self::BANNED];
+            case self::SUSPENDED:
+                return [self::ACTIVE, self::INACTIVE, self::BANNED];
+            case self::BANNED:
+            case self::DELETED:
+            default:
+                return [];
+        }
     }
 
     /**
@@ -134,7 +209,7 @@ enum UserStatus: string
      */
     public function canTransitionTo(self $target): bool
     {
-        return in_array($target, $this->getAllowedTransitions());
+        return in_array($target->getValue(), $this->getAllowedTransitions(), true);
     }
 
     /**
@@ -142,14 +217,21 @@ enum UserStatus: string
      */
     public function getPriority(): int
     {
-        return match($this) {
-            self::ACTIVE => 1,
-            self::PENDING => 2,
-            self::INACTIVE => 3,
-            self::SUSPENDED => 4,
-            self::BANNED => 5,
-            self::DELETED => 6,
-        };
+        switch ($this->value) {
+            case self::ACTIVE:
+                return 1;
+            case self::PENDING:
+                return 2;
+            case self::INACTIVE:
+                return 3;
+            case self::SUSPENDED:
+                return 4;
+            case self::BANNED:
+                return 5;
+            case self::DELETED:
+            default:
+                return 6;
+        }
     }
 
     /**
@@ -157,13 +239,41 @@ enum UserStatus: string
      */
     public static function fromString(string $value): ?self
     {
-        foreach (self::cases() as $case) {
-            if ($case->value === $value) {
-                return $case;
-            }
+        if (!in_array($value, self::$validStatuses, true)) {
+            return null;
         }
-        
-        return null;
+
+        return new self($value);
+    }
+
+    public static function active(): self
+    {
+        return new self(self::ACTIVE);
+    }
+
+    public static function inactive(): self
+    {
+        return new self(self::INACTIVE);
+    }
+
+    public static function suspended(): self
+    {
+        return new self(self::SUSPENDED);
+    }
+
+    public static function pending(): self
+    {
+        return new self(self::PENDING);
+    }
+
+    public static function banned(): self
+    {
+        return new self(self::BANNED);
+    }
+
+    public static function deleted(): self
+    {
+        return new self(self::DELETED);
     }
 
     /**
@@ -171,7 +281,7 @@ enum UserStatus: string
      */
     public static function getActiveStatuses(): array
     {
-        return [self::ACTIVE, self::PENDING];
+        return [self::active(), self::pending()];
     }
 
     /**
@@ -179,7 +289,7 @@ enum UserStatus: string
      */
     public static function getBlockedStatuses(): array
     {
-        return [self::SUSPENDED, self::BANNED, self::DELETED];
+        return [self::suspended(), self::banned(), self::deleted()];
     }
 
     /**
@@ -187,7 +297,7 @@ enum UserStatus: string
      */
     public static function isValid(string $value): bool
     {
-        return self::tryFrom($value) !== null;
+        return in_array($value, self::$validStatuses, true);
     }
 
     /**
@@ -195,20 +305,14 @@ enum UserStatus: string
      */
     public static function getDefault(): self
     {
-        return self::PENDING;
+        return self::pending();
     }
 
-    /**
-     * Representación string
-     */
     public function __toString(): string
     {
         return $this->value;
     }
 
-    /**
-     * Serialización para JSON
-     */
     public function jsonSerialize(): string
     {
         return $this->value;

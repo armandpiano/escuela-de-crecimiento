@@ -25,23 +25,40 @@ class AcademicPeriod
 {
     use Timestampable, SoftDeleteable;
 
-    private AcademicPeriodId $id;
-    private string $name;
-    private string $code;
-    private AcademicPeriodType $type;
-    private string $startDate;
-    private string $endDate;
-    private ?string $registrationStart;
-    private ?string $registrationEnd;
-    private int $academicYear;
-    private int $periodNumber;
-    private bool $isActive;
-    private bool $isCurrent;
-    private int $maxStudentsPerCourse;
-    private ?string $gradingDeadline;
-    private ?string $transcriptReleaseDate;
-    private ?string $notes;
-    private array $metadata = [];
+    /** @var AcademicPeriodId */
+    private $id;
+    /** @var string */
+    private $name;
+    /** @var string */
+    private $code;
+    /** @var AcademicPeriodType */
+    private $type;
+    /** @var string */
+    private $startDate;
+    /** @var string */
+    private $endDate;
+    /** @var string|null */
+    private $registrationStart;
+    /** @var string|null */
+    private $registrationEnd;
+    /** @var int */
+    private $academicYear;
+    /** @var int */
+    private $periodNumber;
+    /** @var bool */
+    private $isActive;
+    /** @var bool */
+    private $isCurrent;
+    /** @var int */
+    private $maxStudentsPerCourse;
+    /** @var string|null */
+    private $gradingDeadline;
+    /** @var string|null */
+    private $transcriptReleaseDate;
+    /** @var string|null */
+    private $notes;
+    /** @var array */
+    private $metadata= [];
 
     /**
      * Constructor

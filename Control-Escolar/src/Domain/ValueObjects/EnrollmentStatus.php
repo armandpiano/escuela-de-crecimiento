@@ -21,9 +21,12 @@ class EnrollmentStatus
     public const FAILED = 'failed';
     public const WITHDRAWN = 'withdrawn';
 
-    private string $value;
+    /** @var string */
+    private $value;
 
-    private static array $validStatuses = [
+    /** @var array */
+
+    private static $validStatuses = [
         self::ENROLLED,
         self::DROPPED,
         self::COMPLETED,
@@ -177,13 +180,19 @@ class EnrollmentStatus
      */
     public function __toString(): string
     {
-        return match($this->value) {
-            self::ENROLLED => 'Inscrito',
-            self::DROPPED => 'Retirado',
-            self::COMPLETED => 'Completado',
-            self::FAILED => 'Reprobado',
-            self::WITHDRAWN => 'Retirado',
-            default => $this->value
-        };
+        switch ($this->value) {
+            case self::ENROLLED:
+                return 'Inscrito';
+            case self::DROPPED:
+                return 'Retirado';
+            case self::COMPLETED:
+                return 'Completado';
+            case self::FAILED:
+                return 'Reprobado';
+            case self::WITHDRAWN:
+                return 'Retirado';
+            default:
+                return $this->value;
+        }
     }
 }

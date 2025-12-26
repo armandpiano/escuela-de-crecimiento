@@ -19,6 +19,7 @@ use ChristianLMS\Domain\ValueObjects\{
 };
 use ChristianLMS\Infrastructure\Persistence\Database\ConnectionManager;
 use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
+use ChristianLMS\Infrastructure\Persistence\Schema\SchemaMap;
 
 /**
  * Repositorio Concreto de Curso
@@ -28,12 +29,15 @@ use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
  */
 class CourseRepository implements CourseRepositoryInterface
 {
-    private ConnectionManager $connectionManager;
-    private string $tableName = 'courses';
+    /** @var ConnectionManager */
+    private $connectionManager;
+    /** @var string */
+    private $tableName = 'courses';
 
     public function __construct(ConnectionManager $connectionManager)
     {
         $this->connectionManager = $connectionManager;
+        $this->tableName = SchemaMap::table('courses');
     }
 
     /**
@@ -66,7 +70,7 @@ class CourseRepository implements CourseRepositoryInterface
     public function findById(CourseId $id): ?Course
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL LIMIT 1";
+            $sql = "SELECT * FROM {$this->tableName} WHERE id = :id LIMIT 1";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -87,8 +91,8 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByCode(CourseCode $code): ?Course
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE code = :code AND deleted_at IS NULL LIMIT 1";
-            $params = ['code' => $code->getValue()];
+            $sql = "SELECT * FROM {$this->tableName} WHERE group_name = :group_name LIMIT 1";
+            $params = ['group_name' => $code->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             
@@ -108,7 +112,7 @@ class CourseRepository implements CourseRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE deleted_at IS NULL ORDER BY created_at DESC";
+            $sql = "SELECT * FROM {$this->tableName} ORDER BY created_at DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateCourse'], $results);
@@ -123,10 +127,11 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByProfessor(UserId $professorId): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE professor_id = :professor_id AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
-            $params = ['professor_id' => $professorId->getValue()];
+            $sql = "SELECT c.* FROM {$this->tableName} c
+                    INNER JOIN course_teachers ct ON ct.course_id = c.id
+                    WHERE ct.teacher_id = :teacher_id
+                    ORDER BY c.created_at DESC";
+            $params = ['teacher_id' => $professorId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -143,7 +148,7 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE subject_id = :subject_id AND deleted_at IS NULL 
+                    WHERE subject_id = :subject_id 
                     ORDER BY created_at DESC";
             $params = ['subject_id' => $subjectId->getValue()];
             
@@ -162,9 +167,9 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = :status AND deleted_at IS NULL 
+                    WHERE status = :status 
                     ORDER BY created_at DESC";
-            $params = ['status' => $status->getValue()];
+            $params = ['status' => $this->mapStatusToDb($status)];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -188,11 +193,13 @@ class CourseRepository implements CourseRepositoryInterface
     public function findWithAvailableSpots(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE current_students < max_students 
-                    AND status = 'active' 
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, COUNT(e.id) as enrolled_count
+                    FROM {$this->tableName} c
+                    LEFT JOIN enrollments e ON e.course_id = c.id
+                    WHERE c.status = 'open'
+                    GROUP BY c.id
+                    HAVING enrolled_count < c.capacity
+                    ORDER BY c.created_at DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -209,7 +216,7 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_virtual = 1 AND deleted_at IS NULL 
+                    WHERE modality IN ('zoom', 'mixto') 
                     ORDER BY created_at DESC";
             
             $results = $this->connectionManager->query($sql);
@@ -227,7 +234,7 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE is_virtual = 0 AND deleted_at IS NULL 
+                    WHERE modality = 'presencial' 
                     ORDER BY created_at DESC";
             
             $results = $this->connectionManager->query($sql);
@@ -260,11 +267,10 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "UPDATE {$this->tableName} 
-                    SET deleted_at = :deleted_at 
-                    WHERE id = :id AND deleted_at IS NULL";
+                    SET status = 'archived' 
+                    WHERE id = :id";
             $params = [
-                'id' => $id->getValue(),
-                'deleted_at' => date('Y-m-d H:i:s')
+                'id' => $id->getValue()
             ];
             
             return $this->connectionManager->execute($sql, $params) > 0;
@@ -279,7 +285,7 @@ class CourseRepository implements CourseRepositoryInterface
     public function existsById(CourseId $id): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id AND deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE id = :id";
             $params = ['id' => $id->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -295,8 +301,8 @@ class CourseRepository implements CourseRepositoryInterface
     public function existsByCode(CourseCode $code): bool
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE code = :code AND deleted_at IS NULL";
-            $params = ['code' => $code->getValue()];
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE group_name = :group_name";
+            $params = ['group_name' => $code->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             return $result['count'] > 0;
@@ -311,7 +317,7 @@ class CourseRepository implements CourseRepositoryInterface
     public function count(): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE deleted_at IS NULL";
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName}";
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
         } catch (\Exception $e) {
@@ -325,8 +331,8 @@ class CourseRepository implements CourseRepositoryInterface
     public function countByStatus(CourseStatus $status): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE status = :status AND deleted_at IS NULL";
-            $params = ['status' => $status->getValue()];
+            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} WHERE status = :status";
+            $params = ['status' => $this->mapStatusToDb($status)];
             
             $result = $this->connectionManager->query($sql, $params);
             return (int) $result['count'];
@@ -341,9 +347,10 @@ class CourseRepository implements CourseRepositoryInterface
     public function countByProfessor(UserId $professorId): int
     {
         try {
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE professor_id = :professor_id AND deleted_at IS NULL";
-            $params = ['professor_id' => $professorId->getValue()];
+            $sql = "SELECT COUNT(DISTINCT c.id) as count FROM {$this->tableName} c
+                    INNER JOIN course_teachers ct ON ct.course_id = c.id
+                    WHERE ct.teacher_id = :teacher_id";
+            $params = ['teacher_id' => $professorId->getValue()];
             
             $result = $this->connectionManager->query($sql, $params);
             return (int) $result['count'];
@@ -361,7 +368,6 @@ class CourseRepository implements CourseRepositoryInterface
             $offset = ($page - 1) * $perPage;
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
                     ORDER BY created_at DESC 
                     LIMIT :limit OFFSET :offset";
             
@@ -384,18 +390,13 @@ class CourseRepository implements CourseRepositoryInterface
     public function search(array $criteria, int $page = 1, int $perPage = 20): array
     {
         try {
-            $whereConditions = ['deleted_at IS NULL'];
+            $whereConditions = ['1=1'];
             $params = [];
             
             // Aplicar criterios de búsqueda
             if (isset($criteria['status'])) {
                 $whereConditions[] = 'status = :status';
-                $params['status'] = $criteria['status'];
-            }
-            
-            if (isset($criteria['professor_id'])) {
-                $whereConditions[] = 'professor_id = :professor_id';
-                $params['professor_id'] = $criteria['professor_id'];
+                $params['status'] = $criteria['status'] === 'active' ? 'open' : $criteria['status'];
             }
             
             if (isset($criteria['subject_id'])) {
@@ -404,22 +405,22 @@ class CourseRepository implements CourseRepositoryInterface
             }
             
             if (isset($criteria['name'])) {
-                $whereConditions[] = 'name LIKE :name';
+                $whereConditions[] = 'group_name LIKE :name';
                 $params['name'] = '%' . $criteria['name'] . '%';
             }
             
             if (isset($criteria['code'])) {
-                $whereConditions[] = 'code LIKE :code';
+                $whereConditions[] = 'group_name LIKE :code';
                 $params['code'] = '%' . $criteria['code'] . '%';
             }
             
             if (isset($criteria['is_virtual'])) {
-                $whereConditions[] = 'is_virtual = :is_virtual';
-                $params['is_virtual'] = $criteria['is_virtual'] ? 1 : 0;
+                $whereConditions[] = 'modality = :modality';
+                $params['modality'] = $criteria['is_virtual'] ? 'zoom' : 'presencial';
             }
             
             if (isset($criteria['available_spots_only']) && $criteria['available_spots_only']) {
-                $whereConditions[] = 'current_students < max_students';
+                $whereConditions[] = 'capacity > 0';
             }
             
             $offset = ($page - 1) * $perPage;
@@ -447,7 +448,6 @@ class CourseRepository implements CourseRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
-                    AND deleted_at IS NULL 
                     ORDER BY created_at DESC";
             $params = ['days' => $days];
             
@@ -466,12 +466,10 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (name LIKE :name OR code LIKE :code) 
-                    AND deleted_at IS NULL 
-                    ORDER BY name ASC";
+                    WHERE group_name LIKE :name 
+                    ORDER BY group_name ASC";
             $params = [
-                'name' => '%' . $name . '%',
-                'code' => '%' . $name . '%'
+                'name' => '%' . $name . '%'
             ];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -489,9 +487,11 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
+            if (!SchemaMap::hasColumn($this->tableName, $orderBy)) {
+                $orderBy = 'created_at';
+            }
             
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
                     ORDER BY $orderBy $direction";
             
             $results = $this->connectionManager->query($sql);
@@ -509,9 +509,9 @@ class CourseRepository implements CourseRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE academic_period_id = :academic_period_id AND deleted_at IS NULL 
+                    WHERE term_id = :term_id 
                     ORDER BY created_at DESC";
-            $params = ['academic_period_id' => $academicPeriodId];
+            $params = ['term_id' => $academicPeriodId];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -529,20 +529,14 @@ class CourseRepository implements CourseRepositoryInterface
         try {
             $sql = "SELECT 
                         COUNT(*) as total,
-                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
-                        SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft,
-                        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-                        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+                        SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open,
+                        SUM(CASE WHEN status = 'closed' THEN 1 ELSE 0 END) as closed,
                         SUM(CASE WHEN status = 'archived' THEN 1 ELSE 0 END) as archived,
-                        SUM(CASE WHEN is_virtual = 1 THEN 1 ELSE 0 END) as virtual,
-                        SUM(CASE WHEN is_virtual = 0 THEN 1 ELSE 0 END) as in_person,
-                        SUM(current_students) as total_enrolled_students,
-                        SUM(max_students) as total_capacity,
-                        AVG(current_students) as avg_enrollment,
-                        AVG(max_students) as avg_capacity,
-                        AVG((current_students / NULLIF(max_students, 0)) * 100) as avg_occupancy_percent
-                    FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL";
+                        SUM(CASE WHEN modality IN ('zoom','mixto') THEN 1 ELSE 0 END) as virtual,
+                        SUM(CASE WHEN modality = 'presencial' THEN 1 ELSE 0 END) as in_person,
+                        SUM(capacity) as total_capacity,
+                        AVG(capacity) as avg_capacity
+                    FROM {$this->tableName}";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -557,11 +551,13 @@ class CourseRepository implements CourseRepositoryInterface
     public function findAvailableForEnrollment(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = 'active' 
-                    AND current_students < max_students 
-                    AND deleted_at IS NULL 
-                    ORDER BY created_at DESC";
+            $sql = "SELECT c.*, COUNT(e.id) as enrolled_count
+                    FROM {$this->tableName} c
+                    LEFT JOIN enrollments e ON e.course_id = c.id
+                    WHERE c.status = 'open'
+                    GROUP BY c.id
+                    HAVING enrolled_count < c.capacity
+                    ORDER BY c.created_at DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -577,12 +573,12 @@ class CourseRepository implements CourseRepositoryInterface
     public function findByDateRange(string $startDate, string $endDate): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE (start_date BETWEEN :start_date AND :end_date 
-                           OR end_date BETWEEN :start_date AND :end_date
-                           OR (start_date <= :start_date AND end_date >= :end_date))
-                    AND deleted_at IS NULL 
-                    ORDER BY start_date ASC";
+            $sql = "SELECT c.* FROM {$this->tableName} c
+                    INNER JOIN terms t ON t.id = c.term_id
+                    WHERE (t.term_start BETWEEN :start_date AND :end_date 
+                           OR t.term_end BETWEEN :start_date AND :end_date
+                           OR (t.term_start <= :start_date AND t.term_end >= :end_date))
+                    ORDER BY t.term_start ASC";
             $params = [
                 'start_date' => $startDate,
                 'end_date' => $endDate
@@ -605,20 +601,14 @@ class CourseRepository implements CourseRepositoryInterface
             $issues = [];
             
             // Verificar cursos con más estudiantes inscritos que capacidad
-            $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE current_students > max_students AND deleted_at IS NULL";
-            $result = $this->connectionManager->query($sql);
-            if ($result['count'] > 0) {
-                $issues[] = "Encontrados {$result['count']} cursos con sobrepoblación";
-            }
-            
-            // Verificar códigos duplicados
-            $sql = "SELECT code, COUNT(*) as count FROM {$this->tableName} 
-                    WHERE deleted_at IS NULL 
-                    GROUP BY code HAVING count > 1";
+            $sql = "SELECT c.id, c.capacity, COUNT(e.id) as enrolled_count
+                    FROM {$this->tableName} c
+                    LEFT JOIN enrollments e ON e.course_id = c.id
+                    GROUP BY c.id
+                    HAVING enrolled_count > c.capacity";
             $results = $this->connectionManager->query($sql);
             if (!empty($results)) {
-                $issues[] = 'Encontrados códigos de curso duplicados';
+                $issues[] = 'Encontrados cursos con sobrecupo de estudiantes';
             }
             
             return $issues;
@@ -632,9 +622,11 @@ class CourseRepository implements CourseRepositoryInterface
      */
     private function insert(Course $course): void
     {
-        $courseArray = $course->toArray();
+        $courseArray = $this->buildPersistencePayload($course);
         $columns = array_keys($courseArray);
-        $placeholders = array_map(fn($col) => ":$col", $columns);
+        $placeholders = array_map(function ($col) {
+            return ":$col";
+        }, $columns);
         
         $sql = "INSERT INTO {$this->tableName} (" . implode(', ', $columns) . ") 
                 VALUES (" . implode(', ', $placeholders) . ")";
@@ -647,7 +639,7 @@ class CourseRepository implements CourseRepositoryInterface
      */
     private function update(Course $course): void
     {
-        $courseArray = $course->toArray();
+        $courseArray = $this->buildPersistencePayload($course);
         $updateFields = [];
         
         foreach ($courseArray as $column => $value) {
@@ -668,34 +660,86 @@ class CourseRepository implements CourseRepositoryInterface
      */
     private function hydrateCourse(array $data): Course
     {
+        $teacherId = isset($data['teacher_id']) ? (string) $data['teacher_id'] : '0';
         $course = new Course(
             new CourseId($data['id']),
-            $data['name'],
-            new CourseCode($data['code']),
-            new UserId($data['professor_id']),
+            $data['group_name'],
+            new CourseCode($data['group_name']),
+            UserId::fromString($teacherId),
             $data['subject_id'] ? new SubjectId($data['subject_id']) : null
         );
 
-        $course->setDescription($data['description']);
-        $course->setAcademicPeriodId($data['academic_period_id']);
-        $course->setMaxStudents($data['max_students']);
-        $course->setStartDate($data['start_date']);
-        $course->setEndDate($data['end_date']);
-        $course->setSchedule(json_decode($data['schedule'], true));
-        $course->setCredits($data['credits']);
-        $course->setHoursPerWeek($data['hours_per_week']);
-        $course->setStatus(new \ChristianLMS\Domain\ValueObjects\CourseStatus($data['status']));
-        $course->setVirtual($data['is_virtual']);
-        $course->setVirtualPlatform($data['virtual_platform']);
-        $course->setVirtualLink($data['virtual_link']);
-        $course->setPrerequisites(json_decode($data['prerequisites'], true));
-        $course->setLearningObjectives($data['learning_objectives']);
-        $course->setSyllabus($data['syllabus']);
-        $course->setMaterials(json_decode($data['materials'], true));
-        $course->setAssessmentMethods($data['assessment_methods']);
-        $course->setGradingScale(json_decode($data['grading_scale'], true));
-        $course->setMetadata(json_decode($data['metadata'], true) ?? []);
+        $course->setDescription(null);
+        $course->setAcademicPeriodId($data['term_id']);
+        $course->setMaxStudents($data['capacity']);
+        $course->setStartDate(null);
+        $course->setEndDate(null);
+        $course->setSchedule($data['schedule_label'] ? [$data['schedule_label']] : null);
+        $course->setCredits(0);
+        $course->setHoursPerWeek(0);
+        $course->setStatus($this->mapStatusFromDb($data['status']));
+        $course->setVirtual(in_array($data['modality'], ['zoom', 'mixto'], true));
+        $course->setVirtualPlatform($data['modality']);
+        $course->setVirtualLink($data['zoom_url']);
+        $course->setPrerequisites(null);
+        $course->setLearningObjectives(null);
+        $course->setSyllabus(null);
+        $course->setMaterials(null);
+        $course->setAssessmentMethods(null);
+        $course->setGradingScale(null);
+        $course->setMetadata([]);
 
         return $course;
+    }
+
+    private function buildPersistencePayload(Course $course): array
+    {
+        $data = [
+            'id' => $course->getId()->getValue(),
+            'term_id' => $course->getAcademicPeriodId(),
+            'subject_id' => $course->getSubjectId() ? $course->getSubjectId()->getValue() : null,
+            'group_name' => $course->getName(),
+            'schedule_label' => $course->getSchedule() ? implode(' | ', $course->getSchedule()) : '',
+            'modality' => $course->isVirtual() ? 'zoom' : 'presencial',
+            'zoom_url' => $course->getVirtualLink(),
+            'pdf_path' => null,
+            'capacity' => $course->getMaxStudents(),
+            'status' => $this->mapStatusToDb($course->getStatus()),
+            'created_at' => $course->getCreatedAt(),
+            'updated_at' => $course->getUpdatedAt(),
+        ];
+
+        $allowed = array_flip(SchemaMap::columns($this->tableName));
+
+        return array_intersect_key($data, $allowed);
+    }
+
+    private function mapStatusToDb(CourseStatus $status): string
+    {
+        switch ($status->getValue()) {
+            case CourseStatus::ACTIVE:
+                return 'open';
+            case CourseStatus::ARCHIVED:
+                return 'archived';
+            case CourseStatus::COMPLETED:
+            case CourseStatus::CANCELLED:
+                return 'closed';
+            case CourseStatus::DRAFT:
+            default:
+                return 'open';
+        }
+    }
+
+    private function mapStatusFromDb(string $status): CourseStatus
+    {
+        switch ($status) {
+            case 'open':
+                return CourseStatus::active();
+            case 'archived':
+                return CourseStatus::archived();
+            case 'closed':
+            default:
+                return CourseStatus::completed();
+        }
     }
 }

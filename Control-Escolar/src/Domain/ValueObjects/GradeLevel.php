@@ -22,9 +22,12 @@ class GradeLevel
     public const UNIVERSIDAD = 'universidad';
     public const POSGRADO = 'posgrado';
 
-    private string $value;
+    /** @var string */
+    private $value;
 
-    private static array $validLevels = [
+    /** @var array */
+
+    private static $validLevels = [
         self::PREESCOLAR,
         self::PRIMARIA,
         self::SECUNDARIA,
@@ -147,15 +150,22 @@ class GradeLevel
      */
     public function getDisplayName(): string
     {
-        return match($this->value) {
-            self::PREESCOLAR => 'Preescolar',
-            self::PRIMARIA => 'Primaria',
-            self::SECUNDARIA => 'Secundaria',
-            self::BACHILLERATO => 'Bachillerato',
-            self::UNIVERSIDAD => 'Universidad',
-            self::POSGRADO => 'Posgrado',
-            default => $this->value
-        };
+        switch ($this->value) {
+            case self::PREESCOLAR:
+                return 'Preescolar';
+            case self::PRIMARIA:
+                return 'Primaria';
+            case self::SECUNDARIA:
+                return 'Secundaria';
+            case self::BACHILLERATO:
+                return 'Bachillerato';
+            case self::UNIVERSIDAD:
+                return 'Universidad';
+            case self::POSGRADO:
+                return 'Posgrado';
+            default:
+                return $this->value;
+        }
     }
 
     /**

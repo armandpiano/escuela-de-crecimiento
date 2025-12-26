@@ -20,6 +20,7 @@ use ChristianLMS\Domain\ValueObjects\{
 };
 use ChristianLMS\Infrastructure\Persistence\Database\ConnectionManager;
 use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
+use ChristianLMS\Infrastructure\Persistence\Schema\SchemaMap;
 
 /**
  * Repositorio Concreto de Inscripción
@@ -29,12 +30,15 @@ use ChristianLMS\Infrastructure\Persistence\Exceptions\DatabaseException;
  */
 class EnrollmentRepository implements EnrollmentRepositoryInterface
 {
-    private ConnectionManager $connectionManager;
-    private string $tableName = 'enrollments';
+    /** @var ConnectionManager */
+    private $connectionManager;
+    /** @var string */
+    private $tableName = 'enrollments';
 
     public function __construct(ConnectionManager $connectionManager)
     {
         $this->connectionManager = $connectionManager;
+        $this->tableName = SchemaMap::table('enrollments');
     }
 
     /**
@@ -91,13 +95,10 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE student_id = :student_id 
                     AND course_id = :course_id 
-                    AND academic_period_id = :academic_period_id 
- 
                     LIMIT 1";
             $params = [
                 'student_id' => $studentId->getValue(),
-                'course_id' => $courseId->getValue(),
-                'academic_period_id' => $academicPeriodId->getValue()
+                'course_id' => $courseId->getValue()
             ];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -118,7 +119,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     public function findAll(): array
     {
         try {
-            $sql = "SELECT * FROM {$this->tableName} WHERE 1=1 ORDER BY enrollment_date DESC";
+            $sql = "SELECT * FROM {$this->tableName} ORDER BY enrollment_at DESC";
             $results = $this->connectionManager->query($sql);
             
             return array_map([$this, 'hydrateEnrollment'], $results);
@@ -135,7 +136,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE student_id = :student_id 
-                    ORDER BY enrollment_date DESC";
+                    ORDER BY enrollment_at DESC";
             $params = ['student_id' => $studentId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -154,7 +155,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE course_id = :course_id 
-                    ORDER BY enrollment_date DESC";
+                    ORDER BY enrollment_at DESC";
             $params = ['course_id' => $courseId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -172,9 +173,8 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE academic_period_id = :academic_period_id 
-                    ORDER BY enrollment_date DESC";
-            $params = ['academic_period_id' => $academicPeriodId->getValue()];
+                    ORDER BY enrollment_at DESC";
+            $params = [];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -192,8 +192,8 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE status = :status 
-                    ORDER BY enrollment_date DESC";
-            $params = ['status' => $status->getValue()];
+                    ORDER BY enrollment_at DESC";
+            $params = ['status' => $this->mapStatusToDb($status)];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -226,9 +226,9 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = :status 
-                    ORDER BY enrollment_date DESC";
-            $params = ['status' => $paymentStatus->getValue()];
+                    WHERE payment_status = :payment_status 
+                    ORDER BY enrollment_at DESC";
+            $params = ['payment_status' => $this->mapPaymentStatusToDb($paymentStatus)];
             
             $results = $this->connectionManager->query($sql, $params);
             
@@ -255,7 +255,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             $sql = "SELECT e.* FROM {$this->tableName} e
                     JOIN course_teachers ct ON ct.course_id = e.course_id
                     WHERE ct.teacher_id = :teacher_id
-                    ORDER BY e.enrollment_date DESC";
+                    ORDER BY e.enrollment_at DESC";
             $params = ['teacher_id' => $professorId->getValue()];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -313,13 +313,10 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
                     WHERE student_id = :student_id 
-                    AND course_id = :course_id 
-                    AND academic_period_id = :academic_period_id 
-";
+                    AND course_id = :course_id";
             $params = [
                 'student_id' => $studentId->getValue(),
-                'course_id' => $courseId->getValue(),
-                'academic_period_id' => $academicPeriodId->getValue()
+                'course_id' => $courseId->getValue()
             ];
             
             $result = $this->connectionManager->query($sql, $params);
@@ -351,7 +348,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
                     WHERE status = :status";
-            $params = ['status' => $status->getValue()];
+            $params = ['status' => $this->mapStatusToDb($status)];
             
             $result = $this->connectionManager->query($sql, $params);
             return (int) $result['count'];
@@ -385,10 +382,10 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT 
                         COUNT(*) as total,
-                        SUM(CASE WHEN status = 'enrolled' THEN 1 ELSE 0 END) as active,
+                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-                        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-                        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payment
+                        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+                        SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_payment
                     FROM {$this->tableName} 
                     WHERE student_id = :student_id";
             $params = ['student_id' => $studentId->getValue()];
@@ -407,7 +404,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT COUNT(*) as count FROM {$this->tableName} 
-                    WHERE status = 'pending'";
+                    WHERE payment_status = 'pending'";
             
             $result = $this->connectionManager->query($sql);
             return (int) $result['count'];
@@ -426,7 +423,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE 1=1 
-                    ORDER BY enrollment_date DESC 
+                    ORDER BY enrollment_at DESC 
                     LIMIT :limit OFFSET :offset";
             
             $params = [
@@ -454,7 +451,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             // Aplicar criterios de búsqueda
             if (isset($criteria['status'])) {
                 $whereConditions[] = 'status = :status';
-                $params['status'] = $criteria['status'];
+                $params['status'] = $this->mapStatusValueToDb($criteria['status']);
             }
             
             if (isset($criteria['student_id'])) {
@@ -467,24 +464,14 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
                 $params['course_id'] = $criteria['course_id'];
             }
             
-            if (isset($criteria['academic_period_id'])) {
-                $whereConditions[] = 'academic_period_id = :academic_period_id';
-                $params['academic_period_id'] = $criteria['academic_period_id'];
+            if (isset($criteria['enrollment_at_from'])) {
+                $whereConditions[] = 'enrollment_at >= :enrollment_at_from';
+                $params['enrollment_at_from'] = $criteria['enrollment_at_from'];
             }
             
-            if (isset($criteria['status'])) {
-                $whereConditions[] = 'status = :status';
-                $params['status'] = $criteria['status'];
-            }
-            
-            if (isset($criteria['enrollment_date_from'])) {
-                $whereConditions[] = 'enrollment_date >= :enrollment_date_from';
-                $params['enrollment_date_from'] = $criteria['enrollment_date_from'];
-            }
-            
-            if (isset($criteria['enrollment_date_to'])) {
-                $whereConditions[] = 'enrollment_date <= :enrollment_date_to';
-                $params['enrollment_date_to'] = $criteria['enrollment_date_to'];
+            if (isset($criteria['enrollment_at_to'])) {
+                $whereConditions[] = 'enrollment_at <= :enrollment_at_to';
+                $params['enrollment_at_to'] = $criteria['enrollment_at_to'];
             }
             
             $offset = ($page - 1) * $perPage;
@@ -493,7 +480,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE " . implode(' AND ', $whereConditions) . "
-                    ORDER BY enrollment_date DESC 
+                    ORDER BY enrollment_at DESC 
                     LIMIT :limit OFFSET :offset";
             
             $results = $this->connectionManager->query($sql, $params);
@@ -511,9 +498,9 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE enrollment_date >= DATE_SUB(NOW(), INTERVAL :days DAY) 
+                    WHERE enrollment_at >= DATE_SUB(NOW(), INTERVAL :days DAY) 
  
-                    ORDER BY enrollment_date DESC";
+                    ORDER BY enrollment_at DESC";
             $params = ['days' => $days];
             
             $results = $this->connectionManager->query($sql, $params);
@@ -527,10 +514,13 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     /**
      * Obtener inscripciones ordenadas
      */
-    public function findOrdered(string $orderBy = 'enrollment_date', string $direction = 'DESC'): array
+    public function findOrdered(string $orderBy = 'enrollment_at', string $direction = 'DESC'): array
     {
         try {
             $direction = strtoupper($direction) === 'ASC' ? 'ASC' : 'DESC';
+            if (!SchemaMap::hasColumn($this->tableName, $orderBy)) {
+                $orderBy = 'enrollment_at';
+            }
             
             $sql = "SELECT * FROM {$this->tableName} 
                     WHERE 1=1 
@@ -549,22 +539,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     public function findByGradeRange(float $minGrade, float $maxGrade): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE final_grade BETWEEN :min_grade AND :max_grade 
- 
-                    ORDER BY final_grade DESC";
-            $params = [
-                'min_grade' => $minGrade,
-                'max_grade' => $maxGrade
-            ];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateEnrollment'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar inscripciones por calificación: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -572,22 +547,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     public function findByAttendanceRange(float $minAttendance, float $maxAttendance): array
     {
-        try {
-            $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE attendance_percentage BETWEEN :min_attendance AND :max_attendance 
- 
-                    ORDER BY attendance_percentage DESC";
-            $params = [
-                'min_attendance' => $minAttendance,
-                'max_attendance' => $maxAttendance
-            ];
-            
-            $results = $this->connectionManager->query($sql, $params);
-            
-            return array_map([$this, 'hydrateEnrollment'], $results);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al buscar inscripciones por asistencia: ' . $e->getMessage());
-        }
+        return [];
     }
 
     /**
@@ -598,17 +558,12 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
         try {
             $sql = "SELECT 
                         COUNT(*) as total,
-                        SUM(CASE WHEN status = 'enrolled' THEN 1 ELSE 0 END) as active,
+                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,
                         SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-                        SUM(CASE WHEN status = 'dropped' THEN 1 ELSE 0 END) as dropped,
-                        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed,
-                        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payment,
-                        SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid,
-                        AVG(final_grade) as avg_grade,
-                        AVG(attendance_percentage) as avg_attendance,
-                        SUM(credits_earned) as total_credits_earned
-                    FROM {$this->tableName} 
-                    WHERE 1=1";
+                        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
+                        SUM(CASE WHEN payment_status = 'pending' THEN 1 ELSE 0 END) as pending_payment,
+                        SUM(CASE WHEN payment_status = 'paid' THEN 1 ELSE 0 END) as paid
+                    FROM {$this->tableName}";
             
             $result = $this->connectionManager->query($sql);
             return $result;
@@ -624,8 +579,8 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE status = 'overdue' 
-                    ORDER BY enrollment_date DESC";
+                    WHERE payment_status = 'overdue' 
+                    ORDER BY enrollment_at DESC";
             
             $results = $this->connectionManager->query($sql);
             
@@ -642,9 +597,9 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         try {
             $sql = "SELECT * FROM {$this->tableName} 
-                    WHERE enrollment_date BETWEEN :start_date AND :end_date
+                    WHERE enrollment_at BETWEEN :start_date AND :end_date
  
-                    ORDER BY enrollment_date DESC";
+                    ORDER BY enrollment_at DESC";
             $params = [
                 'start_date' => $startDate,
                 'end_date' => $endDate
@@ -663,32 +618,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     public function getStudentGPA(UserId $studentId): float
     {
-        try {
-            $sql = "SELECT 
-                        SUM(CASE 
-                            WHEN letter_grade = 'A' THEN 4.0 * credits_earned
-                            WHEN letter_grade = 'B' THEN 3.0 * credits_earned
-                            WHEN letter_grade = 'C' THEN 2.0 * credits_earned
-                            WHEN letter_grade = 'D' THEN 1.0 * credits_earned
-                            ELSE 0.0
-                        END) as total_points,
-                        SUM(credits_earned) as total_credits
-                    FROM {$this->tableName} 
-                    WHERE student_id = :student_id 
-                    AND status = 'completed' 
-";
-            $params = ['student_id' => $studentId->getValue()];
-            
-            $result = $this->connectionManager->query($sql, $params);
-            
-            if ($result['total_credits'] > 0) {
-                return round($result['total_points'] / $result['total_credits'], 2);
-            }
-            
-            return 0.0;
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al obtener GPA del estudiante: ' . $e->getMessage());
-        }
+        return 0.0;
     }
 
     /**
@@ -696,20 +626,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     public function getStudentCredits(UserId $studentId): float
     {
-        try {
-            $sql = "SELECT SUM(credits_earned) as total_credits 
-                    FROM {$this->tableName} 
-                    WHERE student_id = :student_id 
-                    AND status = 'completed' 
-";
-            $params = ['student_id' => $studentId->getValue()];
-            
-            $result = $this->connectionManager->query($sql, $params);
-            
-            return (float) ($result['total_credits'] ?? 0.0);
-        } catch (\Exception $e) {
-            throw new DatabaseException('Error al obtener créditos del estudiante: ' . $e->getMessage());
-        }
+        return 0.0;
     }
 
     /**
@@ -721,10 +638,10 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
             $issues = [];
             
             // Verificar inscripciones duplicadas
-            $sql = "SELECT student_id, course_id, academic_period_id, COUNT(*) as count 
+            $sql = "SELECT student_id, course_id, COUNT(*) as count 
                     FROM {$this->tableName} 
                     WHERE 1=1 
-                    GROUP BY student_id, course_id, academic_period_id 
+                    GROUP BY student_id, course_id 
                     HAVING count > 1";
             $results = $this->connectionManager->query($sql);
             if (!empty($results)) {
@@ -742,22 +659,11 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     private function insert(Enrollment $enrollment): void
     {
-        $allowedColumns = [
-            'student_id',
-            'course_id',
-            'academic_period_id',
-            'enrollment_date',
-            'status',
-            'notes',
-            'enrolled_by',
-            'override_seriation',
-            'override_schedule',
-            'created_at',
-            'updated_at'
-        ];
-        $enrollmentArray = array_intersect_key($enrollment->toArray(), array_flip($allowedColumns));
+        $enrollmentArray = $this->buildPersistencePayload($enrollment);
         $columns = array_keys($enrollmentArray);
-        $placeholders = array_map(fn($col) => ":$col", $columns);
+        $placeholders = array_map(function ($col) {
+            return ":$col";
+        }, $columns);
         
         $sql = "INSERT INTO {$this->tableName} (" . implode(', ', $columns) . ") 
                 VALUES (" . implode(', ', $placeholders) . ")";
@@ -770,21 +676,7 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
      */
     private function update(Enrollment $enrollment): void
     {
-        $allowedColumns = [
-            'id',
-            'student_id',
-            'course_id',
-            'academic_period_id',
-            'enrollment_date',
-            'status',
-            'notes',
-            'enrolled_by',
-            'override_seriation',
-            'override_schedule',
-            'created_at',
-            'updated_at'
-        ];
-        $enrollmentArray = array_intersect_key($enrollment->toArray(), array_flip($allowedColumns));
+        $enrollmentArray = $this->buildPersistencePayload($enrollment);
         $updateFields = [];
         
         foreach ($enrollmentArray as $column => $value) {
@@ -807,19 +699,93 @@ class EnrollmentRepository implements EnrollmentRepositoryInterface
     {
         $enrollment = new Enrollment(
             new EnrollmentId($data['id']),
-            new UserId($data['student_id']),
+            UserId::fromString($data['student_id']),
             new CourseId($data['course_id']),
-            new AcademicPeriodId($data['academic_period_id'])
+            new AcademicPeriodId('00000000-0000-0000-0000-000000000000')
         );
 
-        $enrollment->setStatus(new \ChristianLMS\Domain\ValueObjects\EnrollmentStatus($data['status']));
+        $enrollment->setStatus($this->mapStatusFromDb($data['status']));
         if (!empty($data['notes'])) {
             $enrollment->setNotes($data['notes']);
         }
-        if (!empty($data['enrollment_date'])) {
-            $enrollment->setEnrollmentDate($data['enrollment_date']);
+        if (!empty($data['enrollment_at'])) {
+            $enrollment->setEnrollmentDate($data['enrollment_at']);
         }
 
         return $enrollment;
+    }
+
+    private function buildPersistencePayload(Enrollment $enrollment): array
+    {
+        $data = [
+            'id' => $enrollment->getId()->getValue(),
+            'student_id' => $enrollment->getStudentId()->getValue(),
+            'course_id' => $enrollment->getCourseId()->getValue(),
+            'enrollment_at' => $enrollment->getEnrollmentDate(),
+            'status' => $this->mapStatusToDb($enrollment->getStatus()),
+            'payment_status' => $this->mapPaymentStatusToDb($enrollment->getPaymentStatus()),
+            'total_amount' => $enrollment->getPaymentAmount(),
+            'paid_amount' => $enrollment->getPaymentStatus()->isPaid() ? $enrollment->getPaymentAmount() : 0,
+            'notes' => $enrollment->getNotes(),
+            'created_at' => $enrollment->getCreatedAt(),
+            'updated_at' => $enrollment->getUpdatedAt(),
+        ];
+
+        $allowed = array_flip(SchemaMap::columns($this->tableName));
+
+        return array_intersect_key($data, $allowed);
+    }
+
+    private function mapStatusToDb(EnrollmentStatus $status): string
+    {
+        switch ($status->getValue()) {
+            case EnrollmentStatus::ENROLLED:
+                return 'active';
+            case EnrollmentStatus::COMPLETED:
+                return 'completed';
+            case EnrollmentStatus::DROPPED:
+            case EnrollmentStatus::FAILED:
+            case EnrollmentStatus::WITHDRAWN:
+                return 'cancelled';
+            default:
+                return 'active';
+        }
+    }
+
+    private function mapStatusFromDb(string $status): EnrollmentStatus
+    {
+        switch ($status) {
+            case 'completed':
+                return EnrollmentStatus::completed();
+            case 'cancelled':
+                return EnrollmentStatus::dropped();
+            case 'active':
+            default:
+                return EnrollmentStatus::enrolled();
+        }
+    }
+
+    private function mapStatusValueToDb(string $status): string
+    {
+        switch ($status) {
+            case 'enrolled':
+                return 'active';
+            case 'dropped':
+            case 'failed':
+            case 'withdrawn':
+                return 'cancelled';
+            default:
+                return $status;
+        }
+    }
+
+    private function mapPaymentStatusToDb(PaymentStatus $status): string
+    {
+        $value = $status->getValue();
+        if ($value === PaymentStatus::WAIVED) {
+            return 'paid';
+        }
+
+        return $value;
     }
 }

@@ -304,16 +304,26 @@ class DataNormalizationService
  */
 class ApplicationServices
 {
-    private static ?ApplicationServices $instance = null;
-    private ?ConnectionManager $connectionManager = null;
-    private ?UserRepository $userRepository = null;
-    private ?CourseRepository $courseRepository = null;
-    private ?SubjectRepository $subjectRepository = null;
-    private ?AcademicPeriodRepository $academicPeriodRepository = null;
-    private ?EnrollmentRepository $enrollmentRepository = null;
-    private ?ModuleRepository $moduleRepository = null;
-    private ?SubjectPrerequisiteRepository $subjectPrerequisiteRepository = null;
-    private ?CourseTeacherRepository $courseTeacherRepository = null;
+    /** @var ApplicationServices|null */
+    private static $instance= null;
+    /** @var ConnectionManager|null */
+    private $connectionManager= null;
+    /** @var UserRepository|null */
+    private $userRepository= null;
+    /** @var CourseRepository|null */
+    private $courseRepository= null;
+    /** @var SubjectRepository|null */
+    private $subjectRepository= null;
+    /** @var AcademicPeriodRepository|null */
+    private $academicPeriodRepository= null;
+    /** @var EnrollmentRepository|null */
+    private $enrollmentRepository= null;
+    /** @var ModuleRepository|null */
+    private $moduleRepository= null;
+    /** @var SubjectPrerequisiteRepository|null */
+    private $subjectPrerequisiteRepository= null;
+    /** @var CourseTeacherRepository|null */
+    private $courseTeacherRepository= null;
 
     /**
      * Singleton pattern

@@ -28,21 +28,36 @@ class User
 {
     use Timestampable, SoftDeleteable;
 
-    private UserId $id;
-    private string $firstName;
-    private string $lastName;
-    private Email $email;
-    private ?PasswordHash $passwordHash;
-    private UserStatus $status;
-    private UserGender $gender;
-    private ?string $phone;
-    private ?string $address;
-    private ?string $profilePhoto;
-    private array $roles = [];
-    private array $metadata = [];
-    private ?string $lastLoginAt = null;
-    private int $loginAttempts = 0;
-    private ?string $lockedUntil = null;
+    /** @var UserId */
+    private $id;
+    /** @var string */
+    private $firstName;
+    /** @var string */
+    private $lastName;
+    /** @var Email */
+    private $email;
+    /** @var PasswordHash|null */
+    private $passwordHash;
+    /** @var UserStatus */
+    private $status;
+    /** @var UserGender */
+    private $gender;
+    /** @var string|null */
+    private $phone;
+    /** @var string|null */
+    private $address;
+    /** @var string|null */
+    private $profilePhoto;
+    /** @var array */
+    private $roles= [];
+    /** @var array */
+    private $metadata= [];
+    /** @var string|null */
+    private $lastLoginAt= null;
+    /** @var int */
+    private $loginAttempts= 0;
+    /** @var string|null */
+    private $lockedUntil= null;
 
     /**
      * Constructor
@@ -59,8 +74,8 @@ class User
         $this->lastName = $lastName;
         $this->email = $email;
         $this->passwordHash = $passwordHash;
-        $this->status = UserStatus::ACTIVE;
-        $this->gender = UserGender::UNSPECIFIED;
+        $this->status = UserStatus::active();
+        $this->gender = UserGender::getDefault();
     }
 
     /**
@@ -258,7 +273,9 @@ class User
 
     public function removeRole(string $role): self
     {
-        $this->roles = array_filter($this->roles, fn($r) => $r !== $role);
+        $this->roles = array_filter($this->roles, function ($r) use ($role) {
+            return $r !== $role;
+        });
         return $this;
     }
 
@@ -284,25 +301,25 @@ class User
 
     public function activate(): self
     {
-        $this->status = UserStatus::ACTIVE;
+        $this->status = UserStatus::active();
         return $this;
     }
 
     public function deactivate(): self
     {
-        $this->status = UserStatus::INACTIVE;
+        $this->status = UserStatus::inactive();
         return $this;
     }
 
     public function suspend(): self
     {
-        $this->status = UserStatus::SUSPENDED;
+        $this->status = UserStatus::suspended();
         return $this;
     }
 
     public function isActive(): bool
     {
-        return $this->status === UserStatus::ACTIVE;
+        return $this->status->getValue() === UserStatus::ACTIVE;
     }
 
     public function isLocked(): bool

@@ -1,7 +1,7 @@
 <?php
 /**
  * =============================================================================
- * ENUM USER GENDER
+ * VALUE OBJECT USER GENDER
  * Christian LMS System - Domain Layer
  * =============================================================================
  */
@@ -9,30 +9,53 @@
 namespace ChristianLMS\Domain\ValueObjects;
 
 /**
- * Enum UserGender
- * 
+ * Value Object UserGender
+ *
  * Representa los géneros de usuario en el sistema.
  */
-enum UserGender: string
+class UserGender
 {
-    case MALE = 'male';
-    case FEMALE = 'female';
-    case NON_BINARY = 'non_binary';
-    case PREFER_NOT_TO_SAY = 'prefer_not_to_say';
-    case UNSPECIFIED = 'unspecified';
+    public const MALE = 'male';
+    public const FEMALE = 'female';
+    public const NON_BINARY = 'non_binary';
+    public const PREFER_NOT_TO_SAY = 'prefer_not_to_say';
+    public const UNSPECIFIED = 'unspecified';
+
+    /** @var string */
+    private $value;
+
+    public function __construct(string $value)
+    {
+        if (!self::isValid($value)) {
+            throw new \InvalidArgumentException('Género inválido');
+        }
+
+        $this->value = $value;
+    }
+
+    public function getValue(): string
+    {
+        return $this->value;
+    }
 
     /**
      * Obtener etiqueta legible
      */
     public function getLabel(): string
     {
-        return match($this) {
-            self::MALE => 'Masculino',
-            self::FEMALE => 'Femenino',
-            self::NON_BINARY => 'No binario',
-            self::PREFER_NOT_TO_SAY => 'Prefiero no decir',
-            self::UNSPECIFIED => 'No especificado',
-        };
+        switch ($this->value) {
+            case self::MALE:
+                return 'Masculino';
+            case self::FEMALE:
+                return 'Femenino';
+            case self::NON_BINARY:
+                return 'No binario';
+            case self::PREFER_NOT_TO_SAY:
+                return 'Prefiero no decir';
+            case self::UNSPECIFIED:
+            default:
+                return 'No especificado';
+        }
     }
 
     /**
@@ -40,13 +63,19 @@ enum UserGender: string
      */
     public function getDescription(): string
     {
-        return match($this) {
-            self::MALE => 'Usuario identificado como masculino',
-            self::FEMALE => 'Usuario identificada como femenina',
-            self::NON_BINARY => 'Usuario que no se identifica como masculino ni femenino',
-            self::PREFER_NOT_TO_SAY => 'Usuario que prefiere no especificar su género',
-            self::UNSPECIFIED => 'Género no especificado en el sistema',
-        };
+        switch ($this->value) {
+            case self::MALE:
+                return 'Usuario identificado como masculino';
+            case self::FEMALE:
+                return 'Usuario identificada como femenina';
+            case self::NON_BINARY:
+                return 'Usuario que no se identifica como masculino ni femenino';
+            case self::PREFER_NOT_TO_SAY:
+                return 'Usuario que prefiere no especificar su género';
+            case self::UNSPECIFIED:
+            default:
+                return 'Género no especificado en el sistema';
+        }
     }
 
     /**
@@ -54,13 +83,17 @@ enum UserGender: string
      */
     public function getPersonalPronoun(): string
     {
-        return match($this) {
-            self::MALE => 'él',
-            self::FEMALE => 'ella',
-            self::NON_BINARY => 'elle',
-            self::PREFER_NOT_TO_SAY => 'elle',
-            self::UNSPECIFIED => 'elle',
-        };
+        switch ($this->value) {
+            case self::MALE:
+                return 'él';
+            case self::FEMALE:
+                return 'ella';
+            case self::NON_BINARY:
+            case self::PREFER_NOT_TO_SAY:
+            case self::UNSPECIFIED:
+            default:
+                return 'elle';
+        }
     }
 
     /**
@@ -68,13 +101,16 @@ enum UserGender: string
      */
     public function getPossessivePronoun(): string
     {
-        return match($this) {
-            self::MALE => 'su',
-            self::FEMALE => 'su',
-            self::NON_BINARY => 'suy',
-            self::PREFER_NOT_TO_SAY => 'suy',
-            self::UNSPECIFIED => 'suy',
-        };
+        switch ($this->value) {
+            case self::NON_BINARY:
+            case self::PREFER_NOT_TO_SAY:
+            case self::UNSPECIFIED:
+                return 'suy';
+            case self::MALE:
+            case self::FEMALE:
+            default:
+                return 'su';
+        }
     }
 
     /**
@@ -82,13 +118,7 @@ enum UserGender: string
      */
     public function getReflexivePronoun(): string
     {
-        return match($this) {
-            self::MALE => 'se',
-            self::FEMALE => 'se',
-            self::NON_BINARY => 'se',
-            self::PREFER_NOT_TO_SAY => 'se',
-            self::UNSPECIFIED => 'se',
-        };
+        return 'se';
     }
 
     /**
@@ -96,13 +126,19 @@ enum UserGender: string
      */
     public function getIcon(): string
     {
-        return match($this) {
-            self::MALE => 'fas fa-mars',
-            self::FEMALE => 'fas fa-venus',
-            self::NON_BINARY => 'fas fa-genderless',
-            self::PREFER_NOT_TO_SAY => 'fas fa-question',
-            self::UNSPECIFIED => 'fas fa-user',
-        };
+        switch ($this->value) {
+            case self::MALE:
+                return 'fas fa-mars';
+            case self::FEMALE:
+                return 'fas fa-venus';
+            case self::NON_BINARY:
+                return 'fas fa-genderless';
+            case self::PREFER_NOT_TO_SAY:
+                return 'fas fa-question';
+            case self::UNSPECIFIED:
+            default:
+                return 'fas fa-user';
+        }
     }
 
     /**
@@ -110,13 +146,18 @@ enum UserGender: string
      */
     public function getColor(): string
     {
-        return match($this) {
-            self::MALE => '#007bff',
-            self::FEMALE => '#e91e63',
-            self::NON_BINARY => '#9c27b0',
-            self::PREFER_NOT_TO_SAY => '#6c757d',
-            self::UNSPECIFIED => '#6c757d',
-        };
+        switch ($this->value) {
+            case self::MALE:
+                return '#007bff';
+            case self::FEMALE:
+                return '#e91e63';
+            case self::NON_BINARY:
+                return '#9c27b0';
+            case self::PREFER_NOT_TO_SAY:
+            case self::UNSPECIFIED:
+            default:
+                return '#6c757d';
+        }
     }
 
     /**
@@ -124,7 +165,7 @@ enum UserGender: string
      */
     public function isSpecific(): bool
     {
-        return in_array($this, [self::MALE, self::FEMALE, self::NON_BINARY]);
+        return in_array($this->value, [self::MALE, self::FEMALE, self::NON_BINARY], true);
     }
 
     /**
@@ -132,7 +173,7 @@ enum UserGender: string
      */
     public function isPreference(): bool
     {
-        return $this === self::PREFER_NOT_TO_SAY;
+        return $this->value === self::PREFER_NOT_TO_SAY;
     }
 
     /**
@@ -140,7 +181,7 @@ enum UserGender: string
      */
     public function isUnspecified(): bool
     {
-        return in_array($this, [self::UNSPECIFIED, self::PREFER_NOT_TO_SAY]);
+        return in_array($this->value, [self::UNSPECIFIED, self::PREFER_NOT_TO_SAY], true);
     }
 
     /**
@@ -148,7 +189,7 @@ enum UserGender: string
      */
     public static function getDefault(): self
     {
-        return self::UNSPECIFIED;
+        return new self(self::UNSPECIFIED);
     }
 
     /**
@@ -157,35 +198,34 @@ enum UserGender: string
     public static function fromString(string $value): ?self
     {
         $value = strtolower(trim($value));
-        
-        // Mapeo de valores alternativos
+
         $mapping = [
             'm' => self::MALE,
             'masculino' => self::MALE,
             'man' => self::MALE,
             'male' => self::MALE,
-            
             'f' => self::FEMALE,
             'femenino' => self::FEMALE,
             'woman' => self::FEMALE,
             'female' => self::FEMALE,
-            
             'nb' => self::NON_BINARY,
             'non-binary' => self::NON_BINARY,
             'no-binario' => self::NON_BINARY,
             'genderqueer' => self::NON_BINARY,
-            
             'unspecified' => self::UNSPECIFIED,
             'no-especificado' => self::UNSPECIFIED,
             'unknown' => self::UNSPECIFIED,
             'none' => self::UNSPECIFIED,
-            
             'prefer-not-to-say' => self::PREFER_NOT_TO_SAY,
             'prefiero-no-decir' => self::PREFER_NOT_TO_SAY,
             'pnts' => self::PREFER_NOT_TO_SAY,
         ];
-        
-        return $mapping[$value] ?? null;
+
+        if (isset($mapping[$value])) {
+            return new self($mapping[$value]);
+        }
+
+        return null;
     }
 
     /**
@@ -193,7 +233,13 @@ enum UserGender: string
      */
     public static function isValid(string $value): bool
     {
-        return self::fromString($value) !== null;
+        return in_array($value, [
+            self::MALE,
+            self::FEMALE,
+            self::NON_BINARY,
+            self::PREFER_NOT_TO_SAY,
+            self::UNSPECIFIED
+        ], true);
     }
 
     /**
@@ -201,7 +247,11 @@ enum UserGender: string
      */
     public static function getSpecificGenders(): array
     {
-        return [self::MALE, self::FEMALE, self::NON_BINARY];
+        return [
+            new self(self::MALE),
+            new self(self::FEMALE),
+            new self(self::NON_BINARY)
+        ];
     }
 
     /**
@@ -210,11 +260,11 @@ enum UserGender: string
     public static function getFormOptions(): array
     {
         return [
-            self::UNSPECIFIED->value => self::UNSPECIFIED->getLabel(),
-            self::MALE->value => self::MALE->getLabel(),
-            self::FEMALE->value => self::FEMALE->getLabel(),
-            self::NON_BINARY->value => self::NON_BINARY->getLabel(),
-            self::PREFER_NOT_TO_SAY->value => self::PREFER_NOT_TO_SAY->getLabel(),
+            self::UNSPECIFIED => (new self(self::UNSPECIFIED))->getLabel(),
+            self::MALE => (new self(self::MALE))->getLabel(),
+            self::FEMALE => (new self(self::FEMALE))->getLabel(),
+            self::NON_BINARY => (new self(self::NON_BINARY))->getLabel(),
+            self::PREFER_NOT_TO_SAY => (new self(self::PREFER_NOT_TO_SAY))->getLabel(),
         ];
     }
 
@@ -236,7 +286,7 @@ enum UserGender: string
      */
     public function requiresValidation(): bool
     {
-        return $this === self::PREFER_NOT_TO_SAY;
+        return $this->value === self::PREFER_NOT_TO_SAY;
     }
 
     /**
@@ -244,13 +294,19 @@ enum UserGender: string
      */
     public function getHelpText(): string
     {
-        return match($this) {
-            self::MALE => 'Usuario identificado como masculino',
-            self::FEMALE => 'Usuario identificada como femenina',
-            self::NON_BINARY => 'Usuario que no se identifica como masculino ni femenino',
-            self::PREFER_NOT_TO_SAY => 'Información confidencial - se respeta la privacidad',
-            self::UNSPECIFIED => 'No especificado en el registro',
-        };
+        switch ($this->value) {
+            case self::MALE:
+                return 'Usuario identificado como masculino';
+            case self::FEMALE:
+                return 'Usuario identificada como femenina';
+            case self::NON_BINARY:
+                return 'Usuario que no se identifica como masculino ni femenino';
+            case self::PREFER_NOT_TO_SAY:
+                return 'Información confidencial - se respeta la privacidad';
+            case self::UNSPECIFIED:
+            default:
+                return 'No especificado en el registro';
+        }
     }
 
     /**

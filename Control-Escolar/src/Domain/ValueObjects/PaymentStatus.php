@@ -21,9 +21,12 @@ class PaymentStatus
     public const OVERDUE = 'overdue';
     public const WAIVED = 'waived';
 
-    private string $value;
+    /** @var string */
+    private $value;
 
-    private static array $validStatuses = [
+    /** @var array */
+
+    private static $validStatuses = [
         self::PENDING,
         self::PARTIAL,
         self::PAID,
@@ -153,13 +156,19 @@ class PaymentStatus
      */
     public function __toString(): string
     {
-        return match($this->value) {
-            self::PENDING => 'Pendiente',
-            self::PARTIAL => 'Parcial',
-            self::PAID => 'Pagado',
-            self::OVERDUE => 'Vencido',
-            self::WAIVED => 'Exento',
-            default => $this->value
-        };
+        switch ($this->value) {
+            case self::PENDING:
+                return 'Pendiente';
+            case self::PARTIAL:
+                return 'Parcial';
+            case self::PAID:
+                return 'Pagado';
+            case self::OVERDUE:
+                return 'Vencido';
+            case self::WAIVED:
+                return 'Exento';
+            default:
+                return $this->value;
+        }
     }
 }
