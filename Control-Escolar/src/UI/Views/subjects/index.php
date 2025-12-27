@@ -6,54 +6,54 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header">
-                <h1><i class="fas fa-book-open"></i> Gestión de Materias</h1>
-                <p class="lead">Administra las materias y asignaturas del sistema educativo</p>
-            </div>
+<div class="container-xxl app-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"><i class="bi bi-journal-bookmark me-2"></i> Gestión de Materias</h1>
+            <p class="page-subtitle">Administra las materias y asignaturas del sistema educativo</p>
+        </div>
+        <div class="page-header-actions">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
+                <i class="bi bi-plus-circle me-1"></i> Nueva Materia
+            </button>
+            <button class="btn btn-outline-success" id="exportSubjects">
+                <i class="bi bi-download me-1"></i> Exportar Lista
+            </button>
+            <button class="btn btn-outline-info" id="bulkActions">
+                <i class="bi bi-list-check me-1"></i> Acciones Masivas
+            </button>
         </div>
     </div>
 
     <?php if (!empty($errorMessage)): ?>
         <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
         <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
+            <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <!-- Barra de acciones principal -->
+    <!-- Búsqueda rápida -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card filter-card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div class="mb-2 mb-md-0">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
-                                <i class="fas fa-plus-circle"></i> Nueva Materia
-                            </button>
-                            <button class="btn btn-success" id="exportSubjects">
-                                <i class="fas fa-download"></i> Exportar Lista
-                            </button>
-                            <button class="btn btn-info" id="bulkActions">
-                                <i class="fas fa-tasks"></i> Acciones Masivas
-                            </button>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h6 class="mb-1 text-muted">Búsqueda rápida</h6>
+                            <p class="mb-0 text-muted">Encuentra materias por nombre, código o módulo.</p>
                         </div>
-                        <div class="d-flex align-items-center">
-                            <div class="input-group" style="width: 300px;">
-                                <input type="text" class="form-control" id="globalSearch" placeholder="Buscar materias...">
-                                <button class="btn btn-outline-secondary" type="button" id="searchBtn">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
+                        <div class="input-group" style="width: 320px;">
+                            <input type="text" class="form-control" id="globalSearch" placeholder="Buscar materias...">
+                            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                <i class="bi bi-search"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -64,12 +64,12 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Filtros y búsqueda avanzada -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card filter-card">
                 <div class="card-header">
                     <h6 class="mb-0">
                         <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
-                            <i class="fas fa-filter"></i> Filtros Avanzados
-                            <i class="fas fa-chevron-down ms-1"></i>
+                            <i class="bi bi-funnel me-1"></i> Filtros Avanzados
+                            <i class="bi bi-chevron-down ms-1"></i>
                         </button>
                     </h6>
                 </div>
@@ -78,7 +78,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="row">
                             <div class="col-md-3">
                                 <label for="statusFilter" class="form-label">Estado</label>
-                                <select class="form-select" id="statusFilter">
+                                <select class="form-select select2" id="statusFilter" data-enhance="select">
                                     <option value="">Todos los estados</option>
                                     <option value="active">Activa</option>
                                     <option value="inactive">Inactiva</option>
@@ -86,7 +86,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="col-md-3">
                                 <label for="categoryFilter" class="form-label">Categoría</label>
-                                <select class="form-select" id="categoryFilter">
+                                <select class="form-select select2" id="categoryFilter" data-enhance="select">
                                     <option value="">Todas las categorías</option>
                                     <option value="mathematics">Matemáticas</option>
                                     <option value="language">Lenguaje</option>
@@ -99,7 +99,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="col-md-3">
                                 <label for="gradeLevelFilter" class="form-label">Nivel</label>
-                                <select class="form-select" id="gradeLevelFilter">
+                                <select class="form-select select2" id="gradeLevelFilter" data-enhance="select">
                                     <option value="">Todos los niveles</option>
                                     <option value="1">1° Grado</option>
                                     <option value="2">2° Grado</option>
@@ -113,10 +113,10 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="row mt-3">
                             <div class="col-12">
                                 <button type="button" class="btn btn-outline-primary" id="applyAdvancedFilters">
-                                    <i class="fas fa-check"></i> Aplicar Filtros
+                                    <i class="bi bi-check-lg me-1"></i> Aplicar Filtros
                                 </button>
                                 <button type="button" class="btn btn-outline-secondary" id="clearAdvancedFilters">
-                                    <i class="fas fa-times"></i> Limpiar Filtros
+                                    <i class="bi bi-x-lg me-1"></i> Limpiar Filtros
                                 </button>
                             </div>
                         </div>
@@ -132,7 +132,7 @@ if (!isset($_SESSION['user_id'])) {
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="fas fa-list"></i> Lista de Materias
+                        <i class="bi bi-list-ul me-2"></i> Lista de Materias
                         <span class="badge bg-secondary ms-2" id="totalSubjects"><?= count($subjects ?? []) ?></span>
                     </h5>
                     <div class="d-flex align-items-center">
@@ -140,11 +140,11 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="btn-group" role="group">
                             <input type="radio" class="btn-check" name="viewMode" id="tableView" value="table" checked>
                             <label class="btn btn-outline-primary btn-sm" for="tableView">
-                                <i class="fas fa-table"></i> Tabla
+                                <i class="bi bi-table me-1"></i> Tabla
                             </label>
                             <input type="radio" class="btn-check" name="viewMode" id="cardView" value="card">
                             <label class="btn btn-outline-primary btn-sm" for="cardView">
-                                <i class="fas fa-th-large"></i> Tarjetas
+                                <i class="bi bi-grid-3x3-gap me-1"></i> Tarjetas
                             </label>
                         </div>
                     </div>
@@ -192,7 +192,7 @@ if (!isset($_SESSION['user_id'])) {
                                                         data-module-id="<?= (int) ($subject['module_id'] ?? 0) ?>"
                                                         data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
                                                     >
-                                                        <i class="fas fa-edit"></i>
+                                                        <i class="bi bi-pencil"></i>
                                                     </button>
                                                     <button
                                                         type="button"
@@ -201,7 +201,7 @@ if (!isset($_SESSION['user_id'])) {
                                                         data-id="<?= (int) $subject['id'] ?>"
                                                         data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                     >
-                                                        <i class="fas fa-trash"></i>
+                                                        <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -247,7 +247,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-module-id="<?= (int) ($subject['module_id'] ?? 0) ?>"
                                                     data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
                                                 >
-                                                    <i class="fas fa-edit"></i> Editar
+                                                    <i class="bi bi-pencil me-1"></i> Editar
                                                 </button>
                                                 <button
                                                     type="button"
@@ -256,7 +256,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $subject['id'] ?>"
                                                     data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                 >
-                                                    <i class="fas fa-trash"></i> Eliminar
+                                                    <i class="bi bi-trash me-1"></i> Eliminar
                                                 </button>
                                             </div>
                                         </div>
@@ -283,9 +283,12 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-plus-circle"></i> Crear Nueva Materia
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle me-2"></i> Crear Nueva Materia
+                    </h5>
+                    <p class="text-muted mb-0 small">Registra una materia con su código y módulo.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="createSubjectForm" method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>">
@@ -305,7 +308,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="subjectModule" class="form-label">Módulo</label>
-                                <select class="form-select" id="subjectModule" name="module_id">
+                                <select class="form-select select2" id="subjectModule" name="module_id" data-enhance="select">
                                     <option value="">Seleccionar módulo</option>
                                     <?php foreach ($modules as $module): ?>
                                         <option value="<?= (int) $module['id'] ?>"><?= htmlspecialchars($module['name']) ?></option>
@@ -324,11 +327,11 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Crear Materia
+                        <i class="bi bi-save me-1"></i> Crear Materia
                     </button>
                 </div>
             </form>
@@ -341,9 +344,12 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-edit"></i> Editar Materia
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil me-2"></i> Editar Materia
+                    </h5>
+                    <p class="text-muted mb-0 small">Modifica la información académica de la materia.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editSubjectForm" method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>">
@@ -363,7 +369,7 @@ if (!isset($_SESSION['user_id'])) {
                             </div>
                             <div class="mb-3">
                                 <label for="editSubjectModule" class="form-label">Módulo</label>
-                                <select class="form-select" id="editSubjectModule" name="module_id">
+                                <select class="form-select select2" id="editSubjectModule" name="module_id" data-enhance="select">
                                     <option value="">Seleccionar módulo</option>
                                     <?php foreach ($modules as $module): ?>
                                         <option value="<?= (int) $module['id'] ?>"><?= htmlspecialchars($module['name']) ?></option>
@@ -382,11 +388,11 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Actualizar Materia
+                        <i class="bi bi-save me-1"></i> Actualizar Materia
                     </button>
                 </div>
             </form>
@@ -399,9 +405,12 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-eye"></i> Detalles de la Materia
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-eye me-2"></i> Detalles de la Materia
+                    </h5>
+                    <p class="text-muted mb-0 small">Consulta la información completa de la materia.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -410,14 +419,14 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Cerrar
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-1"></i> Cerrar
                 </button>
                 <button type="button" class="btn btn-primary" id="editSubjectFromView">
-                    <i class="fas fa-edit"></i> Editar
+                    <i class="bi bi-pencil me-1"></i> Editar
                 </button>
                 <button type="button" class="btn btn-success" id="printSubject">
-                    <i class="fas fa-print"></i> Imprimir
+                    <i class="bi bi-printer me-1"></i> Imprimir
                 </button>
             </div>
         </div>
@@ -429,15 +438,18 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-warning"></i> Confirmar Eliminación
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle text-warning me-2"></i> Confirmar Eliminación
+                    </h5>
+                    <p class="text-muted mb-0 small">Esta acción puede afectar cursos vinculados.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>¿Está seguro de que desea eliminar esta materia?</p>
                 <div class="alert alert-warning">
-                    <i class="fas fa-warning"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     <strong>Advertencia:</strong> Esta acción no se puede deshacer y puede afectar los cursos que utilizan esta materia.
                 </div>
                 <p><strong>Materia:</strong> <span id="deleteSubjectName"></span></p>
@@ -446,181 +458,14 @@ if (!isset($_SESSION['user_id'])) {
                 <div class="modal-footer">
                     <input type="hidden" name="action" value="delete_subject">
                     <input type="hidden" id="deleteSubjectId" name="id">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Eliminar
+                        <i class="bi bi-trash me-1"></i> Eliminar
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tableView = document.getElementById('tableViewContainer');
-    const cardView = document.getElementById('cardViewContainer');
-
-    document.getElementById('tableView').addEventListener('change', function() {
-        if (this.checked) {
-            tableView.style.display = 'block';
-            cardView.style.display = 'none';
-        }
-    });
-
-    document.getElementById('cardView').addEventListener('change', function() {
-        if (this.checked) {
-            tableView.style.display = 'none';
-            cardView.style.display = 'block';
-        }
-    });
-
-    document.getElementById('selectAllSubjects').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.subject-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-    });
-
-    document.querySelectorAll('[data-subject-edit]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const dataset = button.dataset;
-            document.getElementById('editSubjectId').value = dataset.id || '';
-            document.getElementById('editSubjectName').value = dataset.name || '';
-            document.getElementById('editSubjectCode').value = dataset.code || '';
-            document.getElementById('editSubjectModule').value = dataset.moduleId || '';
-            document.getElementById('editSubjectDescription').value = dataset.description || '';
-
-            const modal = new bootstrap.Modal(document.getElementById('editSubjectModal'));
-            modal.show();
-        });
-    });
-
-    document.querySelectorAll('[data-subject-delete]').forEach((button) => {
-        button.addEventListener('click', () => {
-            document.getElementById('deleteSubjectId').value = button.dataset.id || '';
-            document.getElementById('deleteSubjectName').textContent = button.dataset.name || '';
-            const modal = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
-            modal.show();
-        });
-    });
-});
-</script>
-
-<style>
-.page-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e9ecef;
-}
-
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    margin-bottom: 1.5rem;
-}
-
-.table th {
-    background-color: #f8f9fa;
-    border-top: none;
-    font-weight: 600;
-    color: #495057;
-}
-
-.badge {
-    font-size: 0.75em;
-}
-
-.modal-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.form-label {
-    font-weight: 500;
-    color: #495057;
-}
-
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-}
-
-.subject-icon {
-    width: 2rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f9fa;
-    border-radius: 0.375rem;
-}
-
-.subject-icon-lg {
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #f8f9fa;
-    border-radius: 0.375rem;
-    font-size: 1.25rem;
-}
-
-.subject-card {
-    transition: transform 0.2s ease-in-out;
-}
-
-.subject-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.spinner-border {
-    width: 2rem;
-    height: 2rem;
-}
-
-.alert {
-    border: none;
-    border-radius: 0.375rem;
-}
-
-.table-sm td, .table-sm th {
-    padding: 0.3rem;
-}
-
-.btn-check:checked + .btn {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: white;
-}
-
-.collapse {
-    transition: all 0.3s ease;
-}
-
-.bg-primary {
-    background-color: #0d6efd !important;
-}
-
-.bg-success {
-    background-color: #198754 !important;
-}
-
-.bg-warning {
-    background-color: #ffc107 !important;
-    color: #000 !important;
-}
-
-.bg-info {
-    background-color: #0dcaf0 !important;
-    color: #000 !important;
-}
-
-.bg-danger {
-    background-color: #dc3545 !important;
-}
-</style>

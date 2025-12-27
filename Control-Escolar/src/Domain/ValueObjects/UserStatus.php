@@ -125,19 +125,19 @@ class UserStatus
     {
         switch ($this->value) {
             case self::ACTIVE:
-                return 'fas fa-check-circle';
+                return 'bi bi-check-circle';
             case self::INACTIVE:
-                return 'fas fa-pause-circle';
+                return 'bi bi-pause-circle';
             case self::SUSPENDED:
-                return 'fas fa-exclamation-triangle';
+                return 'bi bi-exclamation-triangle';
             case self::PENDING:
-                return 'fas fa-clock';
+                return 'bi bi-clock';
             case self::BANNED:
-                return 'fas fa-ban';
+                return 'bi bi-slash-circle';
             case self::DELETED:
-                return 'fas fa-trash';
+                return 'bi bi-trash';
             default:
-                return 'fas fa-user';
+                return 'bi bi-person';
         }
     }
 

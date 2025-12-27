@@ -46,7 +46,7 @@ foreach ($requiredFiles as $file) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificación - Christian LMS Control-Escolar</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .status-ok { color: #28a745; }
         .status-error { color: #dc3545; }
@@ -64,7 +64,7 @@ foreach ($requiredFiles as $file) {
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white">
                         <h1 class="mb-0">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="bi bi-check-circle"></i>
                             Verificación del Sistema Christian LMS
                         </h1>
                         <p class="mb-0">Control-Escolar - Configuración y Estado</p>
@@ -74,14 +74,14 @@ foreach ($requiredFiles as $file) {
                         <!-- Estado General -->
                         <div class="row mb-4">
                             <div class="col-12">
-                                <h3><i class="fas fa-server"></i> Estado del Servidor</h3>
+                                <h3><i class="bi bi-hdd-stack"></i> Estado del Servidor</h3>
                             </div>
                         </div>
                         
                         <!-- PHP Version -->
                         <div class="check-item <?php echo $phpOk ? 'check-ok' : 'check-error'; ?>">
                             <div class="d-flex align-items-center">
-                                <i class="<?php echo $phpOk ? 'fas fa-check-circle status-ok' : 'fas fa-times-circle status-error'; ?> fa-2x me-3"></i>
+                                <i class="<?php echo $phpOk ? 'bi bi-check-circle status-ok' : 'bi bi-x-circle status-error'; ?> fs-2 me-3"></i>
                                 <div>
                                     <h5 class="mb-1">Versión de PHP</h5>
                                     <p class="mb-0">
@@ -99,7 +99,7 @@ foreach ($requiredFiles as $file) {
                         <!-- Extensiones PHP -->
                         <div class="check-item <?php echo $extensionsOk ? 'check-ok' : 'check-error'; ?>">
                             <div class="d-flex align-items-center">
-                                <i class="<?php echo $extensionsOk ? 'fas fa-check-circle status-ok' : 'fas fa-times-circle status-error'; ?> fa-2x me-3"></i>
+                                <i class="<?php echo $extensionsOk ? 'bi bi-check-circle status-ok' : 'bi bi-x-circle status-error'; ?> fs-2 me-3"></i>
                                 <div>
                                     <h5 class="mb-1">Extensiones PHP</h5>
                                     <p class="mb-0">
@@ -117,13 +117,13 @@ foreach ($requiredFiles as $file) {
                         <!-- Archivos del Sistema -->
                         <div class="row mb-4 mt-4">
                             <div class="col-12">
-                                <h3><i class="fas fa-folder-open"></i> Archivos del Sistema</h3>
+                                <h3><i class="bi bi-folder2-open"></i> Archivos del Sistema</h3>
                             </div>
                         </div>
                         
                         <div class="check-item <?php echo $filesOk ? 'check-ok' : 'check-error'; ?>">
                             <div class="d-flex align-items-center">
-                                <i class="<?php echo $filesOk ? 'fas fa-check-circle status-ok' : 'fas fa-times-circle status-error'; ?> fa-2x me-3"></i>
+                                <i class="<?php echo $filesOk ? 'bi bi-check-circle status-ok' : 'bi bi-x-circle status-error'; ?> fs-2 me-3"></i>
                                 <div>
                                     <h5 class="mb-1">Estructura de Archivos</h5>
                                     <p class="mb-0">
@@ -140,7 +140,7 @@ foreach ($requiredFiles as $file) {
                         <!-- Configuración -->
                         <div class="check-item <?php echo $configExists ? 'check-ok' : 'check-warning'; ?>">
                             <div class="d-flex align-items-center">
-                                <i class="<?php echo $configExists ? 'fas fa-check-circle status-ok' : 'fas fa-exclamation-triangle status-warning'; ?> fa-2x me-3"></i>
+                                <i class="<?php echo $configExists ? 'bi bi-check-circle status-ok' : 'bi bi-exclamation-triangle status-warning'; ?> fs-2 me-3"></i>
                                 <div>
                                     <h5 class="mb-1">Configuración de Base de Datos</h5>
                                     <p class="mb-0">
@@ -158,7 +158,7 @@ foreach ($requiredFiles as $file) {
                         <!-- Información del Sistema -->
                         <div class="row mb-4 mt-4">
                             <div class="col-12">
-                                <h3><i class="fas fa-info-circle"></i> Información del Sistema</h3>
+                                <h3><i class="bi bi-info-circle"></i> Información del Sistema</h3>
                             </div>
                         </div>
                         
@@ -166,7 +166,7 @@ foreach ($requiredFiles as $file) {
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h6><i class="fas fa-folder"></i> Directorio Actual</h6>
+                                        <h6><i class="bi bi-folder"></i> Directorio Actual</h6>
                                         <code><?php echo __DIR__; ?></code>
                                     </div>
                                 </div>
@@ -174,7 +174,7 @@ foreach ($requiredFiles as $file) {
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h6><i class="fas fa-globe"></i> URL Actual</h6>
+                                        <h6><i class="bi bi-globe"></i> URL Actual</h6>
                                         <code><?php echo (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?></code>
                                     </div>
                                 </div>
@@ -184,12 +184,12 @@ foreach ($requiredFiles as $file) {
                         <!-- Próximos Pasos -->
                         <div class="row mb-4 mt-4">
                             <div class="col-12">
-                                <h3><i class="fas fa-rocket"></i> Próximos Pasos</h3>
+                                <h3><i class="bi bi-rocket-takeoff"></i> Próximos Pasos</h3>
                             </div>
                         </div>
                         
                         <div class="alert alert-info">
-                            <h6><i class="fas fa-lightbulb"></i> Para completar la instalación:</h6>
+                            <h6><i class="bi bi-lightbulb"></i> Para completar la instalación:</h6>
                             <ol class="mb-0">
                                 <li><strong>Configurar Base de Datos:</strong> Editar <code>config/database.php</code> con tus credenciales</li>
                                 <li><strong>Importar Base de Datos:</strong> Ejecutar <code>database.sql</code> en phpMyAdmin</li>
@@ -201,10 +201,10 @@ foreach ($requiredFiles as $file) {
                         <!-- Enlaces Útiles -->
                         <div class="text-center mt-4">
                             <a href="public/" class="btn btn-primary btn-lg me-2">
-                                <i class="fas fa-graduation-cap"></i> Acceder al Control Escolar
+                                <i class="bi bi-mortarboard"></i> Acceder al Control Escolar
                             </a>
                             <a href="INTEGRACION-XAMPP.md" class="btn btn-outline-info">
-                                <i class="fas fa-book"></i> Ver Instrucciones
+                                <i class="bi bi-book"></i> Ver Instrucciones
                             </a>
                         </div>
                         

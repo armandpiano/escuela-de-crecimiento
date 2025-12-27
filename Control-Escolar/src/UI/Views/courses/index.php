@@ -6,55 +6,45 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header">
-                <h1><i class="fas fa-book"></i> Gestión de Cursos</h1>
-                <p class="lead">Administra los cursos del sistema educativo cristiano</p>
-            </div>
+<div class="container-xxl app-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"><i class="bi bi-book me-2"></i> Gestión de Cursos</h1>
+            <p class="page-subtitle">Administra los cursos del sistema educativo cristiano</p>
+        </div>
+        <div class="page-header-actions">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+                <i class="bi bi-plus-circle me-1"></i> Nuevo Curso
+            </button>
+            <button class="btn btn-outline-success" id="exportCourses">
+                <i class="bi bi-download me-1"></i> Exportar
+            </button>
         </div>
     </div>
 
     <?php if (!empty($errorMessage)): ?>
         <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
         <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
+            <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <!-- Barra de acciones -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
-                        <i class="fas fa-plus"></i> Nuevo Curso
-                    </button>
-                    <button class="btn btn-success" id="exportCourses">
-                        <i class="fas fa-download"></i> Exportar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Filtros de búsqueda -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <div class="card filter-card">
                 <div class="card-body">
                     <form class="row g-3" id="courseFilters" method="GET" action="<?= htmlspecialchars($basePath . '/courses') ?>">
                         <div class="col-md-3">
                             <label for="statusFilter" class="form-label">Estado</label>
-                            <select class="form-select" id="statusFilter" name="status">
+                            <select class="form-select select2" id="statusFilter" name="status" data-enhance="select">
                                 <option value="">Todos los estados</option>
                                 <option value="active" <?= ($filters['status'] ?? '') === 'active' ? 'selected' : '' ?>>Activo</option>
                                 <option value="published" <?= ($filters['status'] ?? '') === 'published' ? 'selected' : '' ?>>Publicado</option>
@@ -70,7 +60,7 @@ if (!isset($_SESSION['user_id'])) {
                             <label class="form-label">&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-outline-primary">
-                                    <i class="fas fa-search"></i> Filtrar
+                                    <i class="bi bi-search me-1"></i> Filtrar
                                 </button>
                             </div>
                         </div>
@@ -85,7 +75,7 @@ if (!isset($_SESSION['user_id'])) {
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-list"></i> Lista de Cursos</h5>
+                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Cursos</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -139,7 +129,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-modality="<?= htmlspecialchars($course['modality'] ?? '', ENT_QUOTES) ?>"
                                                     data-capacity="<?= (int) ($course['capacity'] ?? 0) ?>"
                                                 >
-                                                    <i class="fas fa-edit"></i>
+                                                    <i class="bi bi-pencil"></i>
                                                 </button>
                                                 <button
                                                     type="button"
@@ -148,7 +138,7 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $course['id'] ?>"
                                                     data-name="<?= htmlspecialchars($course['group_name'] ?? '', ENT_QUOTES) ?>"
                                                 >
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="bi bi-trash"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -175,9 +165,12 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-plus-circle"></i> Crear Nuevo Curso
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-plus-circle me-2"></i> Crear Nuevo Curso
+                    </h5>
+                    <p class="text-muted mb-0 small">Completa la información para abrir un nuevo grupo.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="createCourseForm" method="POST" action="<?= htmlspecialchars($basePath . '/courses') ?>">
@@ -193,7 +186,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="courseStatus" class="form-label">Estado *</label>
-                                <select class="form-select" id="courseStatus" name="status" required>
+                                <select class="form-select select2" id="courseStatus" name="status" required data-enhance="select">
                                     <option value="draft">Borrador</option>
                                     <option value="active">Activo</option>
                                     <option value="published">Publicado</option>
@@ -207,7 +200,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="courseSubject" class="form-label">Materia *</label>
-                                <select class="form-select" id="courseSubject" name="subject_id" required>
+                                <select class="form-select select2" id="courseSubject" name="subject_id" required data-enhance="select">
                                     <option value="">Seleccionar materia</option>
                                     <?php foreach ($subjects as $subject): ?>
                                         <option value="<?= (int) $subject['id'] ?>"><?= htmlspecialchars($subject['name']) ?></option>
@@ -218,7 +211,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="courseTerm" class="form-label">Periodo Académico *</label>
-                                <select class="form-select" id="courseTerm" name="term_id" required>
+                                <select class="form-select select2" id="courseTerm" name="term_id" required data-enhance="select">
                                     <option value="">Seleccionar periodo</option>
                                     <?php foreach ($terms as $term): ?>
                                         <option value="<?= (int) $term['id'] ?>"><?= htmlspecialchars($term['name']) ?></option>
@@ -253,11 +246,11 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Crear Curso
+                        <i class="bi bi-save me-1"></i> Crear Curso
                     </button>
                 </div>
             </form>
@@ -270,9 +263,12 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-edit"></i> Editar Curso
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil me-2"></i> Editar Curso
+                    </h5>
+                    <p class="text-muted mb-0 small">Actualiza los detalles del curso seleccionado.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editCourseForm" method="POST" action="<?= htmlspecialchars($basePath . '/courses') ?>">
@@ -289,7 +285,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="editCourseStatus" class="form-label">Estado *</label>
-                                <select class="form-select" id="editCourseStatus" name="status" required>
+                                <select class="form-select select2" id="editCourseStatus" name="status" required data-enhance="select">
                                     <option value="draft">Borrador</option>
                                     <option value="active">Activo</option>
                                     <option value="published">Publicado</option>
@@ -303,7 +299,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="editCourseSubject" class="form-label">Materia *</label>
-                                <select class="form-select" id="editCourseSubject" name="subject_id" required>
+                                <select class="form-select select2" id="editCourseSubject" name="subject_id" required data-enhance="select">
                                     <option value="">Seleccionar materia</option>
                                     <?php foreach ($subjects as $subject): ?>
                                         <option value="<?= (int) $subject['id'] ?>"><?= htmlspecialchars($subject['name']) ?></option>
@@ -314,7 +310,7 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="editCourseTerm" class="form-label">Periodo Académico *</label>
-                                <select class="form-select" id="editCourseTerm" name="term_id" required>
+                                <select class="form-select select2" id="editCourseTerm" name="term_id" required data-enhance="select">
                                     <option value="">Seleccionar periodo</option>
                                     <?php foreach ($terms as $term): ?>
                                         <option value="<?= (int) $term['id'] ?>"><?= htmlspecialchars($term['name']) ?></option>
@@ -349,11 +345,11 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Actualizar Curso
+                        <i class="bi bi-save me-1"></i> Actualizar Curso
                     </button>
                 </div>
             </form>
@@ -366,15 +362,18 @@ if (!isset($_SESSION['user_id'])) {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-warning"></i> Confirmar Eliminación
-                </h5>
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle text-warning me-2"></i> Confirmar Eliminación
+                    </h5>
+                    <p class="text-muted mb-0 small">Esta acción eliminará el curso y sus inscripciones.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p>¿Está seguro de que desea eliminar este curso?</p>
                 <div class="alert alert-warning">
-                    <i class="fas fa-warning"></i>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     <strong>Advertencia:</strong> Esta acción no se puede deshacer y eliminará todas las inscripciones asociadas.
                 </div>
                 <p><strong>Curso:</strong> <span id="deleteCourseName"></span></p>
@@ -383,111 +382,14 @@ if (!isset($_SESSION['user_id'])) {
                 <div class="modal-footer">
                     <input type="hidden" name="action" value="delete_course">
                     <input type="hidden" id="deleteCourseId" name="id">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times"></i> Cancelar
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash"></i> Eliminar
+                        <i class="bi bi-trash me-1"></i> Eliminar
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Event listener para seleccionar todos
-    document.getElementById('selectAll').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.course-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-    });
-    document.querySelectorAll('[data-course-edit]').forEach((button) => {
-        button.addEventListener('click', () => {
-            const dataset = button.dataset;
-            document.getElementById('editCourseId').value = dataset.id || '';
-            document.getElementById('editCourseGroupName').value = dataset.groupName || '';
-            document.getElementById('editCourseSubject').value = dataset.subjectId || '';
-            document.getElementById('editCourseTerm').value = dataset.termId || '';
-            document.getElementById('editCourseStatus').value = dataset.status || 'draft';
-            document.getElementById('editCourseSchedule').value = dataset.scheduleLabel || '';
-            document.getElementById('editCourseCapacity').value = dataset.capacity || '';
-            document.getElementById('editCourseModality').value = dataset.modality || '';
-
-            const modal = new bootstrap.Modal(document.getElementById('editCourseModal'));
-            modal.show();
-        });
-    });
-
-    document.querySelectorAll('[data-course-delete]').forEach((button) => {
-        button.addEventListener('click', () => {
-            document.getElementById('deleteCourseId').value = button.dataset.id || '';
-            document.getElementById('deleteCourseName').textContent = button.dataset.name || '';
-
-            const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
-            modal.show();
-        });
-    });
-});
-</script>
-
-<style>
-.page-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #e9ecef;
-}
-
-.table th {
-    background-color: #f8f9fa;
-    border-top: none;
-    font-weight: 600;
-    color: #495057;
-}
-
-.badge {
-    font-size: 0.75em;
-}
-
-.modal-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.form-label {
-    font-weight: 500;
-    color: #495057;
-}
-
-.btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-}
-
-.card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-}
-
-.alert {
-    border: none;
-    border-radius: 0.375rem;
-}
-
-.spinner-border {
-    width: 2rem;
-    height: 2rem;
-}
-
-.pagination .page-link {
-    color: #007bff;
-    border-color: #dee2e6;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #007bff;
-    border-color: #007bff;
-}
-</style>

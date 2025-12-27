@@ -16,26 +16,24 @@ $studentEmail = $_SESSION['user_email'] ?? 'correo@ejemplo.com';
 $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header">
-                <h1><i class="fas fa-user-graduate"></i> Mis Inscripciones</h1>
-                <p class="lead">Consulta tus materias inscritas e historial académico</p>
-            </div>
+<div class="container-xxl app-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"><i class="bi bi-person-badge me-2"></i> Mis Inscripciones</h1>
+            <p class="page-subtitle">Consulta tus materias inscritas e historial académico</p>
         </div>
     </div>
 
     <?php if (!empty($errorMessage)): ?>
         <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
         <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
+            <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
@@ -44,7 +42,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-id-badge"></i> Información del estudiante</h5>
+                    <h5 class="card-title"><i class="bi bi-person-vcard me-2"></i> Información del estudiante</h5>
                     <p class="mb-1"><strong>Nombre:</strong> <?= htmlspecialchars($studentName) ?></p>
                     <p class="mb-1"><strong>Correo:</strong> <?= htmlspecialchars($studentEmail) ?></p>
                     <p class="mb-0"><strong>Periodo activo:</strong> <?= htmlspecialchars($activePeriodName) ?></p>
@@ -54,7 +52,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-book"></i> Cursos disponibles</h5>
+                    <h5 class="card-title"><i class="bi bi-book me-2"></i> Cursos disponibles</h5>
                     <?php if (!$activePeriod): ?>
                         <p class="text-muted">No hay un periodo académico activo.</p>
                     <?php elseif (!$enrollmentWindowOpen): ?>
@@ -105,7 +103,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-history"></i> Historial de inscripciones</h5>
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Historial de inscripciones</h5>
                 </div>
                 <div class="card-body">
                     <?php if (empty($studentEnrollments)): ?>

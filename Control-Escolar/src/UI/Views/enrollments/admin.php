@@ -14,26 +14,24 @@ if ($userRole === 'student') {
 $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 ?>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-header">
-                <h1><i class="fas fa-user-plus"></i> Gestión de Inscripciones</h1>
-                <p class="lead">Registra inscripciones manuales con validaciones y overrides.</p>
-            </div>
+<div class="container-xxl app-content">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title"><i class="bi bi-person-plus me-2"></i> Gestión de Inscripciones</h1>
+            <p class="page-subtitle">Registra inscripciones manuales con validaciones y overrides.</p>
         </div>
     </div>
 
     <?php if (!empty($errorMessage)): ?>
         <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle"></i>
+            <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
         <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
+            <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
@@ -42,7 +40,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-calendar"></i> Periodo activo: <?= htmlspecialchars($activePeriodName) ?></h5>
+                    <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i> Periodo activo: <?= htmlspecialchars($activePeriodName) ?></h5>
                     <?php if (!$activePeriod): ?>
                         <p class="text-muted">No hay un periodo académico activo.</p>
                     <?php elseif (empty($adminCourses)): ?>
@@ -52,7 +50,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="studentId" class="form-label">Estudiante activo</label>
-                                    <select class="form-select" id="studentId" name="student_id" required>
+                                    <select class="form-select select2" id="studentId" name="student_id" required data-enhance="select">
                                         <option value="">Selecciona un estudiante</option>
                                         <?php foreach ($students as $student): ?>
                                             <option value="<?= (int) $student['id'] ?>">
@@ -63,7 +61,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="courseId" class="form-label">Curso</label>
-                                    <select class="form-select" id="courseId" name="course_id" required>
+                                    <select class="form-select select2" id="courseId" name="course_id" required data-enhance="select">
                                         <option value="">Selecciona un curso</option>
                                         <?php foreach ($adminCourses as $course): ?>
                                             <option value="<?= (int) $course['id'] ?>">
@@ -86,7 +84,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                 </label>
                             </div>
                             <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-save"></i> Registrar inscripción
+                                <i class="bi bi-save me-1"></i> Registrar inscripción
                             </button>
                         </form>
                     <?php endif; ?>

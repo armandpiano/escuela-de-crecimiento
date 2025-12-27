@@ -138,119 +138,18 @@ function loadLayout($content, $title = 'Sistema Christian LMS', $basePath = '/Co
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?php echo htmlspecialchars($title); ?></title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-            :root {
-                --primary-color: #0d6efd;
-                --secondary-color: #6c757d;
-                --success-color: #198754;
-                --warning-color: #ffc107;
-                --danger-color: #dc3545;
-                --info-color: #0dcaf0;
-            }
-            
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-            
-            body {
-                font-family: 'Inter', sans-serif;
-                background-color: #f8f9fa;
-                color: #333;
-            }
-            
-            .main-container {
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 2rem 1rem;
-            }
-            
-            .auth-card {
-                background: white;
-                border-radius: 1rem;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                padding: 2rem;
-                width: 100%;
-                max-width: 400px;
-            }
-            
-            .auth-logo {
-                text-align: center;
-                margin-bottom: 2rem;
-            }
-            
-            .auth-logo i {
-                font-size: 3rem;
-                color: var(--primary-color);
-                margin-bottom: 0.5rem;
-            }
-            
-            .auth-logo h3 {
-                color: var(--primary-color);
-                font-weight: 700;
-            }
-            
-            .form-floating > .form-control {
-                border-radius: 0.5rem;
-            }
-            
-            .btn-primary {
-                border-radius: 0.5rem;
-                padding: 0.75rem 1.5rem;
-                font-weight: 600;
-            }
-            
-            .alert {
-                border: none;
-                border-radius: 0.5rem;
-            }
-            
-            .page-header {
-                margin-bottom: 2rem;
-                padding-bottom: 1rem;
-                border-bottom: 2px solid #e9ecef;
-            }
-            
-            .card {
-                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-                border: 1px solid rgba(0, 0, 0, 0.125);
-                border-radius: 0.75rem;
-            }
-            
-            .table th {
-                background-color: #f8f9fa;
-                border-top: none;
-                font-weight: 600;
-                color: #495057;
-            }
-            
-            .badge {
-                font-size: 0.75em;
-            }
-            
-            .modal-header {
-                background-color: #f8f9fa;
-                border-bottom: 1px solid #dee2e6;
-            }
-            
-            .form-label {
-                font-weight: 500;
-                color: #495057;
-            }
-        </style>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+        <link href="<?php echo htmlspecialchars($basePath); ?>/assets/css/ui-premium.css" rel="stylesheet">
     </head>
-    <body>
-        <div class="main-container">
+    <body class="app-body">
+        <div class="main-container auth-page">
             <?php echo $content; ?>
         </div>
         
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="<?php echo htmlspecialchars($basePath); ?>/assets/js/ui-premium.js"></script>
     </body>
     </html>
     <?php
@@ -439,21 +338,21 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
     ?>
     <div class="auth-card">
         <div class="auth-logo">
-            <i class="fas fa-graduation-cap"></i>
+            <i class="bi bi-mortarboard brand-icon"></i>
             <h3>Control Escolar</h3>
             <p class="text-muted">Christian LMS</p>
         </div>
         
         <?php if ($error): ?>
             <div class="alert alert-danger" role="alert">
-                <i class="fas fa-exclamation-circle"></i>
+                <i class="bi bi-exclamation-circle"></i>
                 <?php echo htmlspecialchars($error); ?>
             </div>
         <?php endif; ?>
         
         <?php if ($success): ?>
             <div class="alert alert-success" role="alert">
-                <i class="fas fa-check-circle"></i>
+                <i class="bi bi-check-circle"></i>
                 <?php echo htmlspecialchars($success); ?>
             </div>
         <?php endif; ?>
@@ -470,7 +369,7 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
             </div>
             
             <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
             </button>
         </form>
         
@@ -501,7 +400,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
     <div class="container-fluid py-4">
         <div class="d-flex flex-wrap align-items-center justify-content-between bg-white p-3 rounded-3 shadow-sm mb-4">
             <div>
-                <h2 class="mb-1"><i class="fas fa-tachometer-alt"></i> Panel de Control</h2>
+                <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Panel de Control</h2>
                 <p class="text-muted mb-0">Bienvenido al Sistema de Gestión Escolar Christian LMS</p>
             </div>
             <div class="text-end">
@@ -510,7 +409,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                     <span class="badge bg-info ms-2"><?php echo ucfirst($userRole); ?></span>
                 </div>
                 <a href="<?php echo $basePath; ?>/logout" class="btn btn-outline-danger btn-sm">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                 </a>
             </div>
         </div>
@@ -520,7 +419,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-book fa-2x text-primary mb-2"></i>
+                        <i class="bi bi-book fs-2 text-primary mb-2"></i>
                         <h5 class="card-title">Cursos</h5>
                         <p class="card-text display-6 text-primary"><?= (int) $stats['courses'] ?></p>
                     </div>
@@ -529,7 +428,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-users fa-2x text-success mb-2"></i>
+                        <i class="bi bi-people fs-2 text-success mb-2"></i>
                         <h5 class="card-title">Estudiantes</h5>
                         <p class="card-text display-6 text-success"><?= (int) $stats['students'] ?></p>
                     </div>
@@ -538,7 +437,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-chalkboard-teacher fa-2x text-warning mb-2"></i>
+                        <i class="bi bi-easel fs-2 text-warning mb-2"></i>
                         <h5 class="card-title">Profesores</h5>
                         <p class="card-text display-6 text-warning"><?= (int) $stats['teachers'] ?></p>
                     </div>
@@ -547,7 +446,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <i class="fas fa-clipboard-list fa-2x text-info mb-2"></i>
+                        <i class="bi bi-clipboard-data fs-2 text-info mb-2"></i>
                         <h5 class="card-title">Inscripciones</h5>
                         <p class="card-text display-6 text-info"><?= (int) $stats['enrollments'] ?></p>
                     </div>
@@ -558,7 +457,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
         <?php if ($userRole === 'teacher'): ?>
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-chalkboard-teacher"></i> Mis cursos asignados</h5>
+                    <h5 class="mb-0"><i class="bi bi-easel"></i> Mis cursos asignados</h5>
                 </div>
                 <div class="card-body">
                     <?php if (empty($dashboardData['teacherCourses'])): ?>
@@ -590,23 +489,23 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
         <?php else: ?>
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <a href="<?php echo $basePath; ?>/courses" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-book"></i><br>Gestionar Cursos
+                                <i class="bi bi-book"></i><br>Gestionar Cursos
                             </a>
                         </div>
                         <div class="col-md-4 mb-3">
                             <a href="<?php echo $basePath; ?>/enrollments" class="btn btn-outline-success w-100">
-                                <i class="fas fa-user-plus"></i><br>Gestionar Inscripciones
+                                <i class="bi bi-person-plus"></i><br>Gestionar Inscripciones
                             </a>
                         </div>
                         <div class="col-md-4 mb-3">
                             <a href="<?php echo $basePath; ?>/subjects" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-list"></i><br>Gestionar Materias
+                                <i class="bi bi-list-ul"></i><br>Gestionar Materias
                             </a>
                         </div>
                     </div>
@@ -617,11 +516,11 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
         <!-- Recent Activity -->
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-clock"></i> Actividad Reciente</h5>
+                <h5 class="mb-0"><i class="bi bi-clock"></i> Actividad Reciente</h5>
             </div>
             <div class="card-body">
                 <div class="text-center text-muted">
-                    <i class="fas fa-info-circle"></i>
+                    <i class="bi bi-info-circle"></i>
                     No hay actividad reciente para mostrar.
                 </div>
             </div>
@@ -754,11 +653,11 @@ switch ($route['action']) {
         http_response_code(404);
         echo loadLayout('
             <div class="text-center">
-                <h1><i class="fas fa-exclamation-triangle text-warning"></i></h1>
+                <h1><i class="bi bi-exclamation-triangle text-warning"></i></h1>
                 <h3>Página No Encontrada</h3>
                 <p class="text-muted">La página que busca no existe.</p>
                 <a href="' . $route['base_path'] . '/dashboard" class="btn btn-primary">
-                    <i class="fas fa-home"></i> Ir al Dashboard
+                    <i class="bi bi-house"></i> Ir al Dashboard
                 </a>
             </div>
         ', 'Página No Encontrada - Control Escolar', $route['base_path']);
@@ -1284,11 +1183,11 @@ switch ($route['action']) {
         http_response_code(404);
         echo loadLayout('
             <div class="text-center">
-                <h1><i class="fas fa-exclamation-triangle text-warning"></i></h1>
+                <h1><i class="bi bi-exclamation-triangle text-warning"></i></h1>
                 <h3>Página No Encontrada</h3>
                 <p class="text-muted">La página que busca no existe.</p>
                 <a href="' . $route['base_path'] . '/dashboard" class="btn btn-primary">
-                    <i class="fas fa-home"></i> Ir al Dashboard
+                    <i class="bi bi-house"></i> Ir al Dashboard
                 </a>
             </div>
         ', 'Página No Encontrada - Control Escolar', $route['base_path']);

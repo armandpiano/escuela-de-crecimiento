@@ -128,16 +128,16 @@ class UserGender
     {
         switch ($this->value) {
             case self::MALE:
-                return 'fas fa-mars';
+                return 'bi bi-gender-male';
             case self::FEMALE:
-                return 'fas fa-venus';
+                return 'bi bi-gender-female';
             case self::NON_BINARY:
-                return 'fas fa-genderless';
+                return 'bi bi-gender-trans';
             case self::PREFER_NOT_TO_SAY:
-                return 'fas fa-question';
+                return 'bi bi-question-circle';
             case self::UNSPECIFIED:
             default:
-                return 'fas fa-user';
+                return 'bi bi-person';
         }
     }
 
