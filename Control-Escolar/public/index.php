@@ -270,6 +270,7 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $termId, array
         LEFT JOIN modules m ON m.id = s.module_id
         WHERE c.term_id = :term_id
           AND c.status = 'open'
+          AND s.is_active = 1
           AND c.subject_id IN ({$eligibleList})
           AND c.id NOT IN (
               SELECT course_id FROM enrollments WHERE student_id = :student_id
@@ -282,6 +283,27 @@ function getStudentAvailableCourses(PDO $pdo, int $studentId, int $termId, array
         'student_id' => $studentId
     ]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function generateTemporaryPassword(int $length = 12): string
+{
+    $lower = 'abcdefghijklmnopqrstuvwxyz';
+    $upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $digits = '0123456789';
+    $all = $lower . $upper . $digits;
+
+    $password = [
+        $lower[random_int(0, strlen($lower) - 1)],
+        $upper[random_int(0, strlen($upper) - 1)],
+        $digits[random_int(0, strlen($digits) - 1)]
+    ];
+
+    while (count($password) < $length) {
+        $password[] = $all[random_int(0, strlen($all) - 1)];
+    }
+
+    shuffle($password);
+    return implode('', $password);
 }
 
 function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolledBy, bool $overrideSeriation, bool $overrideSchedule): void
@@ -508,6 +530,13 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                 <i class="bi bi-list-ul"></i><br>Gestionar Materias
                             </a>
                         </div>
+                        <?php if ($userRole === 'admin'): ?>
+                            <div class="col-md-4 mb-3">
+                                <a href="<?php echo $basePath; ?>/users" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-people"></i><br>Gestionar Usuarios
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -949,6 +978,7 @@ switch ($route['action']) {
             LEFT JOIN modules m ON m.id = s.module_id
             WHERE c.term_id = :term_id
               AND c.status = 'open'
+              AND s.is_active = 1
             ORDER BY s.name ASC
         ");
         $coursesStmt->execute(['term_id' => $activeTerm['id'] ?? 0]);
@@ -968,7 +998,65 @@ switch ($route['action']) {
             ]
         );
         break;
-        
+
+    case 'users':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            try {
+                $action = $_POST['action'] ?? '';
+                if ($action === 'reset_student_password') {
+                    $studentId = (int) ($_POST['student_id'] ?? 0);
+                    if (!$studentId) {
+                        throw new Exception('Selecciona un estudiante válido.');
+                    }
+
+                    $studentStmt = $pdo->prepare("SELECT id, name, role FROM users WHERE id = :id LIMIT 1");
+                    $studentStmt->execute(['id' => $studentId]);
+                    $student = $studentStmt->fetch(PDO::FETCH_ASSOC);
+
+                    if (!$student || $student['role'] !== 'student') {
+                        throw new Exception('Solo puedes restablecer contraseñas de alumnos.');
+                    }
+
+                    $newPassword = generateTemporaryPassword();
+                    $hash = password_hash($newPassword, PASSWORD_ARGON2ID);
+                    $updateStmt = $pdo->prepare("UPDATE users SET password_hash = :hash, updated_at = NOW() WHERE id = :id");
+                    $updateStmt->execute([
+                        'hash' => $hash,
+                        'id' => $studentId
+                    ]);
+
+                    $successMessage = 'Contraseña generada para ' . $student['name'] . ': ' . $newPassword;
+                }
+            } catch (Exception $e) {
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $teachersStmt = $pdo->query("SELECT id, name, email, status FROM users WHERE role = 'teacher' ORDER BY name ASC");
+        $teachers = $teachersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $studentsStmt = $pdo->query("SELECT id, name, email, status FROM users WHERE role = 'student' ORDER BY name ASC");
+        $students = $studentsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/users/index.php',
+            'Usuarios - Control Escolar',
+            $route['base_path'],
+            [
+                'teachers' => $teachers,
+                'students' => $students,
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
+        );
+        break;
+
     case 'subjects':
         requireAuth($route['base_path']);
         requireAdmin($route['base_path']);
@@ -1048,7 +1136,8 @@ switch ($route['action']) {
                    COUNT(DISTINCT c.id) AS course_count
             FROM subjects s
             LEFT JOIN modules m ON m.id = s.module_id
-            LEFT JOIN courses c ON c.subject_id = s.id
+            INNER JOIN courses c ON c.subject_id = s.id AND c.status = 'open'
+            WHERE s.is_active = 1
             GROUP BY s.id
             ORDER BY s.name ASC
         ");
