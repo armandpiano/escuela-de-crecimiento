@@ -41,6 +41,20 @@ if ($userRole !== 'admin') {
                     <h5 class="mb-0"><i class="bi bi-easel me-2"></i> Profesores</h5>
                 </div>
                 <div class="card-body">
+                    <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3">
+                        <div class="col-12 col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" name="teacher_search" class="form-control" placeholder="Buscar profesor..." value="<?= htmlspecialchars($teacherSearch ?? '') ?>">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex gap-2">
+                            <input type="hidden" name="student_search" value="<?= htmlspecialchars($studentSearch ?? '') ?>">
+                            <input type="hidden" name="student_page" value="<?= (int) ($studentPage ?? 1) ?>">
+                            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                            <a href="<?= htmlspecialchars($basePath . '/users?student_search=' . urlencode($studentSearch ?? '') . '&student_page=' . (int) ($studentPage ?? 1)) ?>" class="btn btn-outline-secondary">Limpiar</a>
+                        </div>
+                    </form>
                     <?php if (empty($teachers)): ?>
                         <p class="text-muted">No hay profesores registrados.</p>
                     <?php else: ?>
@@ -51,6 +65,7 @@ if ($userRole !== 'admin') {
                                         <th>Nombre</th>
                                         <th>Correo</th>
                                         <th>Estado</th>
+                                        <th class="text-end">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -63,11 +78,65 @@ if ($userRole !== 'admin') {
                                                     <?= htmlspecialchars($teacher['status']) ?>
                                                 </span>
                                             </td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#teacherModal<?= (int) $teacher['id'] ?>">
+                                                    <i class="bi bi-eye me-1"></i> Ver
+                                                </button>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
+                        <?php foreach ($teachers as $teacher): ?>
+                            <div class="modal fade" id="teacherModal<?= (int) $teacher['id'] ?>" tabindex="-1" aria-labelledby="teacherModalLabel<?= (int) $teacher['id'] ?>" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="teacherModalLabel<?= (int) $teacher['id'] ?>">Detalle del profesor</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <dl class="row mb-0">
+                                                <dt class="col-4">Nombre</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($teacher['name']) ?></dd>
+                                                <dt class="col-4">Correo</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($teacher['email']) ?></dd>
+                                                <dt class="col-4">Estado</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($teacher['status']) ?></dd>
+                                                <dt class="col-4">Registro</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($teacher['created_at'] ?? 'N/D') ?></dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        <?php if (($teacherTotalPages ?? 1) > 1): ?>
+                            <nav aria-label="Paginación de profesores">
+                                <ul class="pagination justify-content-end mb-0">
+                                    <?php
+                                    $teacherPageCurrent = (int) ($teacherPage ?? 1);
+                                    $teacherQueryBase = [
+                                        'teacher_search' => $teacherSearch ?? '',
+                                        'student_search' => $studentSearch ?? '',
+                                        'student_page' => (int) ($studentPage ?? 1)
+                                    ];
+                                    ?>
+                                    <li class="page-item <?= $teacherPageCurrent <= 1 ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="<?= htmlspecialchars($basePath . '/users?' . http_build_query(array_merge($teacherQueryBase, ['teacher_page' => max(1, $teacherPageCurrent - 1)]))) ?>">Anterior</a>
+                                    </li>
+                                    <?php for ($page = 1; $page <= ($teacherTotalPages ?? 1); $page++): ?>
+                                        <li class="page-item <?= $page === $teacherPageCurrent ? 'active' : '' ?>">
+                                            <a class="page-link" href="<?= htmlspecialchars($basePath . '/users?' . http_build_query(array_merge($teacherQueryBase, ['teacher_page' => $page]))) ?>"><?= $page ?></a>
+                                        </li>
+                                    <?php endfor; ?>
+                                    <li class="page-item <?= $teacherPageCurrent >= ($teacherTotalPages ?? 1) ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="<?= htmlspecialchars($basePath . '/users?' . http_build_query(array_merge($teacherQueryBase, ['teacher_page' => min(($teacherTotalPages ?? 1), $teacherPageCurrent + 1)]))) ?>">Siguiente</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -79,6 +148,20 @@ if ($userRole !== 'admin') {
                     <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Alumnos</h5>
                 </div>
                 <div class="card-body">
+                    <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3">
+                        <div class="col-12 col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" name="student_search" class="form-control" placeholder="Buscar alumno..." value="<?= htmlspecialchars($studentSearch ?? '') ?>">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex gap-2">
+                            <input type="hidden" name="teacher_search" value="<?= htmlspecialchars($teacherSearch ?? '') ?>">
+                            <input type="hidden" name="teacher_page" value="<?= (int) ($teacherPage ?? 1) ?>">
+                            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                            <a href="<?= htmlspecialchars($basePath . '/users?teacher_search=' . urlencode($teacherSearch ?? '') . '&teacher_page=' . (int) ($teacherPage ?? 1)) ?>" class="btn btn-outline-secondary">Limpiar</a>
+                        </div>
+                    </form>
                     <?php if (empty($students)): ?>
                         <p class="text-muted">No hay alumnos registrados.</p>
                     <?php else: ?>
@@ -103,6 +186,9 @@ if ($userRole !== 'admin') {
                                                 </span>
                                             </td>
                                             <td class="text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#studentModal<?= (int) $student['id'] ?>">
+                                                    <i class="bi bi-eye me-1"></i> Ver
+                                                </button>
                                                 <form method="POST" action="<?= htmlspecialchars($basePath . '/users') ?>" class="d-inline">
                                                     <input type="hidden" name="action" value="reset_student_password">
                                                     <input type="hidden" name="student_id" value="<?= (int) $student['id'] ?>">
@@ -116,6 +202,55 @@ if ($userRole !== 'admin') {
                                 </tbody>
                             </table>
                         </div>
+                        <?php foreach ($students as $student): ?>
+                            <div class="modal fade" id="studentModal<?= (int) $student['id'] ?>" tabindex="-1" aria-labelledby="studentModalLabel<?= (int) $student['id'] ?>" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="studentModalLabel<?= (int) $student['id'] ?>">Detalle del alumno</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <dl class="row mb-0">
+                                                <dt class="col-4">Nombre</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($student['name']) ?></dd>
+                                                <dt class="col-4">Correo</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($student['email']) ?></dd>
+                                                <dt class="col-4">Estado</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($student['status']) ?></dd>
+                                                <dt class="col-4">Registro</dt>
+                                                <dd class="col-8"><?= htmlspecialchars($student['created_at'] ?? 'N/D') ?></dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                        <?php if (($studentTotalPages ?? 1) > 1): ?>
+                            <nav aria-label="Paginación de alumnos">
+                                <ul class="pagination justify-content-end mb-0">
+                                    <?php
+                                    $studentPageCurrent = (int) ($studentPage ?? 1);
+                                    $studentQueryBase = [
+                                        'student_search' => $studentSearch ?? '',
+                                        'teacher_search' => $teacherSearch ?? '',
+                                        'teacher_page' => (int) ($teacherPage ?? 1)
+                                    ];
+                                    ?>
+                                    <li class="page-item <?= $studentPageCurrent <= 1 ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="<?= htmlspecialchars($basePath . '/users?' . http_build_query(array_merge($studentQueryBase, ['student_page' => max(1, $studentPageCurrent - 1)]))) ?>">Anterior</a>
+                                    </li>
+                                    <?php for ($page = 1; $page <= ($studentTotalPages ?? 1); $page++): ?>
+                                        <li class="page-item <?= $page === $studentPageCurrent ? 'active' : '' ?>">
+                                            <a class="page-link" href="<?= htmlspecialchars($basePath . '/users?' . http_build_query(array_merge($studentQueryBase, ['student_page' => $page]))) ?>"><?= $page ?></a>
+                                        </li>
+                                    <?php endfor; ?>
+                                    <li class="page-item <?= $studentPageCurrent >= ($studentTotalPages ?? 1) ? 'disabled' : '' ?>">
+                                        <a class="page-link" href="<?= htmlspecialchars($basePath . '/users?' . http_build_query(array_merge($studentQueryBase, ['student_page' => min(($studentTotalPages ?? 1), $studentPageCurrent + 1)]))) ?>">Siguiente</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
