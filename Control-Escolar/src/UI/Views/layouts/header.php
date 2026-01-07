@@ -93,9 +93,12 @@ $displayName = $_SESSION['user_name'] ?? 'Usuario';
     </nav>
 
     <!-- Loading Overlay -->
-    <div class="loading position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 9999;">
-        <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">Cargando...</span>
+    <div class="loading is-active position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50" style="z-index: 9999;">
+        <div class="loading-content">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <span class="loading-text">Cargando datos...</span>
         </div>
     </div>
 

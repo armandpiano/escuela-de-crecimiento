@@ -4,6 +4,9 @@ RewriteEngine On
 RewriteCond %{HTTP:Authorization} .
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+# Serve public assets without /public in the URL
+RewriteRule ^assets/(.*)$ public/assets/$1 [L]
+
 # Route all requests through front controller
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
