@@ -55,7 +55,10 @@ $displayName = $_SESSION['user_name'] ?? 'Usuario';
                             <a class="nav-link" href="<?= htmlspecialchars($basePath . '/courses') ?>">Cursos</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/users') ?>">Usuarios</a>
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/teachers') ?>">Profesores</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= htmlspecialchars($basePath . '/students') ?>">Alumnos</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="<?= htmlspecialchars($basePath . '/subjects') ?>">Materias</a>

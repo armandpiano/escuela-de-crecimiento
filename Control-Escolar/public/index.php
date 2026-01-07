@@ -532,8 +532,13 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                         </div>
                         <?php if ($userRole === 'admin'): ?>
                             <div class="col-md-4 mb-3">
-                                <a href="<?php echo $basePath; ?>/users" class="btn btn-outline-secondary w-100">
-                                    <i class="bi bi-people"></i><br>Gestionar Usuarios
+                                <a href="<?php echo $basePath; ?>/teachers" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-easel"></i><br>Gestionar Profesores
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a href="<?php echo $basePath; ?>/students" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-person-badge"></i><br>Gestionar Alumnos
                                 </a>
                             </div>
                         <?php endif; ?>
@@ -1002,12 +1007,70 @@ switch ($route['action']) {
     case 'users':
         requireAuth($route['base_path']);
         requireAdmin($route['base_path']);
+        header('Location: ' . $route['base_path'] . '/teachers');
+        exit();
+
+    case 'teachers':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $teacherSearch = trim($_GET['teacher_search'] ?? '');
+        $teacherPage = max(1, (int) ($_GET['teacher_page'] ?? 1));
+        $perPage = 10;
+
+        $teacherSearchTerm = '%' . $teacherSearch . '%';
+        $teacherCountStmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM users
+            WHERE role = 'teacher'
+              AND (name LIKE :search_name OR email LIKE :search_email)
+        ");
+        $teacherCountStmt->execute([
+            'search_name' => $teacherSearchTerm,
+            'search_email' => $teacherSearchTerm
+        ]);
+        $teacherTotal = (int) $teacherCountStmt->fetchColumn();
+        $teacherTotalPages = max(1, (int) ceil($teacherTotal / $perPage));
+        $teacherPage = min($teacherPage, $teacherTotalPages);
+        $teacherOffset = ($teacherPage - 1) * $perPage;
+        $teachersStmt = $pdo->prepare("
+            SELECT id, name, email, status, role, created_at
+            FROM users
+            WHERE role = 'teacher'
+              AND (name LIKE :search_name OR email LIKE :search_email)
+            ORDER BY name ASC
+            LIMIT :limit OFFSET :offset
+        ");
+        $teachersStmt->bindValue(':search_name', $teacherSearchTerm, PDO::PARAM_STR);
+        $teachersStmt->bindValue(':search_email', $teacherSearchTerm, PDO::PARAM_STR);
+        $teachersStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $teachersStmt->bindValue(':offset', $teacherOffset, PDO::PARAM_INT);
+        $teachersStmt->execute();
+        $teachers = $teachersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/users/teachers.php',
+            'Profesores - Control Escolar',
+            $route['base_path'],
+            [
+                'teachers' => $teachers,
+                'teacherSearch' => $teacherSearch,
+                'teacherPage' => $teacherPage,
+                'teacherTotalPages' => $teacherTotalPages,
+                'teacherTotal' => $teacherTotal,
+                'errorMessage' => $errorMessage
+            ]
+        );
+        break;
+
+    case 'students':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
         $pdo = getPdoConnection($dbConfig);
         $errorMessage = null;
         $successMessage = null;
-        $teacherSearch = trim($_GET['teacher_search'] ?? '');
         $studentSearch = trim($_GET['student_search'] ?? '');
-        $teacherPage = max(1, (int) ($_GET['teacher_page'] ?? 1));
         $studentPage = max(1, (int) ($_GET['student_page'] ?? 1));
         $perPage = 10;
 
@@ -1043,40 +1106,17 @@ switch ($route['action']) {
             }
         }
 
-        $teacherSearchTerm = '%' . $teacherSearch . '%';
-        $teacherCountStmt = $pdo->prepare("
-            SELECT COUNT(*)
-            FROM users
-            WHERE role = 'teacher'
-              AND (name LIKE :search OR email LIKE :search)
-        ");
-        $teacherCountStmt->execute(['search' => $teacherSearchTerm]);
-        $teacherTotal = (int) $teacherCountStmt->fetchColumn();
-        $teacherTotalPages = max(1, (int) ceil($teacherTotal / $perPage));
-        $teacherPage = min($teacherPage, $teacherTotalPages);
-        $teacherOffset = ($teacherPage - 1) * $perPage;
-        $teachersStmt = $pdo->prepare("
-            SELECT id, name, email, status, role, created_at
-            FROM users
-            WHERE role = 'teacher'
-              AND (name LIKE :search OR email LIKE :search)
-            ORDER BY name ASC
-            LIMIT :limit OFFSET :offset
-        ");
-        $teachersStmt->bindValue(':search', $teacherSearchTerm, PDO::PARAM_STR);
-        $teachersStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-        $teachersStmt->bindValue(':offset', $teacherOffset, PDO::PARAM_INT);
-        $teachersStmt->execute();
-        $teachers = $teachersStmt->fetchAll(PDO::FETCH_ASSOC);
-
         $studentSearchTerm = '%' . $studentSearch . '%';
         $studentCountStmt = $pdo->prepare("
             SELECT COUNT(*)
             FROM users
             WHERE role = 'student'
-              AND (name LIKE :search OR email LIKE :search)
+              AND (name LIKE :search_name OR email LIKE :search_email)
         ");
-        $studentCountStmt->execute(['search' => $studentSearchTerm]);
+        $studentCountStmt->execute([
+            'search_name' => $studentSearchTerm,
+            'search_email' => $studentSearchTerm
+        ]);
         $studentTotal = (int) $studentCountStmt->fetchColumn();
         $studentTotalPages = max(1, (int) ceil($studentTotal / $perPage));
         $studentPage = min($studentPage, $studentTotalPages);
@@ -1085,30 +1125,26 @@ switch ($route['action']) {
             SELECT id, name, email, status, role, created_at
             FROM users
             WHERE role = 'student'
-              AND (name LIKE :search OR email LIKE :search)
+              AND (name LIKE :search_name OR email LIKE :search_email)
             ORDER BY name ASC
             LIMIT :limit OFFSET :offset
         ");
-        $studentsStmt->bindValue(':search', $studentSearchTerm, PDO::PARAM_STR);
+        $studentsStmt->bindValue(':search_name', $studentSearchTerm, PDO::PARAM_STR);
+        $studentsStmt->bindValue(':search_email', $studentSearchTerm, PDO::PARAM_STR);
         $studentsStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $studentsStmt->bindValue(':offset', $studentOffset, PDO::PARAM_INT);
         $studentsStmt->execute();
         $students = $studentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(
-            __DIR__ . '/../src/UI/Views/users/index.php',
-            'Usuarios - Control Escolar',
+            __DIR__ . '/../src/UI/Views/users/students.php',
+            'Alumnos - Control Escolar',
             $route['base_path'],
             [
-                'teachers' => $teachers,
                 'students' => $students,
-                'teacherSearch' => $teacherSearch,
                 'studentSearch' => $studentSearch,
-                'teacherPage' => $teacherPage,
                 'studentPage' => $studentPage,
-                'teacherTotalPages' => $teacherTotalPages,
                 'studentTotalPages' => $studentTotalPages,
-                'teacherTotal' => $teacherTotal,
                 'studentTotal' => $studentTotal,
                 'errorMessage' => $errorMessage,
                 'successMessage' => $successMessage
