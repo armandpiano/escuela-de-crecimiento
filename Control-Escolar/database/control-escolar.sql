@@ -266,10 +266,23 @@ CREATE TABLE `modules` (
   `id` int(10) UNSIGNED NOT NULL,
   `code` varchar(10) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
   `sort_order` int(11) NOT NULL DEFAULT '1',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `modulo_materia`
+--
+
+CREATE TABLE `modulo_materia` (
+  `modulo_id` int(10) UNSIGNED NOT NULL,
+  `materia_id` int(10) UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -618,6 +631,13 @@ ALTER TABLE `modules`
   ADD UNIQUE KEY `uq_modules_code` (`code`);
 
 --
+-- Indices de la tabla `modulo_materia`
+--
+ALTER TABLE `modulo_materia`
+  ADD PRIMARY KEY (`modulo_id`,`materia_id`),
+  ADD KEY `idx_modulo_materia_materia` (`materia_id`);
+
+--
 -- Indices de la tabla `password_resets`
 --
 ALTER TABLE `password_resets`
@@ -900,6 +920,13 @@ ALTER TABLE `student_subject_history`
   ADD CONSTRAINT `fk_hist_enrollment` FOREIGN KEY (`enrollment_id`) REFERENCES `enrollments` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_hist_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_hist_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `modulo_materia`
+--
+ALTER TABLE `modulo_materia`
+  ADD CONSTRAINT `fk_modulo_materia_modulo` FOREIGN KEY (`modulo_id`) REFERENCES `modules` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_modulo_materia_materia` FOREIGN KEY (`materia_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `subject_prerequisites`

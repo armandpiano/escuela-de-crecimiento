@@ -177,6 +177,26 @@ function getPdoConnection(array $dbConfig): PDO
     );
 }
 
+function generateModuleCode(PDO $pdo, string $name): string
+{
+    $base = strtoupper(preg_replace('/[^A-Z0-9]/', '', $name));
+    $base = substr($base ?: 'MOD', 0, 6);
+    $code = $base;
+    $suffix = 1;
+
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM modules WHERE code = :code');
+    while (true) {
+        $stmt->execute(['code' => $code]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            break;
+        }
+        $code = substr($base . $suffix, 0, 10);
+        $suffix++;
+    }
+
+    return $code;
+}
+
 function getActiveTerm(PDO $pdo): ?array
 {
     $stmt = $pdo->prepare("SELECT * FROM terms WHERE status = 'active' LIMIT 1");
@@ -1035,11 +1055,28 @@ switch ($route['action']) {
         $teacherPage = min($teacherPage, $teacherTotalPages);
         $teacherOffset = ($teacherPage - 1) * $perPage;
         $teachersStmt = $pdo->prepare("
-            SELECT id, name, email, status, role, created_at
-            FROM users
-            WHERE role = 'teacher'
-              AND (name LIKE :search_name OR email LIKE :search_email)
-            ORDER BY name ASC
+            SELECT u.id,
+                   u.name,
+                   u.email,
+                   u.status,
+                   u.role,
+                   u.created_at,
+                   GROUP_CONCAT(
+                       DISTINCT CONCAT(
+                           s.name,
+                           CASE WHEN c.group_name IS NULL OR c.group_name = '' THEN '' ELSE CONCAT(' - ', c.group_name) END,
+                           CASE WHEN c.schedule_label IS NULL OR c.schedule_label = '' THEN '' ELSE CONCAT(' (', c.schedule_label, ')') END
+                       )
+                       ORDER BY s.name SEPARATOR '||'
+                   ) AS course_names
+            FROM users u
+            LEFT JOIN course_teachers ct ON ct.teacher_id = u.id
+            LEFT JOIN courses c ON c.id = ct.course_id
+            LEFT JOIN subjects s ON s.id = c.subject_id
+            WHERE u.role = 'teacher'
+              AND (u.name LIKE :search_name OR u.email LIKE :search_email)
+            GROUP BY u.id
+            ORDER BY u.name ASC
             LIMIT :limit OFFSET :offset
         ");
         $teachersStmt->bindValue(':search_name', $teacherSearchTerm, PDO::PARAM_STR);
@@ -1059,6 +1096,10 @@ switch ($route['action']) {
                 'teacherPage' => $teacherPage,
                 'teacherTotalPages' => $teacherTotalPages,
                 'teacherTotal' => $teacherTotal,
+                'breadcrumbs' => [
+                    ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
+                    ['label' => 'Profesores']
+                ],
                 'errorMessage' => $errorMessage
             ]
         );
@@ -1122,11 +1163,28 @@ switch ($route['action']) {
         $studentPage = min($studentPage, $studentTotalPages);
         $studentOffset = ($studentPage - 1) * $perPage;
         $studentsStmt = $pdo->prepare("
-            SELECT id, name, email, status, role, created_at
-            FROM users
-            WHERE role = 'student'
-              AND (name LIKE :search_name OR email LIKE :search_email)
-            ORDER BY name ASC
+            SELECT u.id,
+                   u.name,
+                   u.email,
+                   u.status,
+                   u.role,
+                   u.created_at,
+                   GROUP_CONCAT(
+                       DISTINCT CONCAT(
+                           s.name,
+                           CASE WHEN c.group_name IS NULL OR c.group_name = '' THEN '' ELSE CONCAT(' - ', c.group_name) END,
+                           CASE WHEN c.schedule_label IS NULL OR c.schedule_label = '' THEN '' ELSE CONCAT(' (', c.schedule_label, ')') END
+                       )
+                       ORDER BY s.name SEPARATOR '||'
+                   ) AS subject_names
+            FROM users u
+            LEFT JOIN enrollments e ON e.student_id = u.id
+            LEFT JOIN courses c ON c.id = e.course_id
+            LEFT JOIN subjects s ON s.id = c.subject_id
+            WHERE u.role = 'student'
+              AND (u.name LIKE :search_name OR u.email LIKE :search_email)
+            GROUP BY u.id
+            ORDER BY u.name ASC
             LIMIT :limit OFFSET :offset
         ");
         $studentsStmt->bindValue(':search_name', $studentSearchTerm, PDO::PARAM_STR);
@@ -1146,6 +1204,194 @@ switch ($route['action']) {
                 'studentPage' => $studentPage,
                 'studentTotalPages' => $studentTotalPages,
                 'studentTotal' => $studentTotal,
+                'breadcrumbs' => [
+                    ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
+                    ['label' => 'Alumnos']
+                ],
+                'errorMessage' => $errorMessage,
+                'successMessage' => $successMessage
+            ]
+        );
+        break;
+
+    case 'modules':
+        requireAuth($route['base_path']);
+        requireAdmin($route['base_path']);
+        $pdo = getPdoConnection($dbConfig);
+        $errorMessage = null;
+        $successMessage = null;
+        $moduleSearch = trim($_GET['module_search'] ?? '');
+        $modulePage = max(1, (int) ($_GET['module_page'] ?? 1));
+        $perPage = 10;
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $action = $_POST['action'] ?? '';
+            try {
+                if ($action === 'create_module') {
+                    $name = trim($_POST['name'] ?? '');
+                    $description = trim($_POST['description'] ?? '');
+                    $sortOrder = max(1, (int) ($_POST['sort_order'] ?? 1));
+                    $isActive = isset($_POST['is_active']) ? 1 : 0;
+                    $subjectIds = array_values(array_unique(array_filter(array_map('intval', $_POST['subject_ids'] ?? []))));
+
+                    if ($name === '') {
+                        throw new Exception('El nombre del módulo es obligatorio.');
+                    }
+
+                    $pdo->beginTransaction();
+
+                    $code = generateModuleCode($pdo, $name);
+                    $stmt = $pdo->prepare("
+                        INSERT INTO modules (code, name, description, sort_order, is_active, created_at, updated_at)
+                        VALUES (:code, :name, :description, :sort_order, :is_active, NOW(), NOW())
+                    ");
+                    $stmt->execute([
+                        'code' => $code,
+                        'name' => $name,
+                        'description' => $description,
+                        'sort_order' => $sortOrder,
+                        'is_active' => $isActive
+                    ]);
+
+                    $moduleId = (int) $pdo->lastInsertId();
+                    if (!empty($subjectIds)) {
+                        $linkStmt = $pdo->prepare("
+                            INSERT INTO modulo_materia (modulo_id, materia_id)
+                            VALUES (:modulo_id, :materia_id)
+                        ");
+                        foreach ($subjectIds as $subjectId) {
+                            $linkStmt->execute([
+                                'modulo_id' => $moduleId,
+                                'materia_id' => $subjectId
+                            ]);
+                        }
+                    }
+
+                    $pdo->commit();
+                    $successMessage = 'Módulo creado correctamente.';
+                } elseif ($action === 'update_module') {
+                    $moduleId = (int) ($_POST['id'] ?? 0);
+                    $name = trim($_POST['name'] ?? '');
+                    $description = trim($_POST['description'] ?? '');
+                    $sortOrder = max(1, (int) ($_POST['sort_order'] ?? 1));
+                    $isActive = isset($_POST['is_active']) ? 1 : 0;
+                    $subjectIds = array_values(array_unique(array_filter(array_map('intval', $_POST['subject_ids'] ?? []))));
+
+                    if (!$moduleId || $name === '') {
+                        throw new Exception('Completa los campos obligatorios del módulo.');
+                    }
+
+                    $pdo->beginTransaction();
+
+                    $stmt = $pdo->prepare("
+                        UPDATE modules
+                        SET name = :name,
+                            description = :description,
+                            sort_order = :sort_order,
+                            is_active = :is_active,
+                            updated_at = NOW()
+                        WHERE id = :id
+                    ");
+                    $stmt->execute([
+                        'id' => $moduleId,
+                        'name' => $name,
+                        'description' => $description,
+                        'sort_order' => $sortOrder,
+                        'is_active' => $isActive
+                    ]);
+
+                    $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")
+                        ->execute(['id' => $moduleId]);
+
+                    if (!empty($subjectIds)) {
+                        $linkStmt = $pdo->prepare("
+                            INSERT INTO modulo_materia (modulo_id, materia_id)
+                            VALUES (:modulo_id, :materia_id)
+                        ");
+                        foreach ($subjectIds as $subjectId) {
+                            $linkStmt->execute([
+                                'modulo_id' => $moduleId,
+                                'materia_id' => $subjectId
+                            ]);
+                        }
+                    }
+
+                    $pdo->commit();
+                    $successMessage = 'Módulo actualizado correctamente.';
+                } elseif ($action === 'delete_module') {
+                    $moduleId = (int) ($_POST['id'] ?? 0);
+                    if (!$moduleId) {
+                        throw new Exception('Módulo inválido.');
+                    }
+
+                    $pdo->beginTransaction();
+                    $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")->execute(['id' => $moduleId]);
+                    $pdo->prepare("DELETE FROM modules WHERE id = :id")->execute(['id' => $moduleId]);
+                    $pdo->commit();
+
+                    $successMessage = 'Módulo eliminado correctamente.';
+                }
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                $errorMessage = $e->getMessage();
+            }
+        }
+
+        $moduleSearchTerm = '%' . $moduleSearch . '%';
+        $moduleCountStmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM modules
+            WHERE name LIKE :search_name
+        ");
+        $moduleCountStmt->execute(['search_name' => $moduleSearchTerm]);
+        $moduleTotal = (int) $moduleCountStmt->fetchColumn();
+        $moduleTotalPages = max(1, (int) ceil($moduleTotal / $perPage));
+        $modulePage = min($modulePage, $moduleTotalPages);
+        $moduleOffset = ($modulePage - 1) * $perPage;
+
+        $modulesStmt = $pdo->prepare("
+            SELECT m.id,
+                   m.name,
+                   m.description,
+                   m.sort_order,
+                   m.is_active,
+                   GROUP_CONCAT(DISTINCT s.name ORDER BY s.name SEPARATOR '||') AS subject_names,
+                   GROUP_CONCAT(DISTINCT s.id ORDER BY s.name SEPARATOR ',') AS subject_ids,
+                   COUNT(DISTINCT mm.materia_id) AS subject_count
+            FROM modules m
+            LEFT JOIN modulo_materia mm ON mm.modulo_id = m.id
+            LEFT JOIN subjects s ON s.id = mm.materia_id
+            WHERE m.name LIKE :search_name
+            GROUP BY m.id
+            ORDER BY m.sort_order ASC, m.name ASC
+            LIMIT :limit OFFSET :offset
+        ");
+        $modulesStmt->bindValue(':search_name', $moduleSearchTerm, PDO::PARAM_STR);
+        $modulesStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $modulesStmt->bindValue(':offset', $moduleOffset, PDO::PARAM_INT);
+        $modulesStmt->execute();
+        $modules = $modulesStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $subjectsStmt = $pdo->query("SELECT id, name FROM subjects WHERE is_active = 1 ORDER BY name ASC");
+        $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo renderPage(
+            __DIR__ . '/../src/UI/Views/modules/index.php',
+            'Módulos - Control Escolar',
+            $route['base_path'],
+            [
+                'modules' => $modules,
+                'subjects' => $subjects,
+                'moduleSearch' => $moduleSearch,
+                'modulePage' => $modulePage,
+                'moduleTotalPages' => $moduleTotalPages,
+                'moduleTotal' => $moduleTotal,
+                'breadcrumbs' => [
+                    ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
+                    ['label' => 'Módulos']
+                ],
                 'errorMessage' => $errorMessage,
                 'successMessage' => $successMessage
             ]
@@ -1165,12 +1411,15 @@ switch ($route['action']) {
                 if ($action === 'create_subject') {
                     $name = trim($_POST['name'] ?? '');
                     $code = trim($_POST['code'] ?? '');
-                    $moduleId = (int) ($_POST['module_id'] ?? 0);
+                    $moduleIds = array_values(array_filter(array_map('intval', $_POST['module_ids'] ?? [])));
+                    $primaryModuleId = $moduleIds[0] ?? null;
                     $description = trim($_POST['description'] ?? '');
 
                     if ($name === '' || $code === '') {
                         throw new Exception('Completa los campos obligatorios de la materia.');
                     }
+
+                    $pdo->beginTransaction();
 
                     $stmt = $pdo->prepare("
                         INSERT INTO subjects
@@ -1181,20 +1430,39 @@ switch ($route['action']) {
                     $stmt->execute([
                         'code' => $code,
                         'name' => $name,
-                        'module_id' => $moduleId ?: null,
+                        'module_id' => $primaryModuleId,
                         'description' => $description
                     ]);
+
+                    $subjectId = (int) $pdo->lastInsertId();
+                    if (!empty($moduleIds)) {
+                        $linkStmt = $pdo->prepare("
+                            INSERT INTO modulo_materia (modulo_id, materia_id)
+                            VALUES (:modulo_id, :materia_id)
+                        ");
+                        foreach ($moduleIds as $moduleId) {
+                            $linkStmt->execute([
+                                'modulo_id' => $moduleId,
+                                'materia_id' => $subjectId
+                            ]);
+                        }
+                    }
+
+                    $pdo->commit();
 
                     $successMessage = 'Materia creada correctamente.';
                 } elseif ($action === 'update_subject') {
                     $subjectId = (int) ($_POST['id'] ?? 0);
                     $name = trim($_POST['name'] ?? '');
-                    $moduleId = (int) ($_POST['module_id'] ?? 0);
+                    $moduleIds = array_values(array_filter(array_map('intval', $_POST['module_ids'] ?? [])));
+                    $primaryModuleId = $moduleIds[0] ?? null;
                     $description = trim($_POST['description'] ?? '');
 
                     if (!$subjectId || $name === '') {
                         throw new Exception('Completa los campos obligatorios de la materia.');
                     }
+
+                    $pdo->beginTransaction();
 
                     $stmt = $pdo->prepare("
                         UPDATE subjects
@@ -1207,9 +1475,27 @@ switch ($route['action']) {
                     $stmt->execute([
                         'id' => $subjectId,
                         'name' => $name,
-                        'module_id' => $moduleId ?: null,
+                        'module_id' => $primaryModuleId,
                         'description' => $description
                     ]);
+
+                    $pdo->prepare("DELETE FROM modulo_materia WHERE materia_id = :id")
+                        ->execute(['id' => $subjectId]);
+
+                    if (!empty($moduleIds)) {
+                        $linkStmt = $pdo->prepare("
+                            INSERT INTO modulo_materia (modulo_id, materia_id)
+                            VALUES (:modulo_id, :materia_id)
+                        ");
+                        foreach ($moduleIds as $moduleId) {
+                            $linkStmt->execute([
+                                'modulo_id' => $moduleId,
+                                'materia_id' => $subjectId
+                            ]);
+                        }
+                    }
+
+                    $pdo->commit();
 
                     $successMessage = 'Materia actualizada correctamente.';
                 } elseif ($action === 'delete_subject') {
@@ -1217,28 +1503,36 @@ switch ($route['action']) {
                     if (!$subjectId) {
                         throw new Exception('Materia inválida.');
                     }
+                    $pdo->beginTransaction();
+                    $pdo->prepare("DELETE FROM modulo_materia WHERE materia_id = :id")->execute(['id' => $subjectId]);
                     $pdo->prepare("DELETE FROM subjects WHERE id = :id")->execute(['id' => $subjectId]);
+                    $pdo->commit();
                     $successMessage = 'Materia eliminada correctamente.';
                 }
             } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $errorMessage = $e->getMessage();
             }
         }
 
         $subjectsStmt = $pdo->query("
             SELECT s.*,
-                   m.name AS module_name,
+                   GROUP_CONCAT(DISTINCT m.name ORDER BY m.sort_order SEPARATOR '||') AS module_names,
+                   GROUP_CONCAT(DISTINCT m.id ORDER BY m.sort_order SEPARATOR ',') AS module_ids,
                    COUNT(DISTINCT c.id) AS course_count
             FROM subjects s
-            LEFT JOIN modules m ON m.id = s.module_id
-            INNER JOIN courses c ON c.subject_id = s.id AND c.status = 'open'
+            LEFT JOIN modulo_materia mm ON mm.materia_id = s.id
+            LEFT JOIN modules m ON m.id = mm.modulo_id
+            LEFT JOIN courses c ON c.subject_id = s.id AND c.status = 'open'
             WHERE s.is_active = 1
             GROUP BY s.id
             ORDER BY s.name ASC
         ");
         $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $modulesStmt = $pdo->query("SELECT id, name FROM modules ORDER BY sort_order ASC, name ASC");
+        $modulesStmt = $pdo->query("SELECT id, name FROM modules WHERE is_active = 1 ORDER BY sort_order ASC, name ASC");
         $modules = $modulesStmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo renderPage(
@@ -1248,6 +1542,10 @@ switch ($route['action']) {
             [
                 'subjects' => $subjects,
                 'modules' => $modules,
+                'breadcrumbs' => [
+                    ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
+                    ['label' => 'Materias']
+                ],
                 'errorMessage' => $errorMessage,
                 'successMessage' => $successMessage
             ]

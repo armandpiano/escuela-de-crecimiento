@@ -42,8 +42,37 @@
         }
     }
 
+    function showToast(message, type = 'success') {
+        if (window.Swal) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: type,
+                title: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        } else {
+            showAlert(message, type === 'error' ? 'danger' : type);
+        }
+    }
+
     function confirmDelete(message = '¿Estás seguro de que quieres eliminar este elemento?') {
-        return window.confirm(message);
+        if (window.Swal) {
+            return Swal.fire({
+                title: 'Confirmar eliminación',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+        }
+
+        return Promise.resolve({ isConfirmed: window.confirm(message) });
     }
 
     function formatDate(dateString) {
@@ -148,12 +177,18 @@
     }
 
     function initDeleteButtons() {
-        const deleteButtons = document.querySelectorAll('.delete-btn');
+        const deleteButtons = document.querySelectorAll('[data-confirm-delete], .delete-btn');
         deleteButtons.forEach((button) => {
             button.addEventListener('click', function (e) {
-                if (!confirmDelete()) {
-                    e.preventDefault();
-                }
+                const form = button.closest('form');
+                if (!form) return;
+                e.preventDefault();
+                const message = button.dataset.confirmMessage || '¿Estás seguro de que quieres eliminar este elemento?';
+                confirmDelete(message).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
             });
         });
     }
@@ -182,6 +217,45 @@
                 initSelect2(this);
             });
         }
+    }
+
+    function initSortableTables() {
+        document.querySelectorAll('table.sortable-table').forEach((table) => {
+            const headers = table.querySelectorAll('th[data-sortable="true"]');
+            headers.forEach((header, index) => {
+                header.addEventListener('click', () => {
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const currentDirection = header.dataset.sortDirection || 'asc';
+                    const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+
+                    rows.sort((rowA, rowB) => {
+                        const cellA = rowA.children[index]?.innerText.trim().toLowerCase() || '';
+                        const cellB = rowB.children[index]?.innerText.trim().toLowerCase() || '';
+                        if (cellA < cellB) return nextDirection === 'asc' ? -1 : 1;
+                        if (cellA > cellB) return nextDirection === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+
+                    headers.forEach((th) => {
+                        th.dataset.sortDirection = '';
+                        const indicator = th.querySelector('.sort-indicator');
+                        if (indicator) {
+                            indicator.textContent = '';
+                        }
+                    });
+
+                    header.dataset.sortDirection = nextDirection;
+                    const indicator = header.querySelector('.sort-indicator');
+                    if (indicator) {
+                        indicator.textContent = nextDirection === 'asc' ? '▲' : '▼';
+                    }
+
+                    rows.forEach((row) => tbody.appendChild(row));
+                });
+            });
+        });
     }
 
     function initPasswordToggle() {
@@ -257,15 +331,15 @@
         if (tableViewToggle && cardViewToggle && tableView && cardView) {
             tableViewToggle.addEventListener('change', function () {
                 if (this.checked) {
-                    tableView.style.display = 'block';
-                    cardView.style.display = 'none';
+                    tableView.classList.remove('d-none');
+                    cardView.classList.add('d-none');
                 }
             });
 
             cardViewToggle.addEventListener('change', function () {
                 if (this.checked) {
-                    tableView.style.display = 'none';
-                    cardView.style.display = 'block';
+                    tableView.classList.add('d-none');
+                    cardView.classList.remove('d-none');
                 }
             });
         }
@@ -286,7 +360,11 @@
                 document.getElementById('editSubjectId').value = dataset.id || '';
                 document.getElementById('editSubjectName').value = dataset.name || '';
                 document.getElementById('editSubjectCode').value = dataset.code || '';
-                document.getElementById('editSubjectModule').value = dataset.moduleId || '';
+                const moduleIds = (dataset.moduleIds || '').split(',').filter(Boolean);
+                const moduleSelect = document.getElementById('editSubjectModules');
+                if (moduleSelect && $) {
+                    $(moduleSelect).val(moduleIds).trigger('change');
+                }
                 document.getElementById('editSubjectDescription').value = dataset.description || '';
 
                 const modalElement = document.getElementById('editSubjectModal');
@@ -302,6 +380,31 @@
                 document.getElementById('deleteSubjectId').value = button.dataset.id || '';
                 document.getElementById('deleteSubjectName').textContent = button.dataset.name || '';
                 const modalElement = document.getElementById('deleteSubjectModal');
+                if (modalElement && window.bootstrap) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
+            });
+        });
+    }
+
+    function initModulesPage() {
+        document.querySelectorAll('[data-module-edit]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const dataset = button.dataset;
+                document.getElementById('editModuleId').value = dataset.id || '';
+                document.getElementById('editModuleName').value = dataset.name || '';
+                document.getElementById('editModuleDescription').value = dataset.description || '';
+                document.getElementById('editModuleOrder').value = dataset.sortOrder || '1';
+                document.getElementById('editModuleActive').checked = dataset.isActive === '1';
+
+                const subjectIds = (dataset.subjectIds || '').split(',').filter(Boolean);
+                const subjectSelect = document.getElementById('editModuleSubjects');
+                if (subjectSelect && $) {
+                    $(subjectSelect).val(subjectIds).trigger('change');
+                }
+
+                const modalElement = document.getElementById('editModuleModal');
                 if (modalElement && window.bootstrap) {
                     const modal = new bootstrap.Modal(modalElement);
                     modal.show();
@@ -339,6 +442,24 @@
                     const modal = new bootstrap.Modal(modalElement);
                     modal.show();
                 }
+            });
+        });
+    }
+
+    function initToastMessages() {
+        document.querySelectorAll('[data-toast-message]').forEach((toast) => {
+            const message = toast.dataset.toastMessage;
+            const type = toast.dataset.toastType || 'success';
+            if (message) {
+                showToast(message, type);
+            }
+        });
+    }
+
+    function initLoadingOnSubmit() {
+        document.querySelectorAll('form[data-loading="true"]').forEach((form) => {
+            form.addEventListener('submit', () => {
+                showLoading();
             });
         });
     }
@@ -402,16 +523,21 @@
         initPasswordToggle();
         initCoursesPage();
         initSubjectsPage();
+        initModulesPage();
         initPeriodsPage();
         initDashboardSidebar();
         initAlertsAutoHide();
         initSelect2();
+        initSortableTables();
+        initToastMessages();
+        initLoadingOnSubmit();
     });
 
     window.ChristianLMS = {
         showLoading,
         hideLoading,
         showAlert,
+        showToast,
         confirmDelete,
         formatDate,
         formatCurrency,

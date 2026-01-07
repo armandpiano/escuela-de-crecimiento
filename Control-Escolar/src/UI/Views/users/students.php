@@ -21,14 +21,14 @@ if ($userRole !== 'admin') {
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
-        <div class="alert alert-success">
+        <div class="alert alert-success" data-toast-message="<?= htmlspecialchars($successMessage) ?>" data-toast-type="success">
             <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
@@ -53,20 +53,33 @@ if ($userRole !== 'admin') {
                 <p class="text-muted">No hay alumnos registrados.</p>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-striped align-middle">
+                    <table class="table table-striped align-middle sortable-table">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Correo</th>
-                                <th>Estado</th>
+                                <th data-sortable="true">Nombre <span class="sort-indicator"></span></th>
+                                <th data-sortable="true">Correo <span class="sort-indicator"></span></th>
+                                <th data-sortable="false">Materias inscritas</th>
+                                <th data-sortable="true">Estado <span class="sort-indicator"></span></th>
                                 <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($students as $student): ?>
+                                <?php $subjectsList = array_filter(explode('||', $student['subject_names'] ?? '')); ?>
                                 <tr>
                                     <td><?= htmlspecialchars($student['name']) ?></td>
                                     <td><?= htmlspecialchars($student['email']) ?></td>
+                                    <td>
+                                        <?php if (empty($subjectsList)): ?>
+                                            <span class="badge bg-light text-dark">Sin inscripción</span>
+                                        <?php else: ?>
+                                            <div class="table-badges">
+                                                <?php foreach ($subjectsList as $subjectLabel): ?>
+                                                    <span class="badge badge-soft-info"><?= htmlspecialchars($subjectLabel) ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <span class="badge <?= $student['status'] === 'active' ? 'bg-success' : 'bg-secondary' ?>">
                                             <?= htmlspecialchars($student['status']) ?>

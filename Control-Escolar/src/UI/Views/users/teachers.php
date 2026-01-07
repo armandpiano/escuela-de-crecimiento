@@ -21,7 +21,7 @@ if ($userRole !== 'admin') {
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
@@ -46,20 +46,33 @@ if ($userRole !== 'admin') {
                 <p class="text-muted">No hay profesores registrados.</p>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-striped align-middle">
+                    <table class="table table-striped align-middle sortable-table">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
-                                <th>Correo</th>
-                                <th>Estado</th>
+                                <th data-sortable="true">Nombre <span class="sort-indicator"></span></th>
+                                <th data-sortable="true">Correo <span class="sort-indicator"></span></th>
+                                <th data-sortable="false">Cursos que imparte</th>
+                                <th data-sortable="true">Estado <span class="sort-indicator"></span></th>
                                 <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($teachers as $teacher): ?>
+                                <?php $coursesList = array_filter(explode('||', $teacher['course_names'] ?? '')); ?>
                                 <tr>
                                     <td><?= htmlspecialchars($teacher['name']) ?></td>
                                     <td><?= htmlspecialchars($teacher['email']) ?></td>
+                                    <td>
+                                        <?php if (empty($coursesList)): ?>
+                                            <span class="badge bg-light text-dark">Sin cursos asignados</span>
+                                        <?php else: ?>
+                                            <div class="table-badges">
+                                                <?php foreach ($coursesList as $courseLabel): ?>
+                                                    <span class="badge badge-soft-primary"><?= htmlspecialchars($courseLabel) ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <span class="badge <?= $teacher['status'] === 'active' ? 'bg-success' : 'bg-secondary' ?>">
                                             <?= htmlspecialchars($teacher['status']) ?>

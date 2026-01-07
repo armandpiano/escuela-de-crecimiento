@@ -26,14 +26,14 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger">
+        <div class="alert alert-danger" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
-        <div class="alert alert-success">
+        <div class="alert alert-success" data-toast-message="<?= htmlspecialchars($successMessage) ?>" data-toast-type="success">
             <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
@@ -49,7 +49,7 @@ if (!isset($_SESSION['user_id'])) {
                             <h6 class="mb-1 text-muted">Búsqueda rápida</h6>
                             <p class="mb-0 text-muted">Encuentra materias por nombre, código o módulo.</p>
                         </div>
-                        <div class="input-group" style="width: 320px;">
+                        <div class="input-group search-input-group">
                             <input type="text" class="form-control" id="globalSearch" placeholder="Buscar materias...">
                             <button class="btn btn-outline-secondary" type="button" id="searchBtn">
                                 <i class="bi bi-search"></i>
@@ -151,16 +151,16 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 <div class="card-body">
                     <!-- Vista de tabla -->
-                    <div class="table-responsive" id="tableViewContainer">
-                        <table class="table table-striped table-hover" id="subjectsTable">
+                    <div class="table-responsive table-scroll" id="tableViewContainer">
+                        <table class="table table-striped table-hover sortable-table" id="subjectsTable">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox" id="selectAllSubjects"></th>
-                                    <th>Código</th>
-                                    <th>Nombre de la Materia</th>
-                                    <th>Módulo</th>
-                                    <th>Descripción</th>
-                                    <th>Cursos</th>
+                                    <th data-sortable="false"><input type="checkbox" id="selectAllSubjects"></th>
+                                    <th data-sortable="true">Código <span class="sort-indicator"></span></th>
+                                    <th data-sortable="true">Nombre de la Materia <span class="sort-indicator"></span></th>
+                                    <th data-sortable="true">Módulos <span class="sort-indicator"></span></th>
+                                    <th data-sortable="false">Descripción</th>
+                                    <th data-sortable="true">Cursos <span class="sort-indicator"></span></th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -177,11 +177,22 @@ if (!isset($_SESSION['user_id'])) {
                                             <td>
                                                 <div class="fw-bold"><?= htmlspecialchars($subject['name'] ?? '') ?></div>
                                             </td>
-                                            <td><?= htmlspecialchars($subject['module_name'] ?? 'N/A') ?></td>
+                                            <td>
+                                                <?php $moduleNames = array_filter(explode('||', $subject['module_names'] ?? '')); ?>
+                                                <?php if (empty($moduleNames)): ?>
+                                                    <span class="badge bg-secondary">Sin módulo</span>
+                                                <?php else: ?>
+                                                    <div class="table-badges">
+                                                        <?php foreach ($moduleNames as $moduleName): ?>
+                                                            <span class="badge badge-soft-primary"><?= htmlspecialchars($moduleName) ?></span>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </td>
                                             <td><?= htmlspecialchars($subject['description'] ?? 'Sin descripción') ?></td>
                                             <td><?= (int) ($subject['course_count'] ?? 0) ?> cursos</td>
                                             <td>
-                                                <div class="btn-group" role="group">
+                                                <div class="d-flex align-items-center gap-2">
                                                     <button
                                                         type="button"
                                                         class="btn btn-sm btn-outline-info"
@@ -189,20 +200,23 @@ if (!isset($_SESSION['user_id'])) {
                                                         data-id="<?= (int) $subject['id'] ?>"
                                                         data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                         data-code="<?= htmlspecialchars($subject['code'] ?? '', ENT_QUOTES) ?>"
-                                                        data-module-id="<?= (int) ($subject['module_id'] ?? 0) ?>"
+                                                        data-module-ids="<?= htmlspecialchars($subject['module_ids'] ?? '') ?>"
                                                         data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
                                                     >
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        data-subject-delete
-                                                        data-id="<?= (int) $subject['id'] ?>"
-                                                        data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
-                                                    >
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
+                                                    <form method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>" class="d-inline">
+                                                        <input type="hidden" name="action" value="delete_subject">
+                                                        <input type="hidden" name="id" value="<?= (int) $subject['id'] ?>">
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            data-confirm-delete
+                                                            data-confirm-message="¿Seguro que deseas eliminar la materia <?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>?"
+                                                        >
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>
@@ -213,17 +227,23 @@ if (!isset($_SESSION['user_id'])) {
                     </div>
                     
                     <!-- Vista de tarjetas -->
-                    <div class="row" id="cardViewContainer" style="display: none;">
+                    <div class="row d-none" id="cardViewContainer">
                         <?php if (empty($subjects)): ?>
                             <div class="col-12 text-center text-muted">No hay materias registradas.</div>
                         <?php else: ?>
                             <?php foreach ($subjects as $subject): ?>
+                                <?php $moduleNames = array_filter(explode('||', $subject['module_names'] ?? '')); ?>
                                 <div class="col-md-6 col-lg-4 mb-4">
                                     <div class="card h-100 subject-card">
                                         <div class="card-header d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h6 class="mb-0"><?= htmlspecialchars($subject['code'] ?? 'N/A') ?></h6>
-                                                <small class="text-muted"><?= htmlspecialchars($subject['module_name'] ?? 'Sin módulo') ?></small>
+                                                <small class="text-muted">
+                                                    <?= htmlspecialchars($moduleNames[0] ?? 'Sin módulo') ?>
+                                                    <?php if (count($moduleNames) > 1): ?>
+                                                        +<?= count($moduleNames) - 1 ?>
+                                                    <?php endif; ?>
+                                                </small>
                                             </div>
                                             <input type="checkbox" class="subject-checkbox" value="<?= (int) $subject['id'] ?>">
                                         </div>
@@ -231,12 +251,12 @@ if (!isset($_SESSION['user_id'])) {
                                             <h5 class="card-title"><?= htmlspecialchars($subject['name'] ?? '') ?></h5>
                                             <p class="card-text"><?= htmlspecialchars($subject['description'] ?? 'Sin descripción.') ?></p>
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <span class="badge bg-info"><?= htmlspecialchars($subject['module_name'] ?? 'N/A') ?></span>
+                                                <span class="badge bg-info"><?= htmlspecialchars($moduleNames[0] ?? 'N/A') ?></span>
                                                 <span class="badge bg-secondary"><?= (int) ($subject['course_count'] ?? 0) ?> cursos</span>
                                             </div>
                                         </div>
                                         <div class="card-footer">
-                                            <div class="btn-group w-100" role="group">
+                                            <div class="d-flex w-100 gap-2">
                                                 <button
                                                     type="button"
                                                     class="btn btn-sm btn-outline-info"
@@ -244,20 +264,23 @@ if (!isset($_SESSION['user_id'])) {
                                                     data-id="<?= (int) $subject['id'] ?>"
                                                     data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
                                                     data-code="<?= htmlspecialchars($subject['code'] ?? '', ENT_QUOTES) ?>"
-                                                    data-module-id="<?= (int) ($subject['module_id'] ?? 0) ?>"
+                                                    data-module-ids="<?= htmlspecialchars($subject['module_ids'] ?? '') ?>"
                                                     data-description="<?= htmlspecialchars($subject['description'] ?? '', ENT_QUOTES) ?>"
                                                 >
                                                     <i class="bi bi-pencil me-1"></i> Editar
                                                 </button>
-                                                <button
-                                                    type="button"
-                                                    class="btn btn-sm btn-outline-danger"
-                                                    data-subject-delete
-                                                    data-id="<?= (int) $subject['id'] ?>"
-                                                    data-name="<?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>"
-                                                >
-                                                    <i class="bi bi-trash me-1"></i> Eliminar
-                                                </button>
+                                                <form method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>" class="flex-grow-1">
+                                                    <input type="hidden" name="action" value="delete_subject">
+                                                    <input type="hidden" name="id" value="<?= (int) $subject['id'] ?>">
+                                                    <button
+                                                        type="submit"
+                                                        class="btn btn-sm btn-outline-danger w-100"
+                                                        data-confirm-delete
+                                                        data-confirm-message="¿Seguro que deseas eliminar la materia <?= htmlspecialchars($subject['name'] ?? '', ENT_QUOTES) ?>?"
+                                                    >
+                                                        <i class="bi bi-trash me-1"></i> Eliminar
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -287,11 +310,11 @@ if (!isset($_SESSION['user_id'])) {
                     <h5 class="modal-title">
                         <i class="bi bi-plus-circle me-2"></i> Crear Nueva Materia
                     </h5>
-                    <p class="text-muted mb-0 small">Registra una materia con su código y módulo.</p>
+                    <p class="text-muted mb-0 small">Registra una materia con su código y módulos académicos.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="createSubjectForm" method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>">
+            <form id="createSubjectForm" method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>" data-loading="true">
                 <div class="modal-body">
                     <input type="hidden" name="action" value="create_subject">
                     <div class="row">
@@ -307,9 +330,8 @@ if (!isset($_SESSION['user_id'])) {
                                 <div class="form-text">Código único de identificación (ej: MAT-001)</div>
                             </div>
                             <div class="mb-3">
-                                <label for="subjectModule" class="form-label">Módulo</label>
-                                <select class="form-select select2" id="subjectModule" name="module_id" data-enhance="select">
-                                    <option value="">Seleccionar módulo</option>
+                                <label for="subjectModules" class="form-label">Módulos</label>
+                                <select class="form-select select2" id="subjectModules" name="module_ids[]" data-enhance="select" multiple>
                                     <?php foreach ($modules as $module): ?>
                                         <option value="<?= (int) $module['id'] ?>"><?= htmlspecialchars($module['name']) ?></option>
                                     <?php endforeach; ?>
@@ -348,11 +370,11 @@ if (!isset($_SESSION['user_id'])) {
                     <h5 class="modal-title">
                         <i class="bi bi-pencil me-2"></i> Editar Materia
                     </h5>
-                    <p class="text-muted mb-0 small">Modifica la información académica de la materia.</p>
+                    <p class="text-muted mb-0 small">Modifica la información académica y los módulos de la materia.</p>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editSubjectForm" method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>">
+            <form id="editSubjectForm" method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>" data-loading="true">
                 <div class="modal-body">
                     <input type="hidden" id="editSubjectId" name="id">
                     <input type="hidden" name="action" value="update_subject">
@@ -368,9 +390,8 @@ if (!isset($_SESSION['user_id'])) {
                                 <input type="text" class="form-control" id="editSubjectCode" name="code" required readonly>
                             </div>
                             <div class="mb-3">
-                                <label for="editSubjectModule" class="form-label">Módulo</label>
-                                <select class="form-select select2" id="editSubjectModule" name="module_id" data-enhance="select">
-                                    <option value="">Seleccionar módulo</option>
+                                <label for="editSubjectModules" class="form-label">Módulos</label>
+                                <select class="form-select select2" id="editSubjectModules" name="module_ids[]" data-enhance="select" multiple>
                                     <?php foreach ($modules as $module): ?>
                                         <option value="<?= (int) $module['id'] ?>"><?= htmlspecialchars($module['name']) ?></option>
                                     <?php endforeach; ?>
@@ -383,7 +404,7 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-primary border-bottom pb-2 mb-3">Configuración Académica</h6>
-                            <p class="text-muted mb-0">Actualiza el módulo o descripción según sea necesario.</p>
+                            <p class="text-muted mb-0">Actualiza los módulos o descripción según sea necesario.</p>
                         </div>
                     </div>
                 </div>
@@ -429,43 +450,6 @@ if (!isset($_SESSION['user_id'])) {
                     <i class="bi bi-printer me-1"></i> Imprimir
                 </button>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para confirmar eliminación -->
-<div class="modal fade" id="deleteSubjectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div>
-                    <h5 class="modal-title">
-                        <i class="bi bi-exclamation-triangle text-warning me-2"></i> Confirmar Eliminación
-                    </h5>
-                    <p class="text-muted mb-0 small">Esta acción puede afectar cursos vinculados.</p>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Está seguro de que desea eliminar esta materia?</p>
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    <strong>Advertencia:</strong> Esta acción no se puede deshacer y puede afectar los cursos que utilizan esta materia.
-                </div>
-                <p><strong>Materia:</strong> <span id="deleteSubjectName"></span></p>
-            </div>
-            <form method="POST" action="<?= htmlspecialchars($basePath . '/subjects') ?>">
-                <div class="modal-footer">
-                    <input type="hidden" name="action" value="delete_subject">
-                    <input type="hidden" id="deleteSubjectId" name="id">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg me-1"></i> Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i> Eliminar
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>

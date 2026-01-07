@@ -31,6 +31,12 @@ body {
     min-height: 100vh;
 }
 
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--surface-alt);
+}
+
 .app-content {
     max-width: 1400px;
     margin: 0 auto;
@@ -98,9 +104,25 @@ body {
     background: var(--surface-color);
 }
 
+.search-input-group {
+    width: 320px;
+    max-width: 100%;
+}
+
 .table {
     margin-bottom: 0;
     border-color: var(--border-color);
+}
+
+.table-scroll {
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.table-scroll .table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
 
 .table thead th {
@@ -129,6 +151,26 @@ body {
     border-radius: 999px;
     font-weight: 600;
     padding: 0.35rem 0.75rem;
+}
+
+.badge-soft-primary {
+    background: rgba(79, 70, 229, 0.12);
+    color: var(--primary-color);
+}
+
+.badge-soft-info {
+    background: rgba(14, 165, 233, 0.12);
+    color: var(--info-color);
+}
+
+.badge-soft-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning-color);
+}
+
+.badge-soft-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger-color);
 }
 
 .btn {
@@ -238,6 +280,11 @@ body {
     backdrop-filter: blur(2px);
 }
 
+.loading-overlay {
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.5);
+}
+
 .loading.is-active {
     display: flex;
 }
@@ -254,6 +301,26 @@ body {
 .loading-text {
     font-size: 0.95rem;
     letter-spacing: 0.02em;
+}
+
+.breadcrumb-nav {
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 2rem;
+}
+
+.breadcrumb {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #94a3b8;
 }
 
 .pagination .page-link {
@@ -393,6 +460,13 @@ body {
 .sidebar {
     background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
     color: #e2e8f0;
+    width: 260px;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1040;
+    transition: transform 0.3s ease;
 }
 
 .sidebar .nav-link {
@@ -411,11 +485,21 @@ body {
     background: var(--surface-color);
     box-shadow: var(--shadow-sm);
     padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
 }
 
 .main-content {
     background-color: var(--surface-alt);
     min-height: 100vh;
+    margin-left: 260px;
+    transition: margin-left 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 0;
 }
 
 .content {
@@ -425,6 +509,15 @@ body {
 .sidebar-header {
     padding: 2rem 1.5rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-section-title {
+    padding: 0.75rem 1.5rem 0.35rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 600;
 }
 
 .logo {
@@ -538,6 +631,68 @@ body {
     margin-right: 1rem;
 }
 
+.btn-toggle-sidebar .bi {
+    font-size: 1.5rem;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    background: #f8fafc;
+    border-radius: 999px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.empty-state {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    border-radius: var(--radius-lg);
+    border: 1px dashed var(--border-color);
+    background: #fff;
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    color: var(--muted-color);
+}
+
+.empty-state-title {
+    font-weight: 600;
+    margin-top: 0.75rem;
+}
+
+.table-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.sort-indicator {
+    margin-left: 0.35rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple {
+    min-height: calc(2.5rem + 2px);
+}
+
+.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+    background: rgba(79, 70, 229, 0.12);
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
 .user-menu .dropdown-toggle {
     color: inherit;
 }
@@ -595,5 +750,21 @@ body {
 
     .app-content {
         padding: 1.5rem 1rem 2rem;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .breadcrumb-nav {
+        padding: 0.75rem 1.25rem;
     }
 }
