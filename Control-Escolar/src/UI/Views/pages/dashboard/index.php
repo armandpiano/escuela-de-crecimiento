@@ -1,5 +1,5 @@
 <?php 
-$pageTitle = 'Dashboard - Christian LMS';
+$pageTitle = 'Dashboard - Escuela de Crecimiento';
 $currentUser = $_SESSION['user'] ?? null;
 
 // Determinar el tipo de usuario y sus estadísticas
@@ -47,7 +47,7 @@ include __DIR__ . '/../layouts/header.php';
     <div class="sidebar" style="width: 260px; min-height: 100vh;">
         <div class="p-3">
             <h5 class="mb-0">
-                <i class="bi bi-mortarboard me-2"></i>Christian LMS
+                <i class="bi bi-mortarboard me-2"></i>Escuela de Crecimiento
             </h5>
         </div>
         

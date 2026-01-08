@@ -119,7 +119,7 @@ function redirectIfAuthenticated($basePath) {
 }
 
 // Función para cargar el layout principal
-function loadLayout($content, $title = 'Sistema Christian LMS', $basePath = '/Control-Escolar') {
+function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePath = '/Control-Escolar') {
     $userName = $_SESSION['user_name'] ?? null;
     $userRole = $_SESSION['user_role'] ?? null;
     
@@ -175,6 +175,26 @@ function getPdoConnection(array $dbConfig): PDO
         $dbConfig['password'],
         $dbConfig['options']
     );
+}
+
+function tableExists(PDO $pdo, string $table): bool
+{
+    $stmt = $pdo->prepare('SHOW TABLES LIKE :table');
+    $stmt->execute(['table' => $table]);
+    return (bool) $stmt->fetchColumn();
+}
+
+function columnExists(PDO $pdo, string $table, string $column): bool
+{
+    $stmt = $pdo->prepare('
+        SELECT COUNT(*)
+        FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+          AND table_name = :table
+          AND column_name = :column
+    ');
+    $stmt->execute(['table' => $table, 'column' => $column]);
+    return (int) $stmt->fetchColumn() > 0;
 }
 
 function generateModuleCode(PDO $pdo, string $name): string
@@ -382,7 +402,7 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
         <div class="auth-logo">
             <i class="bi bi-mortarboard brand-icon"></i>
             <h3>Control Escolar</h3>
-            <p class="text-muted">Christian LMS</p>
+            <p class="text-muted">Escuela de Crecimiento</p>
         </div>
         
         <?php if ($error): ?>
@@ -416,10 +436,10 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
         </form>
         
         <div class="text-center mt-3">
-            <small class="text-muted">
-                Usuario por defecto: admin@christianlms.com<br>
-                Contraseña: password
-            </small>
+                <small class="text-muted">
+                    Usuario por defecto: admin@ecafc.mx<br>
+                    Contraseña: password
+                </small>
         </div>
     </div>
     <?php
@@ -443,7 +463,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
         <div class="d-flex flex-wrap align-items-center justify-content-between bg-white p-3 rounded-3 shadow-sm mb-4">
             <div>
                 <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Panel de Control</h2>
-                <p class="text-muted mb-0">Bienvenido al Sistema de Gestión Escolar Christian LMS</p>
+                <p class="text-muted mb-0">Bienvenido al Sistema de Gestión Escolar Escuela de Crecimiento</p>
             </div>
             <div class="text-end">
                 <div class="mb-2">
@@ -459,40 +479,44 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
         <!-- Statistics Cards -->
         <div class="row mb-4">
             <div class="col-md-3">
-                <div class="card text-center">
+                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardCoursesModal">
                     <div class="card-body">
                         <i class="bi bi-book fs-2 text-primary mb-2"></i>
                         <h5 class="card-title">Cursos</h5>
                         <p class="card-text display-6 text-primary"><?= (int) $stats['courses'] ?></p>
+                        <small class="text-muted">Ver detalle y exportar</small>
                     </div>
-                </div>
+                </button>
             </div>
             <div class="col-md-3">
-                <div class="card text-center">
+                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardStudentsModal">
                     <div class="card-body">
                         <i class="bi bi-people fs-2 text-success mb-2"></i>
                         <h5 class="card-title">Estudiantes</h5>
                         <p class="card-text display-6 text-success"><?= (int) $stats['students'] ?></p>
+                        <small class="text-muted">Ver detalle y exportar</small>
                     </div>
-                </div>
+                </button>
             </div>
             <div class="col-md-3">
-                <div class="card text-center">
+                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardTeachersModal">
                     <div class="card-body">
                         <i class="bi bi-easel fs-2 text-warning mb-2"></i>
                         <h5 class="card-title">Profesores</h5>
                         <p class="card-text display-6 text-warning"><?= (int) $stats['teachers'] ?></p>
+                        <small class="text-muted">Ver detalle y exportar</small>
                     </div>
-                </div>
+                </button>
             </div>
             <div class="col-md-3">
-                <div class="card text-center">
+                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardEnrollmentsModal">
                     <div class="card-body">
                         <i class="bi bi-clipboard-data fs-2 text-info mb-2"></i>
                         <h5 class="card-title">Inscripciones</h5>
                         <p class="card-text display-6 text-info"><?= (int) $stats['enrollments'] ?></p>
+                        <small class="text-muted">Ver detalle y exportar</small>
                     </div>
-                </div>
+                </button>
             </div>
         </div>
         
@@ -576,6 +600,226 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                 <div class="text-center text-muted">
                     <i class="bi bi-info-circle"></i>
                     No hay actividad reciente para mostrar.
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="dashboardCoursesModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title"><i class="bi bi-book me-2"></i>Detalle de cursos</h5>
+                            <p class="text-muted mb-0 small">Consulta y exporta la información de cursos.</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="dashboard-modal-toolbar mb-3">
+                            <input type="text" class="form-control search-input" data-target="#dashboardCoursesTable tbody" placeholder="Buscar cursos...">
+                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardCoursesTable" data-export-filename="cursos.csv">
+                                <i class="bi bi-download me-1"></i> Exportar a Excel
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="dashboardCoursesTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Grupo</th>
+                                        <th>Materia</th>
+                                        <th>Periodo</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($dashboardData['courses'])): ?>
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">Sin cursos registrados.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($dashboardData['courses'] as $course): ?>
+                                            <tr>
+                                                <td><?= (int) $course['id'] ?></td>
+                                                <td><?= htmlspecialchars($course['group_name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($course['subject_name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($course['term_name'] ?? 'Sin periodo') ?></td>
+                                                <td><?= htmlspecialchars($course['status'] ?? 'N/A') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="dashboardStudentsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title"><i class="bi bi-people me-2"></i>Detalle de estudiantes</h5>
+                            <p class="text-muted mb-0 small">Listado de alumnos con contacto.</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="dashboard-modal-toolbar mb-3">
+                            <input type="text" class="form-control search-input" data-target="#dashboardStudentsTable tbody" placeholder="Buscar estudiantes...">
+                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardStudentsTable" data-export-filename="estudiantes.csv">
+                                <i class="bi bi-download me-1"></i> Exportar a Excel
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="dashboardStudentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Correo</th>
+                                        <th>Teléfono</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($dashboardData['students'])): ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">Sin estudiantes registrados.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($dashboardData['students'] as $student): ?>
+                                            <tr>
+                                                <td><?= (int) $student['id'] ?></td>
+                                                <td><?= htmlspecialchars($student['name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($student['email'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($student['phone'] ?? 'Sin teléfono') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="dashboardTeachersModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title"><i class="bi bi-easel me-2"></i>Detalle de profesores</h5>
+                            <p class="text-muted mb-0 small">Listado actualizado de docentes.</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="dashboard-modal-toolbar mb-3">
+                            <input type="text" class="form-control search-input" data-target="#dashboardTeachersTable tbody" placeholder="Buscar profesores...">
+                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardTeachersTable" data-export-filename="profesores.csv">
+                                <i class="bi bi-download me-1"></i> Exportar a Excel
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="dashboardTeachersTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Correo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($dashboardData['teachers'])): ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted">Sin profesores registrados.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($dashboardData['teachers'] as $teacher): ?>
+                                            <tr>
+                                                <td><?= (int) $teacher['id'] ?></td>
+                                                <td><?= htmlspecialchars($teacher['name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($teacher['email'] ?? 'N/A') ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="dashboardEnrollmentsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title"><i class="bi bi-clipboard-data me-2"></i>Detalle de inscripciones</h5>
+                            <p class="text-muted mb-0 small">Incluye teléfono, correo, materia y manual físico.</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="dashboard-modal-toolbar mb-3">
+                            <input type="text" class="form-control search-input" data-target="#dashboardEnrollmentsTable tbody" placeholder="Buscar inscripciones...">
+                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardEnrollmentsTable" data-export-filename="inscripciones.csv">
+                                <i class="bi bi-download me-1"></i> Exportar a Excel
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="dashboardEnrollmentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Alumno</th>
+                                        <th>Correo</th>
+                                        <th>Teléfono</th>
+                                        <th>Materia</th>
+                                        <th>Grupo</th>
+                                        <th>Manual físico</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($dashboardData['enrollments'])): ?>
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">Sin inscripciones registradas.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($dashboardData['enrollments'] as $enrollment): ?>
+                                            <?php
+                                            $manualValue = $enrollment['manual_fisico'] ?? null;
+                                            $manualLabel = 'No definido';
+                                            if ($manualValue !== null && $manualValue !== '') {
+                                                $manualValueString = strtolower((string) $manualValue);
+                                                if (in_array($manualValueString, ['1', 'true', 'si', 'sí', 'yes'], true)) {
+                                                    $manualLabel = 'Sí';
+                                                } elseif (in_array($manualValueString, ['0', 'false', 'no'], true)) {
+                                                    $manualLabel = 'No';
+                                                } else {
+                                                    $manualLabel = (string) $manualValue;
+                                                }
+                                            }
+                                            ?>
+                                            <tr>
+                                                <td><?= (int) $enrollment['id'] ?></td>
+                                                <td><?= htmlspecialchars($enrollment['student_name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($enrollment['email'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($enrollment['phone'] ?? 'Sin teléfono') ?></td>
+                                                <td><?= htmlspecialchars($enrollment['subject_name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($enrollment['group_name'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($manualLabel) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -731,6 +975,10 @@ switch ($route['action']) {
                 'teachers' => 0,
                 'enrollments' => 0
             ],
+            'courses' => [],
+            'students' => [],
+            'teachers' => [],
+            'enrollments' => [],
             'teacherCourses' => []
         ];
 
@@ -740,6 +988,55 @@ switch ($route['action']) {
         $dashboardData['stats']['courses'] = (int) $pdo->query("SELECT COUNT(*) FROM courses WHERE status = 'open'")->fetchColumn();
         $dashboardData['stats']['students'] = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
         $dashboardData['stats']['teachers'] = (int) $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'teacher'")->fetchColumn();
+
+        $dashboardData['courses'] = $pdo->query("
+            SELECT c.id,
+                   c.group_name,
+                   c.status,
+                   s.name AS subject_name,
+                   t.name AS term_name
+            FROM courses c
+            LEFT JOIN subjects s ON s.id = c.subject_id
+            LEFT JOIN terms t ON t.id = c.term_id
+            ORDER BY c.id DESC
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        $dashboardData['students'] = $pdo->query("
+            SELECT u.id,
+                   u.name,
+                   u.email,
+                   sp.phone
+            FROM users u
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            WHERE u.role = 'student'
+            ORDER BY u.name ASC
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        $dashboardData['teachers'] = $pdo->query("
+            SELECT u.id,
+                   u.name,
+                   u.email
+            FROM users u
+            WHERE u.role = 'teacher'
+            ORDER BY u.name ASC
+        ")->fetchAll(PDO::FETCH_ASSOC);
+
+        $manualColumn = columnExists($pdo, 'enrollments', 'manual_fisico') ? 'e.manual_fisico' : 'NULL';
+        $dashboardData['enrollments'] = $pdo->query("
+            SELECT e.id,
+                   u.name AS student_name,
+                   u.email,
+                   sp.phone,
+                   s.name AS subject_name,
+                   c.group_name,
+                   {$manualColumn} AS manual_fisico
+            FROM enrollments e
+            INNER JOIN users u ON u.id = e.student_id
+            LEFT JOIN student_profiles sp ON sp.user_id = u.id
+            INNER JOIN courses c ON c.id = e.course_id
+            INNER JOIN subjects s ON s.id = c.subject_id
+            ORDER BY e.enrollment_at DESC
+        ")->fetchAll(PDO::FETCH_ASSOC);
 
         if ($activeTerm) {
             $enrollmentStmt = $pdo->prepare("
@@ -783,6 +1080,7 @@ switch ($route['action']) {
         $pdo = getPdoConnection($dbConfig);
         $errorMessage = null;
         $successMessage = null;
+        $hasModuloMateria = tableExists($pdo, 'modulo_materia');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
@@ -791,7 +1089,7 @@ switch ($route['action']) {
                     $groupName = trim($_POST['group_name'] ?? '');
                     $subjectId = (int) ($_POST['subject_id'] ?? 0);
                     $termId = (int) ($_POST['term_id'] ?? 0);
-                    $status = $_POST['status'] ?? 'draft';
+                    $status = $_POST['status'] ?? 'inactive';
                     $scheduleLabel = trim($_POST['schedule_label'] ?? '');
                     $modality = trim($_POST['modality'] ?? '');
                     $capacity = (int) ($_POST['capacity'] ?? 0);
@@ -822,7 +1120,7 @@ switch ($route['action']) {
                     $groupName = trim($_POST['group_name'] ?? '');
                     $subjectId = (int) ($_POST['subject_id'] ?? 0);
                     $termId = (int) ($_POST['term_id'] ?? 0);
-                    $status = $_POST['status'] ?? 'draft';
+                    $status = $_POST['status'] ?? 'inactive';
                     $scheduleLabel = trim($_POST['schedule_label'] ?? '');
                     $modality = trim($_POST['modality'] ?? '');
                     $capacity = (int) ($_POST['capacity'] ?? 0);
@@ -1223,6 +1521,7 @@ switch ($route['action']) {
         $moduleSearch = trim($_GET['module_search'] ?? '');
         $modulePage = max(1, (int) ($_GET['module_page'] ?? 1));
         $perPage = 10;
+        $hasModuloMateria = tableExists($pdo, 'modulo_materia');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
@@ -1255,15 +1554,21 @@ switch ($route['action']) {
 
                     $moduleId = (int) $pdo->lastInsertId();
                     if (!empty($subjectIds)) {
-                        $linkStmt = $pdo->prepare("
-                            INSERT INTO modulo_materia (modulo_id, materia_id)
-                            VALUES (:modulo_id, :materia_id)
-                        ");
-                        foreach ($subjectIds as $subjectId) {
-                            $linkStmt->execute([
-                                'modulo_id' => $moduleId,
-                                'materia_id' => $subjectId
-                            ]);
+                        if ($hasModuloMateria) {
+                            $linkStmt = $pdo->prepare("
+                                INSERT INTO modulo_materia (modulo_id, materia_id)
+                                VALUES (:modulo_id, :materia_id)
+                            ");
+                            foreach ($subjectIds as $subjectId) {
+                                $linkStmt->execute([
+                                    'modulo_id' => $moduleId,
+                                    'materia_id' => $subjectId
+                                ]);
+                            }
+                        } else {
+                            $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
+                            $assignStmt = $pdo->prepare("UPDATE subjects SET module_id = ? WHERE id IN ({$placeholders})");
+                            $assignStmt->execute(array_merge([$moduleId], $subjectIds));
                         }
                     }
 
@@ -1300,19 +1605,30 @@ switch ($route['action']) {
                         'is_active' => $isActive
                     ]);
 
-                    $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")
-                        ->execute(['id' => $moduleId]);
+                    if ($hasModuloMateria) {
+                        $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")
+                            ->execute(['id' => $moduleId]);
 
-                    if (!empty($subjectIds)) {
-                        $linkStmt = $pdo->prepare("
-                            INSERT INTO modulo_materia (modulo_id, materia_id)
-                            VALUES (:modulo_id, :materia_id)
-                        ");
-                        foreach ($subjectIds as $subjectId) {
-                            $linkStmt->execute([
-                                'modulo_id' => $moduleId,
-                                'materia_id' => $subjectId
-                            ]);
+                        if (!empty($subjectIds)) {
+                            $linkStmt = $pdo->prepare("
+                                INSERT INTO modulo_materia (modulo_id, materia_id)
+                                VALUES (:modulo_id, :materia_id)
+                            ");
+                            foreach ($subjectIds as $subjectId) {
+                                $linkStmt->execute([
+                                    'modulo_id' => $moduleId,
+                                    'materia_id' => $subjectId
+                                ]);
+                            }
+                        }
+                    } else {
+                        $pdo->prepare("UPDATE subjects SET module_id = NULL WHERE module_id = :id")
+                            ->execute(['id' => $moduleId]);
+
+                        if (!empty($subjectIds)) {
+                            $placeholders = implode(',', array_fill(0, count($subjectIds), '?'));
+                            $assignStmt = $pdo->prepare("UPDATE subjects SET module_id = ? WHERE id IN ({$placeholders})");
+                            $assignStmt->execute(array_merge([$moduleId], $subjectIds));
                         }
                     }
 
@@ -1325,7 +1641,11 @@ switch ($route['action']) {
                     }
 
                     $pdo->beginTransaction();
-                    $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")->execute(['id' => $moduleId]);
+                    if ($hasModuloMateria) {
+                        $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")->execute(['id' => $moduleId]);
+                    } else {
+                        $pdo->prepare("UPDATE subjects SET module_id = NULL WHERE module_id = :id")->execute(['id' => $moduleId]);
+                    }
                     $pdo->prepare("DELETE FROM modules WHERE id = :id")->execute(['id' => $moduleId]);
                     $pdo->commit();
 
@@ -1351,7 +1671,7 @@ switch ($route['action']) {
         $modulePage = min($modulePage, $moduleTotalPages);
         $moduleOffset = ($modulePage - 1) * $perPage;
 
-        $modulesStmt = $pdo->prepare("
+        $modulesQuery = "
             SELECT m.id,
                    m.name,
                    m.description,
@@ -1359,15 +1679,36 @@ switch ($route['action']) {
                    m.is_active,
                    GROUP_CONCAT(DISTINCT s.name ORDER BY s.name SEPARATOR '||') AS subject_names,
                    GROUP_CONCAT(DISTINCT s.id ORDER BY s.name SEPARATOR ',') AS subject_ids,
-                   COUNT(DISTINCT mm.materia_id) AS subject_count
+                   COUNT(DISTINCT s.id) AS subject_count
             FROM modules m
-            LEFT JOIN modulo_materia mm ON mm.modulo_id = m.id
-            LEFT JOIN subjects s ON s.id = mm.materia_id
+            LEFT JOIN subjects s ON s.module_id = m.id
             WHERE m.name LIKE :search_name
             GROUP BY m.id
             ORDER BY m.sort_order ASC, m.name ASC
             LIMIT :limit OFFSET :offset
-        ");
+        ";
+
+        if ($hasModuloMateria) {
+            $modulesQuery = "
+                SELECT m.id,
+                       m.name,
+                       m.description,
+                       m.sort_order,
+                       m.is_active,
+                       GROUP_CONCAT(DISTINCT s.name ORDER BY s.name SEPARATOR '||') AS subject_names,
+                       GROUP_CONCAT(DISTINCT s.id ORDER BY s.name SEPARATOR ',') AS subject_ids,
+                       COUNT(DISTINCT mm.materia_id) AS subject_count
+                FROM modules m
+                LEFT JOIN modulo_materia mm ON mm.modulo_id = m.id
+                LEFT JOIN subjects s ON s.id = mm.materia_id
+                WHERE m.name LIKE :search_name
+                GROUP BY m.id
+                ORDER BY m.sort_order ASC, m.name ASC
+                LIMIT :limit OFFSET :offset
+            ";
+        }
+
+        $modulesStmt = $pdo->prepare($modulesQuery);
         $modulesStmt->bindValue(':search_name', $moduleSearchTerm, PDO::PARAM_STR);
         $modulesStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
         $modulesStmt->bindValue(':offset', $moduleOffset, PDO::PARAM_INT);
@@ -1435,7 +1776,7 @@ switch ($route['action']) {
                     ]);
 
                     $subjectId = (int) $pdo->lastInsertId();
-                    if (!empty($moduleIds)) {
+                    if (!empty($moduleIds) && $hasModuloMateria) {
                         $linkStmt = $pdo->prepare("
                             INSERT INTO modulo_materia (modulo_id, materia_id)
                             VALUES (:modulo_id, :materia_id)
@@ -1479,19 +1820,21 @@ switch ($route['action']) {
                         'description' => $description
                     ]);
 
-                    $pdo->prepare("DELETE FROM modulo_materia WHERE materia_id = :id")
-                        ->execute(['id' => $subjectId]);
+                    if ($hasModuloMateria) {
+                        $pdo->prepare("DELETE FROM modulo_materia WHERE materia_id = :id")
+                            ->execute(['id' => $subjectId]);
 
-                    if (!empty($moduleIds)) {
-                        $linkStmt = $pdo->prepare("
-                            INSERT INTO modulo_materia (modulo_id, materia_id)
-                            VALUES (:modulo_id, :materia_id)
-                        ");
-                        foreach ($moduleIds as $moduleId) {
-                            $linkStmt->execute([
-                                'modulo_id' => $moduleId,
-                                'materia_id' => $subjectId
-                            ]);
+                        if (!empty($moduleIds)) {
+                            $linkStmt = $pdo->prepare("
+                                INSERT INTO modulo_materia (modulo_id, materia_id)
+                                VALUES (:modulo_id, :materia_id)
+                            ");
+                            foreach ($moduleIds as $moduleId) {
+                                $linkStmt->execute([
+                                    'modulo_id' => $moduleId,
+                                    'materia_id' => $subjectId
+                                ]);
+                            }
                         }
                     }
 
@@ -1504,7 +1847,9 @@ switch ($route['action']) {
                         throw new Exception('Materia inválida.');
                     }
                     $pdo->beginTransaction();
-                    $pdo->prepare("DELETE FROM modulo_materia WHERE materia_id = :id")->execute(['id' => $subjectId]);
+                    if ($hasModuloMateria) {
+                        $pdo->prepare("DELETE FROM modulo_materia WHERE materia_id = :id")->execute(['id' => $subjectId]);
+                    }
                     $pdo->prepare("DELETE FROM subjects WHERE id = :id")->execute(['id' => $subjectId]);
                     $pdo->commit();
                     $successMessage = 'Materia eliminada correctamente.';
@@ -1517,19 +1862,36 @@ switch ($route['action']) {
             }
         }
 
-        $subjectsStmt = $pdo->query("
+        $subjectsQuery = "
             SELECT s.*,
                    GROUP_CONCAT(DISTINCT m.name ORDER BY m.sort_order SEPARATOR '||') AS module_names,
                    GROUP_CONCAT(DISTINCT m.id ORDER BY m.sort_order SEPARATOR ',') AS module_ids,
                    COUNT(DISTINCT c.id) AS course_count
             FROM subjects s
-            LEFT JOIN modulo_materia mm ON mm.materia_id = s.id
-            LEFT JOIN modules m ON m.id = mm.modulo_id
+            LEFT JOIN modules m ON m.id = s.module_id
             LEFT JOIN courses c ON c.subject_id = s.id AND c.status = 'open'
             WHERE s.is_active = 1
             GROUP BY s.id
             ORDER BY s.name ASC
-        ");
+        ";
+
+        if ($hasModuloMateria) {
+            $subjectsQuery = "
+                SELECT s.*,
+                       GROUP_CONCAT(DISTINCT m.name ORDER BY m.sort_order SEPARATOR '||') AS module_names,
+                       GROUP_CONCAT(DISTINCT m.id ORDER BY m.sort_order SEPARATOR ',') AS module_ids,
+                       COUNT(DISTINCT c.id) AS course_count
+                FROM subjects s
+                LEFT JOIN modulo_materia mm ON mm.materia_id = s.id
+                LEFT JOIN modules m ON m.id = mm.modulo_id
+                LEFT JOIN courses c ON c.subject_id = s.id AND c.status = 'open'
+                WHERE s.is_active = 1
+                GROUP BY s.id
+                ORDER BY s.name ASC
+            ";
+        }
+
+        $subjectsStmt = $pdo->query($subjectsQuery);
         $subjects = $subjectsStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $modulesStmt = $pdo->query("SELECT id, name FROM modules WHERE is_active = 1 ORDER BY sort_order ASC, name ASC");
@@ -1569,7 +1931,7 @@ switch ($route['action']) {
                     $enrollmentEnd = $_POST['enrollment_end'] ?? null;
                     $startDate = $_POST['start_date'] ?? null;
                     $endDate = $_POST['end_date'] ?? null;
-                    $status = $_POST['status'] ?? 'draft';
+                    $status = $_POST['status'] ?? 'inactive';
 
                     if ($name === '' || $code === '') {
                         throw new Exception('Completa los campos obligatorios del periodo.');
@@ -1598,7 +1960,7 @@ switch ($route['action']) {
                     $enrollmentEnd = $_POST['enrollment_end'] ?? null;
                     $startDate = $_POST['start_date'] ?? null;
                     $endDate = $_POST['end_date'] ?? null;
-                    $status = $_POST['status'] ?? 'draft';
+                    $status = $_POST['status'] ?? 'inactive';
 
                     if (!$periodId || $name === '') {
                         throw new Exception('Completa los campos obligatorios del periodo.');

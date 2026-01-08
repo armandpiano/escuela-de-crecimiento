@@ -768,7 +768,7 @@ class AcademicPeriodRepository implements AcademicPeriodRepositoryInterface
             'term_end' => $period->getEndDate(),
             'inscriptions_start' => $period->getRegistrationStart(),
             'inscriptions_end' => $period->getRegistrationEnd(),
-            'status' => $period->isActive() ? 'active' : 'draft',
+            'status' => $period->isActive() ? 'active' : 'inactive',
             'created_at' => $period->getCreatedAt(),
             'updated_at' => $period->getUpdatedAt(),
             'enrollment_start' => null,

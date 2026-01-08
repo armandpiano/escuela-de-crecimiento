@@ -8,7 +8,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-6">
-                        <h5><i class="bi bi-mortarboard me-2"></i>Christian LMS</h5>
+                        <h5><i class="bi bi-mortarboard me-2"></i>Escuela de Crecimiento</h5>
                         <p class="text-muted mb-0">
                             Sistema de Gestión Educativa moderno y eficiente.
                             Diseñado para mejorar la experiencia educativa.
@@ -30,7 +30,7 @@
                             </a>
                         </div>
                         <p class="text-muted mb-0">
-                            © <?= date('Y') ?> Christian LMS. Todos los derechos reservados.
+                            © <?= date('Y') ?> Escuela de Crecimiento. Todos los derechos reservados.
                         </p>
                     </div>
                 </div>

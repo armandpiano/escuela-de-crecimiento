@@ -5,7 +5,7 @@ $isAuthenticated = isset($_SESSION['user_id']);
 $userRole = $_SESSION['user_role'] ?? '';
 $displayName = $_SESSION['user_name'] ?? 'Usuario';
 $breadcrumbs = $breadcrumbs ?? [];
-$pageTitle = $pageTitle ?? 'Christian LMS';
+$pageTitle = $pageTitle ?? 'Escuela de Crecimiento';
 $pageSubtitle = $pageSubtitle ?? '';
 $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)[0] : $pageTitle;
 ?>
@@ -39,7 +39,7 @@ $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)
                 <div class="sidebar-header">
                     <a href="<?= htmlspecialchars($homePath) ?>" class="logo">
                         <i class="bi bi-mortarboard"></i>
-                        Christian LMS
+                        Escuela de Crecimiento
                     </a>
                     <div class="user-info">
                         <div class="d-flex align-items-center gap-2">
@@ -168,7 +168,7 @@ $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)
             <div class="container-fluid">
                 <a class="navbar-brand" href="<?= htmlspecialchars($homePath) ?>">
                     <i class="bi bi-mortarboard me-2"></i>
-                    Christian LMS
+                    Escuela de Crecimiento
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

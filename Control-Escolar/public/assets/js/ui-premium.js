@@ -207,6 +207,43 @@
         }
     }
 
+    function exportTableToCsv(table, filename) {
+        if (!table) return;
+        const rows = [];
+        table.querySelectorAll('tr').forEach((row) => {
+            if (row.closest('tbody') && row.style.display === 'none') {
+                return;
+            }
+            const cells = Array.from(row.querySelectorAll('th, td'));
+            const values = cells.map((cell) => {
+                const text = cell.textContent.trim().replace(/"/g, '""');
+                return `"${text}"`;
+            });
+            rows.push(values.join(','));
+        });
+
+        const csvContent = rows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename || 'export.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+
+    function initTableExports() {
+        document.querySelectorAll('[data-export-table]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const selector = button.dataset.exportTable;
+                const table = document.querySelector(selector);
+                const filename = button.dataset.exportFilename || 'export.csv';
+                exportTableToCsv(table, filename);
+            });
+        });
+    }
+
     function initModalFocus() {
         if ($) {
             $('.modal').on('shown.bs.modal', function () {
@@ -417,13 +454,17 @@
         document.querySelectorAll('[data-period-edit]').forEach((button) => {
             button.addEventListener('click', () => {
                 const dataset = button.dataset;
+                const normalizeDate = (value) => {
+                    if (!value) return '';
+                    return value.split(' ')[0];
+                };
                 document.getElementById('editPeriodId').value = dataset.id || '';
                 document.getElementById('editPeriodName').value = dataset.name || '';
                 document.getElementById('editPeriodCode').value = dataset.code || '';
-                document.getElementById('editInscriptionStart').value = dataset.enrollmentStart || '';
-                document.getElementById('editInscriptionEnd').value = dataset.enrollmentEnd || '';
-                document.getElementById('editTermStart').value = dataset.startDate || '';
-                document.getElementById('editTermEnd').value = dataset.endDate || '';
+                document.getElementById('editInscriptionStart').value = normalizeDate(dataset.enrollmentStart);
+                document.getElementById('editInscriptionEnd').value = normalizeDate(dataset.enrollmentEnd);
+                document.getElementById('editTermStart').value = normalizeDate(dataset.startDate);
+                document.getElementById('editTermEnd').value = normalizeDate(dataset.endDate);
                 document.getElementById('editPeriodStatus').value = dataset.status || 'inactive';
                 const modalElement = document.getElementById('editPeriodModal');
                 if (modalElement && window.bootstrap) {
@@ -531,6 +572,7 @@
         initSortableTables();
         initToastMessages();
         initLoadingOnSubmit();
+        initTableExports();
     });
 
     window.ChristianLMS = {

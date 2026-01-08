@@ -11,7 +11,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Sistema Christian LMS</title>
+    <title>Dashboard - Escuela de Crecimiento</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
         <div class="sidebar-header">
             <a href="/dashboard" class="logo">
                 <i class="bi bi-mortarboard"></i>
-                Christian LMS
+                Escuela de Crecimiento
             </a>
             <div class="user-info">
                 <div class="d-flex align-items-center">
@@ -100,7 +100,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 </button>
                 <div>
                     <h1 class="page-title mb-0">Dashboard</h1>
-                    <p class="page-subtitle mb-0">Panel de Control del Sistema Christian LMS</p>
+                    <p class="page-subtitle mb-0">Panel de Control de Escuela de Crecimiento</p>
                 </div>
             </div>
             <div class="user-menu">
