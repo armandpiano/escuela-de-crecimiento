@@ -997,19 +997,19 @@ switch ($route['action']) {
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         $dashboardData['enrollments'] = $pdo->query("
-            SELECT i.id,
+            SELECT e.id,
                    u.name AS student_name,
                    u.email,
                    sp.phone,
                    s.name AS subject_name,
                    c.group_name,
-                   i.manual_fisico
-            FROM inscripciones i
-            INNER JOIN users u ON u.id = i.estudiante_id
+                   0 AS manual_fisico
+            FROM enrollments e
+            INNER JOIN users u ON u.id = e.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
-            INNER JOIN courses c ON c.id = i.curso_id
+            INNER JOIN courses c ON c.id = e.course_id
             INNER JOIN subjects s ON s.id = c.subject_id
-            ORDER BY i.id DESC
+            ORDER BY e.id DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if ($activeTerm) {
@@ -1440,6 +1440,7 @@ switch ($route['action']) {
         $modulePage = max(1, (int) ($_GET['module_page'] ?? 1));
         $perPage = 10;
         $hasModuloMateria = tableExists($pdo, 'modulo_materia');
+        $hasModuleDescription = columnExists($pdo, 'modules', 'description');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
@@ -1458,17 +1459,30 @@ switch ($route['action']) {
                     $pdo->beginTransaction();
 
                     $code = generateModuleCode($pdo, $name);
-                    $stmt = $pdo->prepare("
-                        INSERT INTO modules (code, name, description, sort_order, is_active, created_at, updated_at)
-                        VALUES (:code, :name, :description, :sort_order, :is_active, NOW(), NOW())
-                    ");
-                    $stmt->execute([
-                        'code' => $code,
-                        'name' => $name,
-                        'description' => $description,
-                        'sort_order' => $sortOrder,
-                        'is_active' => $isActive
-                    ]);
+                    if ($hasModuleDescription) {
+                        $stmt = $pdo->prepare("
+                            INSERT INTO modules (code, name, description, sort_order, is_active, created_at, updated_at)
+                            VALUES (:code, :name, :description, :sort_order, :is_active, NOW(), NOW())
+                        ");
+                        $stmt->execute([
+                            'code' => $code,
+                            'name' => $name,
+                            'description' => $description,
+                            'sort_order' => $sortOrder,
+                            'is_active' => $isActive
+                        ]);
+                    } else {
+                        $stmt = $pdo->prepare("
+                            INSERT INTO modules (code, name, sort_order, is_active, created_at, updated_at)
+                            VALUES (:code, :name, :sort_order, :is_active, NOW(), NOW())
+                        ");
+                        $stmt->execute([
+                            'code' => $code,
+                            'name' => $name,
+                            'sort_order' => $sortOrder,
+                            'is_active' => $isActive
+                        ]);
+                    }
 
                     $moduleId = (int) $pdo->lastInsertId();
                     if (!empty($subjectIds)) {
@@ -1506,22 +1520,39 @@ switch ($route['action']) {
 
                     $pdo->beginTransaction();
 
-                    $stmt = $pdo->prepare("
-                        UPDATE modules
-                        SET name = :name,
-                            description = :description,
-                            sort_order = :sort_order,
-                            is_active = :is_active,
-                            updated_at = NOW()
-                        WHERE id = :id
-                    ");
-                    $stmt->execute([
-                        'id' => $moduleId,
-                        'name' => $name,
-                        'description' => $description,
-                        'sort_order' => $sortOrder,
-                        'is_active' => $isActive
-                    ]);
+                    if ($hasModuleDescription) {
+                        $stmt = $pdo->prepare("
+                            UPDATE modules
+                            SET name = :name,
+                                description = :description,
+                                sort_order = :sort_order,
+                                is_active = :is_active,
+                                updated_at = NOW()
+                            WHERE id = :id
+                        ");
+                        $stmt->execute([
+                            'id' => $moduleId,
+                            'name' => $name,
+                            'description' => $description,
+                            'sort_order' => $sortOrder,
+                            'is_active' => $isActive
+                        ]);
+                    } else {
+                        $stmt = $pdo->prepare("
+                            UPDATE modules
+                            SET name = :name,
+                                sort_order = :sort_order,
+                                is_active = :is_active,
+                                updated_at = NOW()
+                            WHERE id = :id
+                        ");
+                        $stmt->execute([
+                            'id' => $moduleId,
+                            'name' => $name,
+                            'sort_order' => $sortOrder,
+                            'is_active' => $isActive
+                        ]);
+                    }
 
                     if ($hasModuloMateria) {
                         $pdo->prepare("DELETE FROM modulo_materia WHERE modulo_id = :id")
@@ -1592,7 +1623,7 @@ switch ($route['action']) {
         $modulesQuery = "
             SELECT m.id,
                    m.name,
-                   m.description,
+                   " . ($hasModuleDescription ? 'm.description' : "'' AS description") . ",
                    m.sort_order,
                    m.is_active,
                    GROUP_CONCAT(DISTINCT s.name ORDER BY s.name SEPARATOR '||') AS subject_names,
@@ -1610,7 +1641,7 @@ switch ($route['action']) {
             $modulesQuery = "
                 SELECT m.id,
                        m.name,
-                       m.description,
+                       " . ($hasModuleDescription ? 'm.description' : "'' AS description") . ",
                        m.sort_order,
                        m.is_active,
                        GROUP_CONCAT(DISTINCT s.name ORDER BY s.name SEPARATOR '||') AS subject_names,
