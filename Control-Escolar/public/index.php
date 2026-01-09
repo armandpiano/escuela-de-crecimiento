@@ -140,6 +140,8 @@ function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePa
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
         <link href="<?php echo htmlspecialchars($basePath); ?>/assets/css/ui-premium.css" rel="stylesheet">
     </head>
     <body class="app-body">
@@ -149,6 +151,12 @@ function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePa
         
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
         <script src="<?php echo htmlspecialchars($basePath); ?>/assets/js/ui-premium.js"></script>
     </body>
     </html>
@@ -179,7 +187,13 @@ function getPdoConnection(array $dbConfig): PDO
 
 function tableExists(PDO $pdo, string $table): bool
 {
-    $stmt = $pdo->prepare('SHOW TABLES LIKE :table');
+    $stmt = $pdo->prepare('
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = DATABASE()
+          AND table_name = :table
+        LIMIT 1
+    ');
     $stmt->execute(['table' => $table]);
     return (bool) $stmt->fetchColumn();
 }
@@ -615,17 +629,10 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="dashboard-modal-toolbar mb-3">
-                            <input type="text" class="form-control search-input" data-target="#dashboardCoursesTable tbody" placeholder="Buscar cursos...">
-                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardCoursesTable" data-export-filename="cursos.csv">
-                                <i class="bi bi-download me-1"></i> Exportar a Excel
-                            </button>
-                        </div>
                         <div class="table-responsive">
-                            <table class="table table-striped" id="dashboardCoursesTable">
+                            <table class="table table-striped" id="dashboardCoursesTable" data-datatable data-order-column="0" data-order-direction="asc">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Grupo</th>
                                         <th>Materia</th>
                                         <th>Periodo</th>
@@ -635,16 +642,21 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                 <tbody>
                                     <?php if (empty($dashboardData['courses'])): ?>
                                         <tr>
-                                            <td colspan="5" class="text-center text-muted">Sin cursos registrados.</td>
+                                            <td colspan="4" class="text-center text-muted">Sin cursos registrados.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashboardData['courses'] as $course): ?>
+                                            <?php
+                                            $statusValue = $course['status'] ?? 'N/A';
+                                            $statusLabel = in_array(strtolower((string) $statusValue), ['open', 'abierto'], true)
+                                                ? 'Abierto'
+                                                : $statusValue;
+                                            ?>
                                             <tr>
-                                                <td><?= (int) $course['id'] ?></td>
                                                 <td><?= htmlspecialchars($course['group_name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($course['subject_name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($course['term_name'] ?? 'Sin periodo') ?></td>
-                                                <td><?= htmlspecialchars($course['status'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($statusLabel) ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -667,17 +679,10 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="dashboard-modal-toolbar mb-3">
-                            <input type="text" class="form-control search-input" data-target="#dashboardStudentsTable tbody" placeholder="Buscar estudiantes...">
-                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardStudentsTable" data-export-filename="estudiantes.csv">
-                                <i class="bi bi-download me-1"></i> Exportar a Excel
-                            </button>
-                        </div>
                         <div class="table-responsive">
-                            <table class="table table-striped" id="dashboardStudentsTable">
+                            <table class="table table-striped" id="dashboardStudentsTable" data-datatable data-order-column="0" data-order-direction="asc">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Nombre</th>
                                         <th>Correo</th>
                                         <th>Teléfono</th>
@@ -686,12 +691,11 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                 <tbody>
                                     <?php if (empty($dashboardData['students'])): ?>
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted">Sin estudiantes registrados.</td>
+                                            <td colspan="3" class="text-center text-muted">Sin estudiantes registrados.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashboardData['students'] as $student): ?>
                                             <tr>
-                                                <td><?= (int) $student['id'] ?></td>
                                                 <td><?= htmlspecialchars($student['name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($student['email'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($student['phone'] ?? 'Sin teléfono') ?></td>
@@ -717,17 +721,10 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="dashboard-modal-toolbar mb-3">
-                            <input type="text" class="form-control search-input" data-target="#dashboardTeachersTable tbody" placeholder="Buscar profesores...">
-                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardTeachersTable" data-export-filename="profesores.csv">
-                                <i class="bi bi-download me-1"></i> Exportar a Excel
-                            </button>
-                        </div>
                         <div class="table-responsive">
-                            <table class="table table-striped" id="dashboardTeachersTable">
+                            <table class="table table-striped" id="dashboardTeachersTable" data-datatable data-order-column="0" data-order-direction="asc">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Nombre</th>
                                         <th>Correo</th>
                                     </tr>
@@ -735,12 +732,11 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                 <tbody>
                                     <?php if (empty($dashboardData['teachers'])): ?>
                                         <tr>
-                                            <td colspan="3" class="text-center text-muted">Sin profesores registrados.</td>
+                                            <td colspan="2" class="text-center text-muted">Sin profesores registrados.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashboardData['teachers'] as $teacher): ?>
                                             <tr>
-                                                <td><?= (int) $teacher['id'] ?></td>
                                                 <td><?= htmlspecialchars($teacher['name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($teacher['email'] ?? 'N/A') ?></td>
                                             </tr>
@@ -765,17 +761,10 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="dashboard-modal-toolbar mb-3">
-                            <input type="text" class="form-control search-input" data-target="#dashboardEnrollmentsTable tbody" placeholder="Buscar inscripciones...">
-                            <button type="button" class="btn btn-outline-success" data-export-table="#dashboardEnrollmentsTable" data-export-filename="inscripciones.csv">
-                                <i class="bi bi-download me-1"></i> Exportar a Excel
-                            </button>
-                        </div>
                         <div class="table-responsive">
-                            <table class="table table-striped" id="dashboardEnrollmentsTable">
+                            <table class="table table-striped" id="dashboardEnrollmentsTable" data-datatable data-order-column="0" data-order-direction="asc">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Alumno</th>
                                         <th>Correo</th>
                                         <th>Teléfono</th>
@@ -787,26 +776,12 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                 <tbody>
                                     <?php if (empty($dashboardData['enrollments'])): ?>
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted">Sin inscripciones registradas.</td>
+                                            <td colspan="6" class="text-center text-muted">Sin inscripciones registradas.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashboardData['enrollments'] as $enrollment): ?>
-                                            <?php
-                                            $manualValue = $enrollment['manual_fisico'] ?? null;
-                                            $manualLabel = 'No definido';
-                                            if ($manualValue !== null && $manualValue !== '') {
-                                                $manualValueString = strtolower((string) $manualValue);
-                                                if (in_array($manualValueString, ['1', 'true', 'si', 'sí', 'yes'], true)) {
-                                                    $manualLabel = 'Sí';
-                                                } elseif (in_array($manualValueString, ['0', 'false', 'no'], true)) {
-                                                    $manualLabel = 'No';
-                                                } else {
-                                                    $manualLabel = (string) $manualValue;
-                                                }
-                                            }
-                                            ?>
+                                            <?php $manualLabel = ((int) ($enrollment['manual_fisico'] ?? 0) === 1) ? 'Sí' : 'No'; ?>
                                             <tr>
-                                                <td><?= (int) $enrollment['id'] ?></td>
                                                 <td><?= htmlspecialchars($enrollment['student_name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($enrollment['email'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($enrollment['phone'] ?? 'Sin teléfono') ?></td>
@@ -1021,21 +996,20 @@ switch ($route['action']) {
             ORDER BY u.name ASC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
-        $manualColumn = columnExists($pdo, 'enrollments', 'manual_fisico') ? 'e.manual_fisico' : 'NULL';
         $dashboardData['enrollments'] = $pdo->query("
-            SELECT e.id,
+            SELECT i.id,
                    u.name AS student_name,
                    u.email,
                    sp.phone,
                    s.name AS subject_name,
                    c.group_name,
-                   {$manualColumn} AS manual_fisico
-            FROM enrollments e
-            INNER JOIN users u ON u.id = e.student_id
+                   i.manual_fisico
+            FROM inscripciones i
+            INNER JOIN users u ON u.id = i.estudiante_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
-            INNER JOIN courses c ON c.id = e.course_id
+            INNER JOIN courses c ON c.id = i.curso_id
             INNER JOIN subjects s ON s.id = c.subject_id
-            ORDER BY e.enrollment_at DESC
+            ORDER BY i.id DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if ($activeTerm) {
@@ -1333,25 +1307,7 @@ switch ($route['action']) {
         requireAdmin($route['base_path']);
         $pdo = getPdoConnection($dbConfig);
         $errorMessage = null;
-        $teacherSearch = trim($_GET['teacher_search'] ?? '');
-        $teacherPage = max(1, (int) ($_GET['teacher_page'] ?? 1));
-        $perPage = 10;
 
-        $teacherSearchTerm = '%' . $teacherSearch . '%';
-        $teacherCountStmt = $pdo->prepare("
-            SELECT COUNT(*)
-            FROM users
-            WHERE role = 'teacher'
-              AND (name LIKE :search_name OR email LIKE :search_email)
-        ");
-        $teacherCountStmt->execute([
-            'search_name' => $teacherSearchTerm,
-            'search_email' => $teacherSearchTerm
-        ]);
-        $teacherTotal = (int) $teacherCountStmt->fetchColumn();
-        $teacherTotalPages = max(1, (int) ceil($teacherTotal / $perPage));
-        $teacherPage = min($teacherPage, $teacherTotalPages);
-        $teacherOffset = ($teacherPage - 1) * $perPage;
         $teachersStmt = $pdo->prepare("
             SELECT u.id,
                    u.name,
@@ -1372,15 +1328,9 @@ switch ($route['action']) {
             LEFT JOIN courses c ON c.id = ct.course_id
             LEFT JOIN subjects s ON s.id = c.subject_id
             WHERE u.role = 'teacher'
-              AND (u.name LIKE :search_name OR u.email LIKE :search_email)
             GROUP BY u.id
             ORDER BY u.name ASC
-            LIMIT :limit OFFSET :offset
         ");
-        $teachersStmt->bindValue(':search_name', $teacherSearchTerm, PDO::PARAM_STR);
-        $teachersStmt->bindValue(':search_email', $teacherSearchTerm, PDO::PARAM_STR);
-        $teachersStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-        $teachersStmt->bindValue(':offset', $teacherOffset, PDO::PARAM_INT);
         $teachersStmt->execute();
         $teachers = $teachersStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1390,10 +1340,6 @@ switch ($route['action']) {
             $route['base_path'],
             [
                 'teachers' => $teachers,
-                'teacherSearch' => $teacherSearch,
-                'teacherPage' => $teacherPage,
-                'teacherTotalPages' => $teacherTotalPages,
-                'teacherTotal' => $teacherTotal,
                 'breadcrumbs' => [
                     ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
                     ['label' => 'Profesores']
@@ -1409,9 +1355,6 @@ switch ($route['action']) {
         $pdo = getPdoConnection($dbConfig);
         $errorMessage = null;
         $successMessage = null;
-        $studentSearch = trim($_GET['student_search'] ?? '');
-        $studentPage = max(1, (int) ($_GET['student_page'] ?? 1));
-        $perPage = 10;
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
@@ -1445,21 +1388,6 @@ switch ($route['action']) {
             }
         }
 
-        $studentSearchTerm = '%' . $studentSearch . '%';
-        $studentCountStmt = $pdo->prepare("
-            SELECT COUNT(*)
-            FROM users
-            WHERE role = 'student'
-              AND (name LIKE :search_name OR email LIKE :search_email)
-        ");
-        $studentCountStmt->execute([
-            'search_name' => $studentSearchTerm,
-            'search_email' => $studentSearchTerm
-        ]);
-        $studentTotal = (int) $studentCountStmt->fetchColumn();
-        $studentTotalPages = max(1, (int) ceil($studentTotal / $perPage));
-        $studentPage = min($studentPage, $studentTotalPages);
-        $studentOffset = ($studentPage - 1) * $perPage;
         $studentsStmt = $pdo->prepare("
             SELECT u.id,
                    u.name,
@@ -1480,15 +1408,9 @@ switch ($route['action']) {
             LEFT JOIN courses c ON c.id = e.course_id
             LEFT JOIN subjects s ON s.id = c.subject_id
             WHERE u.role = 'student'
-              AND (u.name LIKE :search_name OR u.email LIKE :search_email)
             GROUP BY u.id
             ORDER BY u.name ASC
-            LIMIT :limit OFFSET :offset
         ");
-        $studentsStmt->bindValue(':search_name', $studentSearchTerm, PDO::PARAM_STR);
-        $studentsStmt->bindValue(':search_email', $studentSearchTerm, PDO::PARAM_STR);
-        $studentsStmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
-        $studentsStmt->bindValue(':offset', $studentOffset, PDO::PARAM_INT);
         $studentsStmt->execute();
         $students = $studentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1498,10 +1420,6 @@ switch ($route['action']) {
             $route['base_path'],
             [
                 'students' => $students,
-                'studentSearch' => $studentSearch,
-                'studentPage' => $studentPage,
-                'studentTotalPages' => $studentTotalPages,
-                'studentTotal' => $studentTotal,
                 'breadcrumbs' => [
                     ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
                     ['label' => 'Alumnos']
@@ -1745,6 +1663,7 @@ switch ($route['action']) {
         $pdo = getPdoConnection($dbConfig);
         $errorMessage = null;
         $successMessage = null;
+        $hasModuloMateria = tableExists($pdo, 'modulo_materia');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';

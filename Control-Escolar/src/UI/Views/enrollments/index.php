@@ -61,7 +61,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                         <p class="text-muted">No tienes cursos disponibles por seriación o visibilidad.</p>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped" data-datatable data-order-column="1" data-order-direction="asc">
                                 <thead>
                                     <tr>
                                         <th>Módulo</th>
@@ -69,7 +69,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                         <th>Grupo</th>
                                         <th>Horario</th>
                                         <th>Modalidad</th>
-                                        <th></th>
+                                        <th data-orderable="false"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -110,7 +110,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                         <p class="text-muted">Aún no tienes inscripciones registradas.</p>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table table-striped" data-datatable data-order-column="0" data-order-direction="asc">
                                 <thead>
                                     <tr>
                                         <th>Materia</th>

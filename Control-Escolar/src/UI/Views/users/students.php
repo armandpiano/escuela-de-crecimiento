@@ -36,31 +36,18 @@ if ($userRole !== 'admin') {
 
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="<?= htmlspecialchars($basePath . '/students') ?>" class="row g-2 align-items-center mb-3">
-                <div class="col-12 col-md-8">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" name="student_search" class="form-control" placeholder="Buscar alumno..." value="<?= htmlspecialchars($studentSearch ?? '') ?>">
-                    </div>
-                </div>
-                <div class="col-12 col-md-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-100">Buscar</button>
-                    <a href="<?= htmlspecialchars($basePath . '/students') ?>" class="btn btn-outline-secondary">Limpiar</a>
-                </div>
-            </form>
-
             <?php if (empty($students)): ?>
                 <p class="text-muted">No hay alumnos registrados.</p>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-striped align-middle sortable-table">
+                    <table class="table table-striped align-middle" data-datatable data-order-column="0" data-order-direction="asc">
                         <thead>
                             <tr>
-                                <th data-sortable="true">Nombre <span class="sort-indicator"></span></th>
-                                <th data-sortable="true">Correo <span class="sort-indicator"></span></th>
-                                <th data-sortable="false">Materias inscritas</th>
-                                <th data-sortable="true">Estado <span class="sort-indicator"></span></th>
-                                <th class="text-end">Acciones</th>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                                <th>Materias inscritas</th>
+                                <th>Estado</th>
+                                <th class="text-end" data-orderable="false">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -126,24 +113,6 @@ if ($userRole !== 'admin') {
                         </div>
                     </div>
                 <?php endforeach; ?>
-                <?php if (($studentTotalPages ?? 1) > 1): ?>
-                    <nav aria-label="Paginación de alumnos">
-                        <ul class="pagination justify-content-end mb-0">
-                            <?php $studentPageCurrent = (int) ($studentPage ?? 1); ?>
-                            <li class="page-item <?= $studentPageCurrent <= 1 ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= htmlspecialchars($basePath . '/students?' . http_build_query(['student_search' => $studentSearch ?? '', 'student_page' => max(1, $studentPageCurrent - 1)])) ?>">Anterior</a>
-                            </li>
-                            <?php for ($page = 1; $page <= ($studentTotalPages ?? 1); $page++): ?>
-                                <li class="page-item <?= $page === $studentPageCurrent ? 'active' : '' ?>">
-                                    <a class="page-link" href="<?= htmlspecialchars($basePath . '/students?' . http_build_query(['student_search' => $studentSearch ?? '', 'student_page' => $page])) ?>"><?= $page ?></a>
-                                </li>
-                            <?php endfor; ?>
-                            <li class="page-item <?= $studentPageCurrent >= ($studentTotalPages ?? 1) ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= htmlspecialchars($basePath . '/students?' . http_build_query(['student_search' => $studentSearch ?? '', 'student_page' => min(($studentTotalPages ?? 1), $studentPageCurrent + 1)])) ?>">Siguiente</a>
-                            </li>
-                        </ul>
-                    </nav>
-                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>

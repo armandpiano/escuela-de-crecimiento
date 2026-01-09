@@ -244,6 +244,60 @@
         });
     }
 
+    function initDataTables() {
+        if (!$ || !$.fn.DataTable) return;
+
+        document.querySelectorAll('table[data-datatable]').forEach((table) => {
+            if ($.fn.DataTable.isDataTable(table)) {
+                return;
+            }
+
+            const orderColumn = Number.parseInt(table.dataset.orderColumn ?? '', 10);
+            const orderDirection = table.dataset.orderDirection || 'asc';
+            const order = Number.isNaN(orderColumn) ? [] : [[orderColumn, orderDirection]];
+            const nonOrderable = [];
+
+            table.querySelectorAll('th[data-orderable="false"]').forEach((th) => {
+                const index = Array.from(th.parentElement.children).indexOf(th);
+                if (index >= 0) {
+                    nonOrderable.push(index);
+                }
+            });
+
+            const config = {
+                order,
+                pageLength: 10,
+                lengthMenu: [10, 25, 50, 100],
+                dom: "<'row g-2 align-items-center mb-2'<'col-md-6'f><'col-md-6 text-md-end'B>>" +
+                    "t" +
+                    "<'row g-2 align-items-center mt-2'<'col-md-6'i><'col-md-6 text-md-end'p>>",
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Exportar Excel',
+                        className: 'btn btn-outline-success btn-sm'
+                    }
+                ]
+            };
+
+            if (nonOrderable.length) {
+                config.columnDefs = [{ orderable: false, targets: nonOrderable }];
+            }
+
+            $(table).DataTable(config);
+        });
+
+        if (window.bootstrap) {
+            document.querySelectorAll('.modal').forEach((modal) => {
+                modal.addEventListener('shown.bs.modal', () => {
+                    modal.querySelectorAll('table.dataTable').forEach((table) => {
+                        $(table).DataTable().columns.adjust();
+                    });
+                });
+            });
+        }
+    }
+
     function initModalFocus() {
         if ($) {
             $('.modal').on('shown.bs.modal', function () {
@@ -573,6 +627,7 @@
         initToastMessages();
         initLoadingOnSubmit();
         initTableExports();
+        initDataTables();
     });
 
     window.ChristianLMS = {

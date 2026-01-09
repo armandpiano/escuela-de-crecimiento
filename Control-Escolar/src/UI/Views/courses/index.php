@@ -16,9 +16,6 @@ if (!isset($_SESSION['user_id'])) {
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Curso
             </button>
-            <button class="btn btn-outline-success" id="exportCourses">
-                <i class="bi bi-download me-1"></i> Exportar
-            </button>
         </div>
     </div>
 
@@ -79,10 +76,10 @@ if (!isset($_SESSION['user_id'])) {
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="coursesTable">
+                        <table class="table table-striped table-hover" id="coursesTable" data-datatable data-order-column="1" data-order-direction="asc">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox" id="selectAll"></th>
+                                    <th data-orderable="false"><input type="checkbox" id="selectAll"></th>
                                     <th>Grupo</th>
                                     <th>Materia</th>
                                     <th>Periodo</th>
@@ -90,7 +87,7 @@ if (!isset($_SESSION['user_id'])) {
                                     <th>Modalidad</th>
                                     <th>Estado</th>
                                     <th>Cupo</th>
-                                    <th>Acciones</th>
+                                    <th data-orderable="false">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -103,6 +100,11 @@ if (!isset($_SESSION['user_id'])) {
                                         <?php
                                         $capacity = $course['capacity'] ?? null;
                                         $enrollmentCount = (int) ($course['enrollment_count'] ?? 0);
+                                        $statusValue = $course['status'] ?? 'N/A';
+                                        $statusKey = strtolower((string) $statusValue);
+                                        $statusLabel = in_array($statusKey, ['open', 'abierto'], true)
+                                            ? 'Abierto'
+                                            : $statusValue;
                                         ?>
                                         <tr>
                                             <td><input type="checkbox" class="course-checkbox" value="<?= (int) $course['id'] ?>"></td>
@@ -111,8 +113,8 @@ if (!isset($_SESSION['user_id'])) {
                                             <td><?= htmlspecialchars($course['term_name'] ?? 'Sin periodo') ?></td>
                                             <td><?= htmlspecialchars($course['schedule_label'] ?? 'Por definir') ?></td>
                                             <td><?= htmlspecialchars($course['modality'] ?? 'N/A') ?></td>
-                                            <td><span class="badge bg-<?= in_array(($course['status'] ?? ''), ['active', 'published'], true) ? 'success' : (($course['status'] ?? '') === 'draft' ? 'warning' : 'secondary') ?>">
-                                                <?= htmlspecialchars($course['status'] ?? 'N/A') ?>
+                                            <td><span class="badge bg-<?= in_array($statusKey, ['active', 'published', 'open'], true) ? 'success' : ($statusKey === 'draft' ? 'warning' : 'secondary') ?>">
+                                                <?= htmlspecialchars($statusLabel) ?>
                                             </span></td>
                                             <td><?= $capacity ? sprintf('%d / %d', $enrollmentCount, $capacity) : $enrollmentCount ?></td>
                                             <td>
@@ -147,13 +149,6 @@ if (!isset($_SESSION['user_id'])) {
                             </tbody>
                         </table>
                     </div>
-                    
-                    <!-- Paginación -->
-                    <nav aria-label="Paginación de cursos">
-                        <ul class="pagination justify-content-center" id="coursesPagination">
-                            <!-- La paginación se generará dinámicamente -->
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </div>
