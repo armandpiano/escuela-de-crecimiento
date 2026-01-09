@@ -762,7 +762,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                     </div>
                     <div class="modal-body">
                         <div class="table-responsive">
-                            <table class="table table-striped" id="dashboardEnrollmentsTable" data-datatable data-order-column="0" data-order-direction="asc">
+                            <table class="table table-striped" id="dashboardEnrollmentsTable" data-datatable data-export="excel" data-order-column="6" data-order-direction="desc">
                                 <thead>
                                     <tr>
                                         <th>Alumno</th>
@@ -771,16 +771,20 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                         <th>Materia</th>
                                         <th>Grupo</th>
                                         <th>Manual físico</th>
+                                        <th>Fecha de inscripción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (empty($dashboardData['enrollments'])): ?>
                                         <tr>
-                                            <td colspan="6" class="text-center text-muted">Sin inscripciones registradas.</td>
+                                            <td colspan="7" class="text-center text-muted">Sin inscripciones registradas.</td>
                                         </tr>
                                     <?php else: ?>
                                         <?php foreach ($dashboardData['enrollments'] as $enrollment): ?>
-                                            <?php $manualLabel = ((int) ($enrollment['manual_fisico'] ?? 0) === 1) ? 'Sí' : 'No'; ?>
+                                            <?php
+                                            $notesData = json_decode($enrollment['notes'] ?? '', true);
+                                            $manualLabel = ((int) ($notesData['manual_fisico'] ?? ($enrollment['manual_fisico'] ?? 0)) === 1) ? 'Sí' : 'No';
+                                            ?>
                                             <tr>
                                                 <td><?= htmlspecialchars($enrollment['student_name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($enrollment['email'] ?? 'N/A') ?></td>
@@ -788,6 +792,7 @@ function createDashboard($basePath = '/Control-Escolar', array $dashboardData = 
                                                 <td><?= htmlspecialchars($enrollment['subject_name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($enrollment['group_name'] ?? 'N/A') ?></td>
                                                 <td><?= htmlspecialchars($manualLabel) ?></td>
+                                                <td><?= htmlspecialchars($enrollment['enrollment_at'] ?? '') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -1003,13 +1008,14 @@ switch ($route['action']) {
                    sp.phone,
                    s.name AS subject_name,
                    c.group_name,
-                   0 AS manual_fisico
+                   e.enrollment_at,
+                   e.notes
             FROM enrollments e
             INNER JOIN users u ON u.id = e.student_id
             LEFT JOIN student_profiles sp ON sp.user_id = u.id
             INNER JOIN courses c ON c.id = e.course_id
             INNER JOIN subjects s ON s.id = c.subject_id
-            ORDER BY e.id DESC
+            ORDER BY e.enrollment_at DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
         if ($activeTerm) {

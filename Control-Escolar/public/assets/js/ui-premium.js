@@ -267,18 +267,26 @@
             const config = {
                 order,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100],
-                dom: "<'row g-2 align-items-center mb-2'<'col-md-6'f><'col-md-6 text-md-end'B>>" +
+                lengthMenu: [10, 25, 50, 100]
+            };
+
+            const exportMode = table.dataset.export || '';
+            if (exportMode.toLowerCase() === 'excel') {
+                config.dom = "<'row g-2 align-items-center mb-2'<'col-md-6'f><'col-md-6 text-md-end'B>>" +
                     "t" +
-                    "<'row g-2 align-items-center mt-2'<'col-md-6'i><'col-md-6 text-md-end'p>>",
-                buttons: [
+                    "<'row g-2 align-items-center mt-2'<'col-md-6'i><'col-md-6 text-md-end'p>>";
+                config.buttons = [
                     {
                         extend: 'excelHtml5',
                         text: 'Exportar Excel',
                         className: 'btn btn-outline-success btn-sm'
                     }
-                ]
-            };
+                ];
+            } else {
+                config.dom = "<'row g-2 align-items-center mb-2'<'col-md-6'f>>" +
+                    "t" +
+                    "<'row g-2 align-items-center mt-2'<'col-md-6'i><'col-md-6 text-md-end'p>>";
+            }
 
             if (nonOrderable.length) {
                 config.columnDefs = [{ orderable: false, targets: nonOrderable }];
