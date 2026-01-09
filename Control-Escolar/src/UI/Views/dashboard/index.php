@@ -123,35 +123,45 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
             <!-- Quick Actions -->
             <div class="quick-actions">
                 <a href="/dashboard/courses" class="quick-action">
-                    <i class="bi bi-plus-circle"></i>
-                    <h6>Nuevo Curso</h6>
-                    <p>Crear un nuevo curso</p>
+                    <div class="quick-action-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <h6 class="quick-action-title">Nuevo Curso</h6>
+                    <p class="quick-action-text">Crear un nuevo curso</p>
                 </a>
                 <a href="/dashboard/enrollments" class="quick-action">
-                    <i class="bi bi-person-plus"></i>
-                    <h6>Inscribir Estudiante</h6>
-                    <p>Registrar inscripción</p>
+                    <div class="quick-action-icon">
+                        <i class="bi bi-person-plus"></i>
+                    </div>
+                    <h6 class="quick-action-title">Inscribir Estudiante</h6>
+                    <p class="quick-action-text">Registrar inscripción</p>
                 </a>
                 <a href="/dashboard/subjects" class="quick-action">
-                    <i class="bi bi-book-open"></i>
-                    <h6>Nueva Materia</h6>
-                    <p>Agregar materia</p>
+                    <div class="quick-action-icon">
+                        <i class="bi bi-book-open"></i>
+                    </div>
+                    <h6 class="quick-action-title">Nueva Materia</h6>
+                    <p class="quick-action-text">Agregar materia</p>
                 </a>
                 <a href="/dashboard/reports" class="quick-action">
-                    <i class="bi bi-graph-up"></i>
-                    <h6>Ver Reportes</h6>
-                    <p>Análisis del sistema</p>
+                    <div class="quick-action-icon">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                    <h6 class="quick-action-title">Ver Reportes</h6>
+                    <p class="quick-action-text">Análisis del sistema</p>
                 </a>
             </div>
 
             <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon bg-gradient-primary text-white">
+                    <div class="stat-icon">
                         <i class="bi bi-book"></i>
                     </div>
-                    <div class="stat-value text-primary"><?php echo $dashboardStats['total_courses'] ?? 0; ?></div>
-                    <div class="stat-label">Total Cursos</div>
+                    <div>
+                        <div class="stat-label">Total Cursos</div>
+                        <div class="stat-value"><?php echo $dashboardStats['total_courses'] ?? 0; ?></div>
+                    </div>
                     <div class="stat-change text-success">
                         <i class="bi bi-arrow-up"></i>
                         <?php echo $dashboardStats['active_courses'] ?? 0; ?> activos
@@ -159,11 +169,13 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon bg-gradient-success text-white">
+                    <div class="stat-icon">
                         <i class="bi bi-person-graduate"></i>
                     </div>
-                    <div class="stat-value text-success"><?php echo $dashboardStats['total_enrollments'] ?? 0; ?></div>
-                    <div class="stat-label">Inscripciones</div>
+                    <div>
+                        <div class="stat-label">Inscripciones</div>
+                        <div class="stat-value"><?php echo $dashboardStats['total_enrollments'] ?? 0; ?></div>
+                    </div>
                     <div class="stat-change text-info">
                         <i class="bi bi-clock"></i>
                         <?php echo $dashboardStats['pending_enrollments'] ?? 0; ?> pendientes
@@ -171,22 +183,26 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon bg-gradient-warning text-white">
+                    <div class="stat-icon">
                         <i class="bi bi-people"></i>
                     </div>
-                    <div class="stat-value text-warning"><?php echo $dashboardStats['total_students'] ?? 0; ?></div>
-                    <div class="stat-label">Estudiantes</div>
+                    <div>
+                        <div class="stat-label">Estudiantes</div>
+                        <div class="stat-value"><?php echo $dashboardStats['total_students'] ?? 0; ?></div>
+                    </div>
                     <div class="stat-change text-success">
                         <i class="bi bi-person-plus"></i> Este mes
                     </div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon bg-gradient-info text-white">
+                    <div class="stat-icon">
                         <i class="bi bi-book-open"></i>
                     </div>
-                    <div class="stat-value text-info"><?php echo $dashboardStats['total_subjects'] ?? 0; ?></div>
-                    <div class="stat-label">Materias</div>
+                    <div>
+                        <div class="stat-label">Materias</div>
+                        <div class="stat-value"><?php echo $dashboardStats['total_subjects'] ?? 0; ?></div>
+                    </div>
                     <div class="stat-change text-primary">
                         <i class="bi bi-star"></i>
                         <?php echo $dashboardStats['average_grade'] ?? 0; ?> promedio
@@ -194,22 +210,26 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon bg-gradient-secondary text-white">
+                    <div class="stat-icon">
                         <i class="bi bi-easel"></i>
                     </div>
-                    <div class="stat-value text-secondary"><?php echo $dashboardStats['total_teachers'] ?? 0; ?></div>
-                    <div class="stat-label">Profesores</div>
+                    <div>
+                        <div class="stat-label">Profesores</div>
+                        <div class="stat-value"><?php echo $dashboardStats['total_teachers'] ?? 0; ?></div>
+                    </div>
                     <div class="stat-change text-info">
                         <i class="bi bi-clock"></i> Activos
                     </div>
                 </div>
                 
                 <div class="stat-card">
-                    <div class="stat-icon bg-gradient-danger text-white">
+                    <div class="stat-icon">
                         <i class="bi bi-currency-dollar"></i>
                     </div>
-                    <div class="stat-value text-danger">$<?php echo number_format($dashboardStats['monthly_revenue'] ?? 0, 2); ?></div>
-                    <div class="stat-label">Ingresos Mensuales</div>
+                    <div>
+                        <div class="stat-label">Ingresos Mensuales</div>
+                        <div class="stat-value">$<?php echo number_format($dashboardStats['monthly_revenue'] ?? 0, 2); ?></div>
+                    </div>
                     <div class="stat-change text-success">
                         <i class="bi bi-percent"></i>
                         <?php echo $dashboardStats['completion_rate'] ?? 0; ?>% completación
@@ -243,9 +263,10 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                         </h5>
                         
                         <?php if (empty($recentActivity)): ?>
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-inbox fs-2 mb-2"></i>
-                                <p>No hay actividad reciente</p>
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <div class="empty-state-title">No hay actividad reciente</div>
+                                <div class="text-muted small">Cuando existan movimientos se mostrarán aquí.</div>
                             </div>
                         <?php else: ?>
                             <?php foreach ($recentActivity as $activity): ?>

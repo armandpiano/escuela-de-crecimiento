@@ -16,7 +16,7 @@ if (!isset($_SESSION['user_id'])) {
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
                 <i class="bi bi-plus-circle me-1"></i> Nueva Materia
             </button>
-            <button class="btn btn-outline-success" id="exportSubjects">
+            <button class="btn btn-primary" id="exportSubjects">
                 <i class="bi bi-download me-1"></i> Exportar Lista
             </button>
             <button class="btn btn-outline-info" id="bulkActions">
@@ -446,7 +446,7 @@ if (!isset($_SESSION['user_id'])) {
                 <button type="button" class="btn btn-primary" id="editSubjectFromView">
                     <i class="bi bi-pencil me-1"></i> Editar
                 </button>
-                <button type="button" class="btn btn-success" id="printSubject">
+                <button type="button" class="btn btn-primary" id="printSubject">
                     <i class="bi bi-printer me-1"></i> Imprimir
                 </button>
             </div>

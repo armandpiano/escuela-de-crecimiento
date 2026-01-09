@@ -249,7 +249,7 @@ include __DIR__ . '/../layouts/header.php';
                                         </a>
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <a href="/admin/courses/create" class="btn btn-outline-success w-100">
+                                        <a href="/admin/courses/create" class="btn btn-primary w-100">
                                             <i class="bi bi-plus-circle mb-2 d-block"></i>
                                             Nuevo Curso
                                         </a>
@@ -268,7 +268,7 @@ include __DIR__ . '/../layouts/header.php';
                                         </a>
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <a href="/teacher/grades/manage" class="btn btn-outline-success w-100">
+                                        <a href="/teacher/grades/manage" class="btn btn-primary w-100">
                                             <i class="bi bi-calculator mb-2 d-block"></i>
                                             Calificar
                                         </a>
@@ -287,7 +287,7 @@ include __DIR__ . '/../layouts/header.php';
                                         </a>
                                     </div>
                                     <div class="col-md-4 mb-3">
-                                        <a href="/student/enrollments" class="btn btn-outline-success w-100">
+                                        <a href="/student/enrollments" class="btn btn-primary w-100">
                                             <i class="bi bi-person-plus mb-2 d-block"></i>
                                             Inscribirse
                                         </a>

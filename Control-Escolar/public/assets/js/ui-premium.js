@@ -267,7 +267,11 @@
             const config = {
                 order,
                 pageLength: 10,
-                lengthMenu: [10, 25, 50, 100]
+                lengthMenu: [10, 25, 50, 100],
+                language: {
+                    search: 'Buscar',
+                    searchPlaceholder: 'Buscar'
+                }
             };
 
             const exportMode = table.dataset.export || '';
@@ -279,7 +283,7 @@
                     {
                         extend: 'excelHtml5',
                         text: 'Exportar Excel',
-                        className: 'btn btn-outline-success btn-sm'
+                        className: 'btn btn-primary btn-sm'
                     }
                 ];
             } else {

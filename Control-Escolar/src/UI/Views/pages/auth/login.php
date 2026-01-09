@@ -18,7 +18,7 @@
                     <div class="auth-logo">
                         <i class="bi bi-mortarboard brand-icon"></i>
                         <h2 class="fw-bold mb-1">Escuela de Crecimiento</h2>
-                        <p class="mb-0 text-white-50">Sistema de Gestión Educativa</p>
+                        <p class="auth-logo-subtitle mb-0">Sistema de Gestión Educativa</p>
                     </div>
                     <div>
                         <h4 class="fw-semibold">Acceso seguro para tu comunidad académica</h4>
