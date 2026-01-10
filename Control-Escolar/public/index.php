@@ -15,6 +15,11 @@ date_default_timezone_set('America/Mexico_City');
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Configuración opcional de debug del router (false por defecto)
+if (!defined('ROUTER_DEBUG')) {
+    define('ROUTER_DEBUG', false);
+}
+
 // Autoloader simple para las clases
 spl_autoload_register(function ($className) {
     $directories = [
@@ -40,40 +45,38 @@ $dbConfig = require __DIR__ . '/../config/database.php';
 
 // Función para detectar automáticamente la ruta base
 function getBasePath() {
-    $requestUri = $_SERVER['REQUEST_URI'];
-    
-    // Detectar si está en localhost/escuela-de-crecimiento/Control-Escolar/
-    if (strpos($requestUri, '/escuela-de-crecimiento/Control-Escolar/') !== false) {
-        return '/escuela-de-crecimiento/Control-Escolar';
+    if (!defined('BASE_PATH')) {
+        $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        $basePath = rtrim($basePath, '/');
+        if ($basePath === '/' || $basePath === '.') {
+            $basePath = '';
+        }
+        define('BASE_PATH', $basePath);
     }
-    
-    // Detectar si está en /Control-Escolar/ (raíz del dominio)
-    if (strpos($requestUri, '/Control-Escolar/') !== false) {
-        return '/Control-Escolar';
-    }
-    
-    // Fallback para desarrollo local
-    return '/Control-Escolar';
+
+    return BASE_PATH;
 }
 
 // Función para obtener la ruta solicitada
 function getCurrentRoute() {
-    $uri = $_SERVER['REQUEST_URI'];
-    $path = parse_url($uri, PHP_URL_PATH);
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $basePath = getBasePath();
-    
-    // Remover el directorio base si existe
-    if (strpos($path, $basePath . '/') === 0) {
-        $path = substr($path, strlen($basePath . '/'));
-    } elseif ($path === $basePath) {
-        $path = '';
+
+    // Remover el directorio base si existe al inicio
+    if ($basePath !== '' && strpos($path, $basePath) === 0) {
+        $path = substr($path, strlen($basePath));
     }
-    
+
+    $route = trim($path, '/');
+    if ($route === '' || $route === 'index.php') {
+        $route = isAuthenticated() ? 'dashboard' : 'login';
+    }
+
     // Dividir la ruta en segmentos
-    $segments = explode('/', trim($path, '/'));
+    $segments = $route === '' ? [] : explode('/', $route);
     
     return [
-        'path' => $path,
+        'path' => $route,
         'segments' => $segments,
         'action' => $segments[0] ?? 'index',
         'id' => $segments[1] ?? null,
@@ -119,7 +122,8 @@ function redirectIfAuthenticated($basePath) {
 }
 
 // Función para cargar el layout principal
-function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePath = '/Control-Escolar') {
+function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePath = null) {
+    $basePath = $basePath ?? getBasePath();
     $userName = $_SESSION['user_name'] ?? null;
     $userRole = $_SESSION['user_role'] ?? null;
     
@@ -409,7 +413,8 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
 }
 
 // Función para crear el formulario de login
-function createLoginForm($error = null, $success = null, $basePath = '/Control-Escolar') {
+function createLoginForm($error = null, $success = null, $basePath = null) {
+    $basePath = $basePath ?? getBasePath();
     ob_start();
     ?>
     <div class="auth-card">
@@ -461,7 +466,8 @@ function createLoginForm($error = null, $success = null, $basePath = '/Control-E
 }
 
 // Función para crear el dashboard principal
-function createDashboard($basePath = '/Control-Escolar', array $dashboardData = []) {
+function createDashboard($basePath = null, array $dashboardData = []) {
+    $basePath = $basePath ?? getBasePath();
     $userName = $_SESSION['user_name'] ?? 'Usuario';
     $userRole = $_SESSION['user_role'] ?? 'student';
     $stats = $dashboardData['stats'] ?? [
@@ -874,6 +880,17 @@ function processLogin($basePath, $dbConfig) {
 
 // Obtener la ruta actual
 $route = getCurrentRoute();
+
+// Debug opcional de rutas (se activa con ?debug_route=1 o constante ROUTER_DEBUG)
+$debugRoute = ROUTER_DEBUG || (($_GET['debug_route'] ?? '') === '1');
+if ($debugRoute) {
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "BASE_PATH: " . ($route['base_path'] === '' ? '(empty)' : $route['base_path']) . PHP_EOL;
+    echo "REQUEST_URI: " . ($_SERVER['REQUEST_URI'] ?? '') . PHP_EOL;
+    echo "ROUTE: " . ($route['path'] === '' ? '(empty)' : $route['path']) . PHP_EOL;
+    echo "ACTION: " . ($route['action'] ?? '') . PHP_EOL;
+    exit();
+}
 
 // Procesar login si se envió el formulario
 if ($route['action'] === 'auth' && ($route['segments'][1] ?? '') === 'login') {
