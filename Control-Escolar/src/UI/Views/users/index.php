@@ -12,8 +12,8 @@ if ($userRole !== 'admin') {
 }
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-people me-2"></i> Usuarios</h1>
             <p class="page-subtitle">Consulta profesores y alumnos registrados en el sistema.</p>
@@ -36,11 +36,11 @@ if ($userRole !== 'admin') {
 
     <div class="row">
         <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
+            <div class="card h-100 premium-card">
+                <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-easel me-2"></i> Profesores</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body premium-card-body">
                     <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3">
                         <div class="col-12 col-md-8">
                             <div class="input-group">
@@ -59,7 +59,7 @@ if ($userRole !== 'admin') {
                         <p class="text-muted">No hay profesores registrados.</p>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped align-middle">
+                            <table class="table table-striped align-middle premium-table">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
@@ -91,7 +91,7 @@ if ($userRole !== 'admin') {
                         <?php foreach ($teachers as $teacher): ?>
                             <div class="modal fade" id="teacherModal<?= (int) $teacher['id'] ?>" tabindex="-1" aria-labelledby="teacherModalLabel<?= (int) $teacher['id'] ?>" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
+                                <div class="modal-content premium-modal">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="teacherModalLabel<?= (int) $teacher['id'] ?>">Detalle del profesor</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -143,11 +143,11 @@ if ($userRole !== 'admin') {
         </div>
 
         <div class="col-lg-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header">
+            <div class="card h-100 premium-card">
+                <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Alumnos</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body premium-card-body">
                     <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3">
                         <div class="col-12 col-md-8">
                             <div class="input-group">
@@ -166,7 +166,7 @@ if ($userRole !== 'admin') {
                         <p class="text-muted">No hay alumnos registrados.</p>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-striped align-middle">
+                            <table class="table table-striped align-middle premium-table">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
@@ -205,7 +205,7 @@ if ($userRole !== 'admin') {
                         <?php foreach ($students as $student): ?>
                             <div class="modal fade" id="studentModal<?= (int) $student['id'] ?>" tabindex="-1" aria-labelledby="studentModalLabel<?= (int) $student['id'] ?>" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
+                                <div class="modal-content premium-modal">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="studentModalLabel<?= (int) $student['id'] ?>">Detalle del alumno</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>

@@ -42,7 +42,7 @@ if ($currentUser) {
 include __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="d-flex">
+<div class="d-flex admin-premium-page">
     <!-- Sidebar -->
     <div class="sidebar" style="width: 260px; min-height: 100vh;">
         <div class="p-3">
@@ -149,7 +149,7 @@ include __DIR__ . '/../layouts/header.php';
     <!-- Main Content -->
     <div class="flex-fill">
         <!-- Header -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom admin-premium-header">
             <div class="container-fluid">
                 <div class="navbar-nav ms-auto">
                     <div class="nav-item dropdown">
@@ -170,7 +170,7 @@ include __DIR__ . '/../layouts/header.php';
         </nav>
 
         <!-- Dashboard Content -->
-        <div class="container-xxl app-content">
+        <div class="container-xxl app-content admin-premium-page">
             <div class="row mb-4">
                 <div class="col">
                     <h1 class="h3 mb-0">Bienvenido, <?= htmlspecialchars($currentUser->getFirstName()) ?>!</h1>
@@ -182,8 +182,8 @@ include __DIR__ . '/../layouts/header.php';
             <div class="row mb-4">
                 <?php foreach ($stats as $key => $value): ?>
                     <div class="col-md-3 mb-3">
-                        <div class="card border-0 shadow-sm">
-                            <div class="card-body">
+                        <div class="card border-0 shadow-sm premium-card">
+                            <div class="card-body premium-card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1">
                                         <h6 class="card-title text-muted mb-1">
@@ -233,13 +233,13 @@ include __DIR__ . '/../layouts/header.php';
             <!-- Quick Actions -->
             <div class="row mb-4">
                 <div class="col-md-8">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white">
+                    <div class="card border-0 shadow-sm premium-card">
+                        <div class="card-header bg-white premium-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-lightning me-2"></i>Acciones Rápidas
                             </h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body premium-card-body">
                             <div class="row">
                                 <?php if ($currentUser->isAdmin()): ?>
                                     <div class="col-md-4 mb-3">
@@ -305,13 +305,13 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white">
+                    <div class="card border-0 shadow-sm premium-card">
+                        <div class="card-header bg-white premium-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-bell me-2"></i>Notificaciones
                             </h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body premium-card-body">
                             <div class="text-center text-muted py-4">
                                 <i class="bi bi-inbox fs-1 mb-3"></i>
                                 <p>No hay notificaciones nuevas</p>
@@ -324,13 +324,13 @@ include __DIR__ . '/../layouts/header.php';
             <!-- Recent Activity -->
             <div class="row">
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white">
+                    <div class="card border-0 shadow-sm premium-card">
+                        <div class="card-header bg-white premium-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-clock me-2"></i>Actividad Reciente
                             </h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body premium-card-body">
                             <div class="text-center text-muted py-4">
                                 <i class="bi bi-clock-history fs-1 mb-3"></i>
                                 <p>No hay actividad reciente</p>

@@ -6,13 +6,13 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-journal-bookmark me-2"></i> Gestión de Materias</h1>
             <p class="page-subtitle">Administra las materias y asignaturas del sistema educativo</p>
         </div>
-        <div class="page-header-actions">
+        <div class="page-header-actions admin-premium-actions">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
                 <i class="bi bi-plus-circle me-1"></i> Nueva Materia
             </button>
@@ -42,8 +42,8 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Búsqueda rápida -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card filter-card">
-                <div class="card-body">
+            <div class="card filter-card premium-card premium-filter-card">
+                <div class="card-body premium-card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
                             <h6 class="mb-1 text-muted">Búsqueda rápida</h6>
@@ -64,8 +64,8 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Filtros y búsqueda avanzada -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card filter-card">
-                <div class="card-header">
+            <div class="card filter-card premium-card premium-filter-card">
+                <div class="card-header premium-card-header">
                     <h6 class="mb-0">
                         <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
                             <i class="bi bi-funnel me-1"></i> Filtros Avanzados
@@ -74,7 +74,7 @@ if (!isset($_SESSION['user_id'])) {
                     </h6>
                 </div>
                 <div class="collapse" id="advancedFilters">
-                    <div class="card-body">
+                    <div class="card-body premium-card-body">
                         <div class="row">
                             <div class="col-md-3">
                                 <label for="statusFilter" class="form-label">Estado</label>
@@ -129,8 +129,8 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Vista de materias -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card premium-card">
+                <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="bi bi-list-ul me-2"></i> Lista de Materias
                         <span class="badge bg-secondary ms-2" id="totalSubjects"><?= count($subjects ?? []) ?></span>
@@ -149,10 +149,10 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body premium-card-body">
                     <!-- Vista de tabla -->
                     <div class="table-responsive table-scroll" id="tableViewContainer">
-                        <table class="table table-striped table-hover sortable-table" id="subjectsTable">
+                        <table class="table table-striped table-hover sortable-table premium-table" id="subjectsTable">
                             <thead>
                                 <tr>
                                     <th data-sortable="false"><input type="checkbox" id="selectAllSubjects"></th>
@@ -234,8 +234,8 @@ if (!isset($_SESSION['user_id'])) {
                             <?php foreach ($subjects as $subject): ?>
                                 <?php $moduleNames = array_filter(explode('||', $subject['module_names'] ?? '')); ?>
                                 <div class="col-md-6 col-lg-4 mb-4">
-                                    <div class="card h-100 subject-card">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div class="card h-100 subject-card premium-card">
+                                        <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h6 class="mb-0"><?= htmlspecialchars($subject['code'] ?? 'N/A') ?></h6>
                                                 <small class="text-muted">
@@ -247,7 +247,7 @@ if (!isset($_SESSION['user_id'])) {
                                             </div>
                                             <input type="checkbox" class="subject-checkbox" value="<?= (int) $subject['id'] ?>">
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body premium-card-body">
                                             <h5 class="card-title"><?= htmlspecialchars($subject['name'] ?? '') ?></h5>
                                             <p class="card-text"><?= htmlspecialchars($subject['description'] ?? 'Sin descripción.') ?></p>
                                             <div class="d-flex justify-content-between align-items-center">
@@ -255,7 +255,7 @@ if (!isset($_SESSION['user_id'])) {
                                                 <span class="badge bg-secondary"><?= (int) ($subject['course_count'] ?? 0) ?> cursos</span>
                                             </div>
                                         </div>
-                                        <div class="card-footer">
+                                        <div class="card-footer premium-card-body">
                                             <div class="d-flex w-100 gap-2">
                                                 <button
                                                     type="button"
@@ -304,7 +304,7 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal para crear materia -->
 <div class="modal fade" id="createSubjectModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title">
@@ -364,7 +364,7 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal para editar materia -->
 <div class="modal fade" id="editSubjectModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title">
@@ -424,7 +424,7 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal para ver detalles de materia -->
 <div class="modal fade" id="viewSubjectModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title">

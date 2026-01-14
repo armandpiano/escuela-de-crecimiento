@@ -12,8 +12,8 @@ if ($userRole !== 'admin') {
 }
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-easel me-2"></i> Profesores</h1>
             <p class="page-subtitle">Consulta profesores registrados en el sistema.</p>
@@ -27,13 +27,13 @@ if ($userRole !== 'admin') {
         </div>
     <?php endif; ?>
 
-    <div class="card">
-        <div class="card-body">
+    <div class="card premium-card">
+        <div class="card-body premium-card-body">
             <?php if (empty($teachers)): ?>
                 <p class="text-muted">No hay profesores registrados.</p>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-striped align-middle" data-datatable data-order-column="0" data-order-direction="asc">
+                    <table class="table table-striped align-middle premium-table" data-datatable data-order-column="0" data-order-direction="asc">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -78,7 +78,7 @@ if ($userRole !== 'admin') {
                 <?php foreach ($teachers as $teacher): ?>
                     <div class="modal fade" id="teacherModal<?= (int) $teacher['id'] ?>" tabindex="-1" aria-labelledby="teacherModalLabel<?= (int) $teacher['id'] ?>" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
+                            <div class="modal-content premium-modal">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="teacherModalLabel<?= (int) $teacher['id'] ?>">Detalle del profesor</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>

@@ -6,13 +6,13 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-calendar-event me-2"></i> Periodos Académicos</h1>
             <p class="page-subtitle">Da de alta, edita y administra los periodos académicos del sistema</p>
         </div>
-        <div class="page-header-actions">
+        <div class="page-header-actions admin-premium-actions">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Periodo
             </button>
@@ -35,8 +35,8 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card filter-card">
-                <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+            <div class="card filter-card premium-card premium-filter-card">
+                <div class="card-body premium-card-body d-flex justify-content-between align-items-center flex-wrap">
                     <span class="text-muted">Total: <?= count($periods ?? []) ?> periodos</span>
                 </div>
             </div>
@@ -45,13 +45,13 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+            <div class="card premium-card">
+                <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Periodos</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body premium-card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover premium-table">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
@@ -129,7 +129,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <div class="modal fade" id="createPeriodModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i> Crear Periodo</h5>
@@ -207,7 +207,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <div class="modal fade" id="editPeriodModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title"><i class="bi bi-pencil me-2"></i> Editar Periodo</h5>
@@ -286,7 +286,7 @@ if (!isset($_SESSION['user_id'])) {
 
 <div class="modal fade" id="deletePeriodModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-warning me-2"></i> Confirmar Eliminación</h5>

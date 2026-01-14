@@ -6,13 +6,13 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-book me-2"></i> Gestión de Cursos</h1>
             <p class="page-subtitle">Administra los cursos del sistema educativo cristiano</p>
         </div>
-        <div class="page-header-actions">
+        <div class="page-header-actions admin-premium-actions">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Curso
             </button>
@@ -36,8 +36,8 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Filtros de búsqueda -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card filter-card">
-                <div class="card-body">
+            <div class="card filter-card premium-card premium-filter-card">
+                <div class="card-body premium-card-body">
                     <form class="row g-3" id="courseFilters" method="GET" action="<?= htmlspecialchars($basePath . '/courses') ?>">
                         <div class="col-md-3">
                             <label for="statusFilter" class="form-label">Estado</label>
@@ -70,13 +70,13 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Tabla de cursos -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
+            <div class="card premium-card">
+                <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Cursos</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body premium-card-body">
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover" id="coursesTable" data-datatable data-order-column="1" data-order-direction="asc">
+                        <table class="table table-striped table-hover premium-table" id="coursesTable" data-datatable data-order-column="1" data-order-direction="asc">
                             <thead>
                                 <tr>
                                     <th data-orderable="false"><input type="checkbox" id="selectAll"></th>
@@ -158,7 +158,7 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal para crear curso -->
 <div class="modal fade" id="createCourseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title">
@@ -256,7 +256,7 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal para editar curso -->
 <div class="modal fade" id="editCourseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title">
@@ -355,7 +355,7 @@ if (!isset($_SESSION['user_id'])) {
 <!-- Modal para confirmar eliminación -->
 <div class="modal fade" id="deleteCourseModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content premium-modal">
             <div class="modal-header">
                 <div>
                     <h5 class="modal-title">

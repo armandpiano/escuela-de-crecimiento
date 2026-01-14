@@ -14,8 +14,8 @@ if ($userRole === 'student') {
 $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-person-plus me-2"></i> Gestión de Inscripciones</h1>
             <p class="page-subtitle">Registra inscripciones manuales con validaciones y overrides.</p>
@@ -38,8 +38,8 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 
     <div class="row mb-4">
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-body">
+            <div class="card premium-card">
+                <div class="card-body premium-card-body">
                     <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i> Periodo activo: <?= htmlspecialchars($activePeriodName) ?></h5>
                     <?php if (!$activePeriod): ?>
                         <p class="text-muted">No hay un periodo académico activo.</p>
@@ -92,8 +92,8 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-body">
+            <div class="card premium-card">
+                <div class="card-body premium-card-body">
                     <h6 class="text-uppercase text-muted">Ventana de inscripción</h6>
                     <?php if (!$activePeriod): ?>
                         <p class="text-muted">Sin periodo activo.</p>

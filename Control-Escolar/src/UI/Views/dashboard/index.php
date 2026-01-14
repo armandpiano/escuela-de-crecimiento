@@ -17,7 +17,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="<?= htmlspecialchars($basePath) ?>/assets/css/ui-premium.css" rel="stylesheet">
 </head>
-<body class="app-body">
+<body class="app-body admin-premium-page">
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -93,7 +93,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
     <!-- Main Content -->
     <main class="main-content" id="mainContent">
         <!-- Topbar -->
-        <header class="topbar">
+        <header class="topbar admin-premium-header">
             <div class="d-flex align-items-center">
                 <button class="btn-toggle-sidebar" id="toggleSidebar">
                     <i class="bi bi-list"></i>
@@ -122,28 +122,28 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
         <div class="content app-content">
             <!-- Quick Actions -->
             <div class="quick-actions">
-                <a href="/dashboard/courses" class="quick-action">
+                <a href="/dashboard/courses" class="quick-action premium-card">
                     <div class="quick-action-icon">
                         <i class="bi bi-plus-circle"></i>
                     </div>
                     <h6 class="quick-action-title">Nuevo Curso</h6>
                     <p class="quick-action-text">Crear un nuevo curso</p>
                 </a>
-                <a href="/dashboard/enrollments" class="quick-action">
+                <a href="/dashboard/enrollments" class="quick-action premium-card">
                     <div class="quick-action-icon">
                         <i class="bi bi-person-plus"></i>
                     </div>
                     <h6 class="quick-action-title">Inscribir Estudiante</h6>
                     <p class="quick-action-text">Registrar inscripción</p>
                 </a>
-                <a href="/dashboard/subjects" class="quick-action">
+                <a href="/dashboard/subjects" class="quick-action premium-card">
                     <div class="quick-action-icon">
                         <i class="bi bi-book-open"></i>
                     </div>
                     <h6 class="quick-action-title">Nueva Materia</h6>
                     <p class="quick-action-text">Agregar materia</p>
                 </a>
-                <a href="/dashboard/reports" class="quick-action">
+                <a href="/dashboard/reports" class="quick-action premium-card">
                     <div class="quick-action-icon">
                         <i class="bi bi-graph-up"></i>
                     </div>
@@ -154,7 +154,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
 
             <!-- Stats Grid -->
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card premium-card">
                     <div class="stat-icon">
                         <i class="bi bi-book"></i>
                     </div>
@@ -168,7 +168,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     </div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card premium-card">
                     <div class="stat-icon">
                         <i class="bi bi-person-graduate"></i>
                     </div>
@@ -182,7 +182,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     </div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card premium-card">
                     <div class="stat-icon">
                         <i class="bi bi-people"></i>
                     </div>
@@ -195,7 +195,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     </div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card premium-card">
                     <div class="stat-icon">
                         <i class="bi bi-book-open"></i>
                     </div>
@@ -209,7 +209,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     </div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card premium-card">
                     <div class="stat-icon">
                         <i class="bi bi-easel"></i>
                     </div>
@@ -222,7 +222,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     </div>
                 </div>
                 
-                <div class="stat-card">
+                <div class="stat-card premium-card">
                     <div class="stat-icon">
                         <i class="bi bi-currency-dollar"></i>
                     </div>
@@ -240,7 +240,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
             <!-- Charts and Activity Row -->
             <div class="row">
                 <div class="col-xl-8">
-                    <div class="chart-card">
+                    <div class="chart-card premium-card">
                         <h5 class="mb-3">
                             <i class="bi bi-graph-up text-primary"></i>
                             Resumen de Inscripciones
@@ -256,7 +256,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 </div>
                 
                 <div class="col-xl-4">
-                    <div class="activity-card">
+                    <div class="activity-card premium-card">
                         <h5 class="mb-3">
                             <i class="bi bi-clock-history text-primary"></i>
                             Actividad Reciente
@@ -295,7 +295,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
             <!-- Additional Stats Row -->
             <div class="row mt-4">
                 <div class="col-md-6">
-                    <div class="chart-card">
+                    <div class="chart-card premium-card">
                         <h5 class="mb-3">
                             <i class="bi bi-pie-chart text-success"></i>
                             Distribución por Nivel
@@ -311,7 +311,7 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 </div>
                 
                 <div class="col-md-6">
-                    <div class="chart-card">
+                    <div class="chart-card premium-card">
                         <h5 class="mb-3">
                             <i class="bi bi-bar-chart text-warning"></i>
                             Rendimiento Académico

@@ -12,8 +12,8 @@ if ($userRole !== 'admin') {
 }
 ?>
 
-<div class="container-xxl app-content">
-    <div class="page-header">
+<div class="container-xxl app-content admin-premium-page">
+    <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-person-badge me-2"></i> Alumnos</h1>
             <p class="page-subtitle">Consulta alumnos registrados en el sistema.</p>
@@ -34,13 +34,13 @@ if ($userRole !== 'admin') {
         </div>
     <?php endif; ?>
 
-    <div class="card">
-        <div class="card-body">
+    <div class="card premium-card">
+        <div class="card-body premium-card-body">
             <?php if (empty($students)): ?>
                 <p class="text-muted">No hay alumnos registrados.</p>
             <?php else: ?>
                 <div class="table-responsive">
-                    <table class="table table-striped align-middle" data-datatable data-order-column="0" data-order-direction="asc">
+                    <table class="table table-striped align-middle premium-table" data-datatable data-order-column="0" data-order-direction="asc">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -92,7 +92,7 @@ if ($userRole !== 'admin') {
                 <?php foreach ($students as $student): ?>
                     <div class="modal fade" id="studentModal<?= (int) $student['id'] ?>" tabindex="-1" aria-labelledby="studentModalLabel<?= (int) $student['id'] ?>" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
+                            <div class="modal-content premium-modal">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="studentModalLabel<?= (int) $student['id'] ?>">Detalle del alumno</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
