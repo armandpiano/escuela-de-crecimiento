@@ -413,57 +413,373 @@ function createEnrollment(PDO $pdo, int $studentId, int $courseId, ?int $enrolle
 }
 
 // Función para crear el formulario de login
-function createLoginForm($error = null, $success = null, $basePath = null) {
+
+
+function createLoginForm($error = null, $success = null, $basePath = null)
+{
     $basePath = $basePath ?? getBasePath();
     ob_start();
+
+    // Evita duplicar estilos si renderizas el form más de una vez
+    static $authCssInjected = false;
     ?>
-    <div class="auth-card">
-        <div class="auth-logo">
-            <i class="bi bi-mortarboard brand-icon"></i>
-            <h3>Control Escolar</h3>
-            <p class="text-muted">Escuela de Crecimiento</p>
-        </div>
-        
-        <?php if ($error): ?>
-            <div class="alert alert-danger" role="alert">
-                <i class="bi bi-exclamation-circle"></i>
-                <?php echo htmlspecialchars($error); ?>
+
+    <?php if (!$authCssInjected): $authCssInjected = true; ?>
+        <style>
+            :root{
+                --brand: #229499;
+                --brand-2: #1b6f73;
+                --ink: #0f172a;
+                --muted: #64748b;
+                --card: rgba(255,255,255,.92);
+                --stroke: rgba(15,23,42,.08);
+                --shadow: 0 25px 60px rgba(2,6,23,.18);
+                --radius: 18px;
+            }
+
+            /* Contenedor externo sugerido (si tienes un wrapper, puedes usarlo) */
+            .auth-wrap{
+                min-height: calc(100vh - 80px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 32px 16px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            /* Fondo decorativo elegante */
+            .auth-wrap::before{
+                content:"";
+                position:absolute;
+                inset:-60px;
+                background:
+                    radial-gradient(600px 260px at 20% 20%, rgba(34,148,153,.25), transparent 60%),
+                    radial-gradient(520px 240px at 85% 35%, rgba(27,111,115,.18), transparent 55%),
+                    radial-gradient(520px 260px at 30% 90%, rgba(99,102,241,.14), transparent 55%),
+                    linear-gradient(180deg, rgba(2,6,23,.04), rgba(2,6,23,.00));
+                filter: blur(0px);
+                z-index: 0;
+            }
+
+            .auth-card{
+                width: 100%;
+                max-width: 460px;
+                border-radius: var(--radius);
+                background: var(--card);
+                border: 1px solid var(--stroke);
+                box-shadow: var(--shadow);
+                position: relative;
+                z-index: 1;
+                overflow: hidden;
+                backdrop-filter: blur(10px);
+            }
+
+            .auth-card__top{
+                padding: 22px 24px 16px;
+                border-bottom: 1px solid var(--stroke);
+                background:
+                    linear-gradient(135deg, rgba(34,148,153,.10), rgba(34,148,153,.04));
+            }
+
+            .auth-brand{
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+
+            .auth-brand__logo{
+                width: 52px;
+                height: 52px;
+                border-radius: 14px;
+                display: grid;
+                place-items: center;
+                background: rgba(34,148,153,.12);
+                border: 1px solid rgba(34,148,153,.18);
+                overflow: hidden;
+                flex: 0 0 auto;
+            }
+
+            .auth-brand__logo img{
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 8px;
+            }
+
+            .auth-brand__title{
+                margin: 0;
+                font-weight: 800;
+                letter-spacing: .2px;
+                color: var(--ink);
+                line-height: 1.15;
+                font-size: 1.05rem;
+            }
+
+            .auth-brand__subtitle{
+                margin: 2px 0 0;
+                color: var(--muted);
+                font-size: .9rem;
+            }
+
+            .auth-card__body{
+                padding: 22px 24px 24px;
+            }
+
+            .auth-alert{
+                border-radius: 12px;
+                border: 1px solid var(--stroke);
+                padding: 12px 14px;
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                margin-bottom: 14px;
+            }
+            .auth-alert i{ margin-top: 1px; }
+
+            .auth-alert--danger{
+                background: rgba(239,68,68,.08);
+                border-color: rgba(239,68,68,.18);
+                color: #991b1b;
+            }
+            .auth-alert--success{
+                background: rgba(34,197,94,.10);
+                border-color: rgba(34,197,94,.18);
+                color: #166534;
+            }
+
+            .auth-label{
+                font-size: .9rem;
+                font-weight: 700;
+                color: #1f2937;
+                margin-bottom: 6px;
+            }
+
+            /* Input con icono */
+            .auth-input{
+                position: relative;
+            }
+            .auth-input .form-control{
+                padding-left: 42px;
+                border-radius: 14px;
+                border: 1px solid rgba(15,23,42,.12);
+                background: rgba(255,255,255,.9);
+                height: 46px;
+                transition: all .18s ease;
+            }
+            .auth-input .form-control:focus{
+                border-color: rgba(34,148,153,.55);
+                box-shadow: 0 0 0 .2rem rgba(34,148,153,.16);
+            }
+
+            .auth-input__icon{
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: rgba(15,23,42,.55);
+                font-size: 1.05rem;
+                pointer-events: none;
+            }
+
+            /* Toggle password */
+            .auth-input__toggle{
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                border: 0;
+                background: transparent;
+                width: 38px;
+                height: 38px;
+                border-radius: 12px;
+                display: grid;
+                place-items: center;
+                color: rgba(15,23,42,.6);
+                transition: background .18s ease, color .18s ease;
+            }
+            .auth-input__toggle:hover{
+                background: rgba(15,23,42,.06);
+                color: rgba(15,23,42,.85);
+            }
+
+            .auth-row{
+                display:flex;
+                align-items:center;
+                justify-content: space-between;
+                gap: 12px;
+                margin: 10px 0 16px;
+                flex-wrap: wrap;
+            }
+
+            .auth-link{
+                text-decoration: none;
+                font-weight: 700;
+                color: var(--brand);
+                font-size: .92rem;
+            }
+            .auth-link:hover{ color: var(--brand-2); text-decoration: underline; }
+
+            .auth-btn{
+                height: 48px;
+                border-radius: 14px;
+                border: 0;
+                font-weight: 800;
+                letter-spacing: .2px;
+                background: linear-gradient(135deg, var(--brand), var(--brand-2));
+                box-shadow: 0 12px 25px rgba(34,148,153,.22);
+                transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+            }
+            .auth-btn:hover{
+                transform: translateY(-1px);
+                filter: brightness(1.02);
+                box-shadow: 0 16px 30px rgba(34,148,153,.26);
+            }
+            .auth-btn:active{
+                transform: translateY(0px);
+                box-shadow: 0 10px 22px rgba(34,148,153,.22);
+            }
+
+            .auth-footer{
+                margin-top: 16px;
+                font-size: .85rem;
+                color: var(--muted);
+                text-align: center;
+            }
+
+            @media (max-width: 420px){
+                .auth-card__top, .auth-card__body{ padding-left: 18px; padding-right: 18px; }
+            }
+        </style>
+
+        <script>
+            // Toggle password (sin dependencias)
+            document.addEventListener('click', function(e){
+                const btn = e.target.closest('[data-toggle-password]');
+                if(!btn) return;
+                const inputId = btn.getAttribute('data-toggle-password');
+                const input = document.getElementById(inputId);
+                if(!input) return;
+
+                const isPass = input.type === 'password';
+                input.type = isPass ? 'text' : 'password';
+
+                const icon = btn.querySelector('i');
+                if(icon){
+                    icon.classList.toggle('bi-eye', !isPass);
+                    icon.classList.toggle('bi-eye-slash', isPass);
+                }
+            });
+        </script>
+    <?php endif; ?>
+
+    <div class="auth-wrap">
+        <div class="auth-card">
+
+            <div class="auth-card__top">
+                <div class="auth-brand">
+                    <div class="auth-brand__logo" aria-hidden="true">
+                        <img
+                            src="<?= htmlspecialchars($basePath) ?>/public/uploads/logo-afc.png"
+                            alt="Logo Escuela de Crecimiento"
+                            loading="lazy"
+                        >
+                    </div>
+                    <div>
+                        <h1 class="auth-brand__title">CONTROL ESCOLAR</h1>
+                        <p class="auth-brand__subtitle">Escuela de Crecimiento • Acceso seguro</p>
+                    </div>
+                </div>
             </div>
-        <?php endif; ?>
-        
-        <?php if ($success): ?>
-            <div class="alert alert-success" role="alert">
-                <i class="bi bi-check-circle"></i>
-                <?php echo htmlspecialchars($success); ?>
+
+            <div class="auth-card__body">
+
+                <?php if ($error): ?>
+                    <div class="auth-alert auth-alert--danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div><?= htmlspecialchars($error) ?></div>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                    <div class="auth-alert auth-alert--success" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div><?= htmlspecialchars($success) ?></div>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" action="<?= htmlspecialchars($basePath) ?>/auth/login" autocomplete="on">
+
+                    <div class="mb-3">
+                        <label for="email" class="auth-label">Correo electrónico</label>
+                        <div class="auth-input">
+                            <i class="bi bi-envelope auth-input__icon"></i>
+                            <input
+                                type="email"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                required
+                                autocomplete="username"
+                                placeholder="Escribe tu correo"
+                                inputmode="email"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label for="password" class="auth-label">Contraseña</label>
+                        <div class="auth-input">
+                            <i class="bi bi-lock auth-input__icon"></i>
+                            <input
+                                type="password"
+                                class="form-control"
+                                id="password"
+                                name="password"
+                                required
+                                autocomplete="current-password"
+                                placeholder="Escribe tu contraseña"
+                            >
+                            <button
+                                type="button"
+                                class="auth-input__toggle"
+                                data-toggle-password="password"
+                                aria-label="Mostrar u ocultar contraseña"
+                                title="Mostrar / Ocultar"
+                            >
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-row">
+                        <div class="form-check m-0">
+                            <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember">
+                            <label class="form-check-label" for="remember">Recordarme</label>
+                        </div>
+
+                        <a class="auth-link" href="<?= htmlspecialchars($basePath) ?>/auth/forgot">
+                            ¿Olvidaste tu contraseña?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="btn auth-btn w-100 text-white">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+                    </button>
+
+                    <div class="auth-footer">
+                        © <?= date('Y') ?> Escuela de Crecimiento · Control Escolar
+                    </div>
+                </form>
+
             </div>
-        <?php endif; ?>
-        
-        <form method="POST" action="<?php echo $basePath; ?>/auth/login">
-            <div class="mb-3">
-                <label for="email" class="form-label">Correo Electrónico</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            
-            <div class="mb-3">
-                <label for="password" class="form-label">Contraseña</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-            </button>
-        </form>
-        
-        <div class="text-center mt-3">
-                <small class="text-muted">
-                    Usuario por defecto: admin@ecafc.mx<br>
-                    Contraseña: password
-                </small>
         </div>
     </div>
+
     <?php
     return ob_get_clean();
 }
+
 
 // Función para crear el dashboard principal
 function createDashboard($basePath = null, array $dashboardData = []) {
