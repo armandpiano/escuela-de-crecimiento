@@ -129,22 +129,17 @@ $faviconPath = $basePath !== '' ? $basePath . '/public/uploads/logo-afc.png' : '
             </nav>
 
             <div class="main-content" id="mainContent">
-                <header class="topbar<?= $topbarClass ? ' ' . htmlspecialchars($topbarClass) : '' ?>">
-                    <div class="container-premium topbar-inner">
-                        <div class="d-flex align-items-center gap-3">
-                            <a class="btn btn-outline-premium btn-sm topbar-back-link" href="<?= htmlspecialchars($basePath . '/dashboard') ?>">
+                <div class="page-toolbar">
+                    <div class="container-premium page-toolbar-inner">
+                        <div class="page-toolbar-title">
+                            <div class="text-uppercase text-muted small">Control Escolar</div>
+                            <div class="fw-bold"><?= htmlspecialchars($displayTitle) ?></div>
+                        </div>
+                        <div class="page-toolbar-actions">
+                            <a class="btn btn-outline-premium btn-sm" href="<?= htmlspecialchars($basePath . '/dashboard') ?>">
                                 <i class="bi bi-arrow-left"></i>
                                 <span>Panel de Control</span>
                             </a>
-                            <button class="btn-toggle-sidebar" id="toggleSidebar" type="button">
-                                <i class="bi bi-list"></i>
-                            </button>
-                            <div>
-                                <div class="fw-semibold text-uppercase text-muted small">Control Escolar</div>
-                                <div class="fw-bold"><?= htmlspecialchars($displayTitle) ?></div>
-                            </div>
-                        </div>
-                        <div class="topbar-actions">
                             <div class="user-chip">
                                 <i class="bi bi-person-circle text-primary"></i>
                                 <?= htmlspecialchars($displayName) ?>
@@ -154,7 +149,7 @@ $faviconPath = $basePath !== '' ? $basePath . '/public/uploads/logo-afc.png' : '
                             </a>
                         </div>
                     </div>
-                </header>
+                </div>
 
                 <?php if (!empty($breadcrumbs)): ?>
                     <nav class="breadcrumb-nav" aria-label="breadcrumb">
