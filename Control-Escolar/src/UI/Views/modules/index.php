@@ -26,22 +26,22 @@ if ($userRole !== 'admin') {
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
+        <div class="alert alert-danger admin-alert" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
-        <div class="alert alert-success" data-toast-message="<?= htmlspecialchars($successMessage) ?>" data-toast-type="success">
+        <div class="alert alert-success admin-alert" data-toast-message="<?= htmlspecialchars($successMessage) ?>" data-toast-type="success">
             <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <div class="card mb-4 premium-card premium-filter-card">
+    <div class="card mb-4 premium-card premium-filter-card admin-section">
         <div class="card-body premium-card-body">
-            <form method="GET" action="<?= htmlspecialchars($basePath . '/modules') ?>" class="row g-2 align-items-center">
+            <form method="GET" action="<?= htmlspecialchars($basePath . '/modules') ?>" class="row g-2 align-items-center admin-filter-form">
                 <div class="col-12 col-md-8">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -56,7 +56,7 @@ if ($userRole !== 'admin') {
         </div>
     </div>
 
-    <div class="card premium-card">
+    <div class="card premium-card admin-section">
         <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bi bi-list-ul me-2"></i> Lista de Módulos
@@ -72,7 +72,7 @@ if ($userRole !== 'admin') {
                     <p class="text-muted mb-0">Crea un nuevo módulo para organizar las materias.</p>
                 </div>
             <?php else: ?>
-                <div class="table-responsive table-scroll">
+                <div class="table-responsive table-scroll premium-table-wrapper">
                     <table class="table table-striped align-middle sortable-table premium-table">
                         <thead>
                             <tr>
@@ -111,7 +111,7 @@ if ($userRole !== 'admin') {
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center gap-2">
+                                        <div class="d-flex align-items-center gap-2 table-actions">
                                             <button
                                                 type="button"
                                                 class="btn btn-sm btn-outline-info"

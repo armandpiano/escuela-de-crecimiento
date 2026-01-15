@@ -23,22 +23,22 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger">
+        <div class="alert alert-danger admin-alert">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
-        <div class="alert alert-success">
+        <div class="alert alert-success admin-alert">
             <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <div class="row mb-4">
+    <div class="row mb-4 admin-section">
         <div class="col-lg-8">
-            <div class="card premium-card">
+            <div class="card premium-card admin-form-card">
                 <div class="card-body premium-card-body">
                     <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i> Periodo activo: <?= htmlspecialchars($activePeriodName) ?></h5>
                     <?php if (!$activePeriod): ?>
@@ -92,7 +92,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card premium-card">
+            <div class="card premium-card admin-stat-card">
                 <div class="card-body premium-card-body">
                     <h6 class="text-uppercase text-muted">Ventana de inscripción</h6>
                     <?php if (!$activePeriod): ?>

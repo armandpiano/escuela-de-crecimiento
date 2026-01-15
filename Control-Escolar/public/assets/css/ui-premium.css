@@ -895,6 +895,8 @@ body {
     padding: 1.5rem 1.75rem;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
+    position: relative;
+    overflow: hidden;
 }
 
 .admin-premium-header .page-title {
@@ -921,11 +923,41 @@ body {
     align-items: center;
 }
 
+.admin-premium-header::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 220px;
+    height: 100%;
+    background: radial-gradient(circle at top, rgba(12, 74, 110, 0.08), transparent 70%);
+    pointer-events: none;
+}
+
+.admin-section {
+    margin-bottom: 2rem;
+}
+
+.admin-section:last-child {
+    margin-bottom: 0;
+}
+
+.admin-alert {
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-filter-form {
+    background: transparent;
+}
+
 .premium-card {
     border-radius: var(--radius-lg);
     border: 1px solid rgba(148, 163, 184, 0.35);
     box-shadow: var(--shadow-sm);
     background: var(--surface-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .premium-card-header {
@@ -947,6 +979,22 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
+.premium-table th,
+.premium-table td {
+    padding: 0.9rem 1rem;
+    vertical-align: middle;
+}
+
+.premium-table tbody tr {
+    border-bottom: 1px solid rgba(226, 232, 240, 0.75);
+}
+
+.premium-table-wrapper {
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    overflow: hidden;
+}
+
 .premium-table tbody tr:hover {
     background-color: rgba(12, 74, 110, 0.04);
 }
@@ -954,6 +1002,10 @@ body {
 .premium-filter-card {
     border: 1px solid rgba(148, 163, 184, 0.25);
     background: var(--surface-color);
+}
+
+.premium-filter-card .card-body {
+    gap: 1rem;
 }
 
 .premium-modal {
@@ -979,4 +1031,36 @@ body {
 
 .premium-page-subtitle {
     color: #64748b;
+}
+
+.table-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-form-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.admin-stat-card {
+    background: #f8fafc;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.admin-stat-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin-bottom: 0.25rem;
+}
+
+.admin-stat-value {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #0f172a;
 }

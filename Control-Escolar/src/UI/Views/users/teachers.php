@@ -21,18 +21,18 @@ if ($userRole !== 'admin') {
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
+        <div class="alert alert-danger admin-alert" data-toast-message="<?= htmlspecialchars($errorMessage) ?>" data-toast-type="error">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
-    <div class="card premium-card">
+    <div class="card premium-card admin-section">
         <div class="card-body premium-card-body">
             <?php if (empty($teachers)): ?>
                 <p class="text-muted">No hay profesores registrados.</p>
             <?php else: ?>
-                <div class="table-responsive">
+                <div class="table-responsive premium-table-wrapper">
                     <table class="table table-striped align-middle premium-table" data-datatable data-order-column="0" data-order-direction="asc">
                         <thead>
                             <tr>
@@ -65,7 +65,7 @@ if ($userRole !== 'admin') {
                                             <?= htmlspecialchars($teacher['status']) ?>
                                         </span>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end table-actions">
                                         <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#teacherModal<?= (int) $teacher['id'] ?>">
                                             <i class="bi bi-eye me-1"></i> Ver
                                         </button>

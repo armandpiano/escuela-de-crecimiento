@@ -21,27 +21,27 @@ if ($userRole !== 'admin') {
     </div>
 
     <?php if (!empty($errorMessage)): ?>
-        <div class="alert alert-danger">
+        <div class="alert alert-danger admin-alert">
             <i class="bi bi-exclamation-circle me-1"></i>
             <?= htmlspecialchars($errorMessage) ?>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($successMessage)): ?>
-        <div class="alert alert-success">
+        <div class="alert alert-success admin-alert">
             <i class="bi bi-check-circle me-1"></i>
             <?= htmlspecialchars($successMessage) ?>
         </div>
     <?php endif; ?>
 
-    <div class="row">
+    <div class="row admin-section">
         <div class="col-lg-6 mb-4">
             <div class="card h-100 premium-card">
                 <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-easel me-2"></i> Profesores</h5>
                 </div>
                 <div class="card-body premium-card-body">
-                    <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3">
+                    <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3 admin-filter-form">
                         <div class="col-12 col-md-8">
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -58,7 +58,7 @@ if ($userRole !== 'admin') {
                     <?php if (empty($teachers)): ?>
                         <p class="text-muted">No hay profesores registrados.</p>
                     <?php else: ?>
-                        <div class="table-responsive">
+                        <div class="table-responsive premium-table-wrapper">
                             <table class="table table-striped align-middle premium-table">
                                 <thead>
                                     <tr>
@@ -78,7 +78,7 @@ if ($userRole !== 'admin') {
                                                     <?= htmlspecialchars($teacher['status']) ?>
                                                 </span>
                                             </td>
-                                            <td class="text-end">
+                                            <td class="text-end table-actions">
                                                 <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#teacherModal<?= (int) $teacher['id'] ?>">
                                                     <i class="bi bi-eye me-1"></i> Ver
                                                 </button>
@@ -148,7 +148,7 @@ if ($userRole !== 'admin') {
                     <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Alumnos</h5>
                 </div>
                 <div class="card-body premium-card-body">
-                    <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3">
+                    <form method="GET" action="<?= htmlspecialchars($basePath . '/users') ?>" class="row g-2 align-items-center mb-3 admin-filter-form">
                         <div class="col-12 col-md-8">
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
@@ -165,7 +165,7 @@ if ($userRole !== 'admin') {
                     <?php if (empty($students)): ?>
                         <p class="text-muted">No hay alumnos registrados.</p>
                     <?php else: ?>
-                        <div class="table-responsive">
+                        <div class="table-responsive premium-table-wrapper">
                             <table class="table table-striped align-middle premium-table">
                                 <thead>
                                     <tr>
@@ -185,7 +185,7 @@ if ($userRole !== 'admin') {
                                                     <?= htmlspecialchars($student['status']) ?>
                                                 </span>
                                             </td>
-                                            <td class="text-end">
+                                            <td class="text-end table-actions">
                                                 <button type="button" class="btn btn-sm btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#studentModal<?= (int) $student['id'] ?>">
                                                     <i class="bi bi-eye me-1"></i> Ver
                                                 </button>
