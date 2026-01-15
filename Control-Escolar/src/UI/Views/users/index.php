@@ -12,7 +12,7 @@ if ($userRole !== 'admin') {
 }
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-people me-2"></i> Usuarios</h1>
@@ -36,7 +36,7 @@ if ($userRole !== 'admin') {
 
     <div class="row admin-section">
         <div class="col-lg-6 mb-4">
-            <div class="card h-100 premium-card">
+            <div class="card h-100 premium-card page-card table-card">
                 <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-easel me-2"></i> Profesores</h5>
                 </div>
@@ -59,7 +59,7 @@ if ($userRole !== 'admin') {
                         <p class="text-muted">No hay profesores registrados.</p>
                     <?php else: ?>
                         <div class="table-responsive premium-table-wrapper">
-                            <table class="table table-striped align-middle premium-table">
+                            <table class="table table-striped align-middle premium-table datatable-premium">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
@@ -143,7 +143,7 @@ if ($userRole !== 'admin') {
         </div>
 
         <div class="col-lg-6 mb-4">
-            <div class="card h-100 premium-card">
+            <div class="card h-100 premium-card page-card table-card">
                 <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-person-badge me-2"></i> Alumnos</h5>
                 </div>
@@ -166,7 +166,7 @@ if ($userRole !== 'admin') {
                         <p class="text-muted">No hay alumnos registrados.</p>
                     <?php else: ?>
                         <div class="table-responsive premium-table-wrapper">
-                            <table class="table table-striped align-middle premium-table">
+                            <table class="table table-striped align-middle premium-table datatable-premium">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>

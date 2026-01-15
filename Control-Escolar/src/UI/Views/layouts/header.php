@@ -36,7 +36,7 @@ $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)
     </div>
 
     <?php if ($isAuthenticated): ?>
-        <div class="app-shell">
+        <div class="app-shell admin-page">
             <nav class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <a href="<?= htmlspecialchars($homePath) ?>" class="logo">

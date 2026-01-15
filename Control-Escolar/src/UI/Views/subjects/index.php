@@ -6,17 +6,17 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-journal-bookmark me-2"></i> Gestión de Materias</h1>
             <p class="page-subtitle">Administra las materias y asignaturas del sistema educativo</p>
         </div>
         <div class="page-header-actions admin-premium-actions">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
+            <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
                 <i class="bi bi-plus-circle me-1"></i> Nueva Materia
             </button>
-            <button class="btn btn-primary" id="exportSubjects">
+            <button class="btn btn-primary btn-premium" id="exportSubjects">
                 <i class="bi bi-download me-1"></i> Exportar Lista
             </button>
             <button class="btn btn-outline-info" id="bulkActions">
@@ -42,7 +42,7 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Búsqueda rápida -->
     <div class="row mb-4 admin-section">
         <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card">
+            <div class="card filter-card premium-card premium-filter-card page-card">
                 <div class="card-body premium-card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
@@ -64,7 +64,7 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Filtros y búsqueda avanzada -->
     <div class="row mb-4 admin-section">
         <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card">
+            <div class="card filter-card premium-card premium-filter-card page-card">
                 <div class="card-header premium-card-header">
                     <h6 class="mb-0">
                         <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
@@ -129,7 +129,7 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Vista de materias -->
     <div class="row admin-section">
         <div class="col-12">
-            <div class="card premium-card">
+            <div class="card premium-card page-card table-card">
                 <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="bi bi-list-ul me-2"></i> Lista de Materias
@@ -152,7 +152,7 @@ if (!isset($_SESSION['user_id'])) {
                 <div class="card-body premium-card-body">
                     <!-- Vista de tabla -->
                     <div class="table-responsive table-scroll premium-table-wrapper" id="tableViewContainer">
-                        <table class="table table-striped table-hover sortable-table premium-table" id="subjectsTable">
+                        <table class="table table-striped table-hover sortable-table premium-table datatable-premium" id="subjectsTable">
                             <thead>
                                 <tr>
                                     <th data-sortable="false"><input type="checkbox" id="selectAllSubjects"></th>

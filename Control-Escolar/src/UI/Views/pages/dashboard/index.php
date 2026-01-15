@@ -42,7 +42,7 @@ if ($currentUser) {
 include __DIR__ . '/../layouts/header.php';
 ?>
 
-<div class="d-flex admin-premium-page">
+<div class="d-flex admin-premium-page admin-page">
     <!-- Sidebar -->
     <div class="sidebar" style="width: 260px; min-height: 100vh;">
         <div class="p-3">
@@ -170,7 +170,7 @@ include __DIR__ . '/../layouts/header.php';
         </nav>
 
         <!-- Dashboard Content -->
-        <div class="container-xxl app-content admin-premium-page">
+        <div class="container-xxl app-content admin-premium-page admin-page page-shell">
             <div class="row mb-4">
                 <div class="col">
                     <h1 class="h3 mb-0">Bienvenido, <?= htmlspecialchars($currentUser->getFirstName()) ?>!</h1>
@@ -182,7 +182,7 @@ include __DIR__ . '/../layouts/header.php';
             <div class="row mb-4">
                 <?php foreach ($stats as $key => $value): ?>
                     <div class="col-md-3 mb-3">
-                        <div class="card border-0 shadow-sm premium-card">
+                        <div class="card border-0 shadow-sm premium-card page-card">
                             <div class="card-body premium-card-body">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1">
@@ -233,7 +233,7 @@ include __DIR__ . '/../layouts/header.php';
             <!-- Quick Actions -->
             <div class="row mb-4">
                 <div class="col-md-8">
-                    <div class="card border-0 shadow-sm premium-card">
+                    <div class="card border-0 shadow-sm premium-card page-card">
                         <div class="card-header bg-white premium-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-lightning me-2"></i>Acciones Rápidas
@@ -305,7 +305,7 @@ include __DIR__ . '/../layouts/header.php';
                 </div>
 
                 <div class="col-md-4">
-                    <div class="card border-0 shadow-sm premium-card">
+                    <div class="card border-0 shadow-sm premium-card page-card">
                         <div class="card-header bg-white premium-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-bell me-2"></i>Notificaciones
@@ -324,7 +324,7 @@ include __DIR__ . '/../layouts/header.php';
             <!-- Recent Activity -->
             <div class="row">
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm premium-card">
+                    <div class="card border-0 shadow-sm premium-card page-card">
                         <div class="card-header bg-white premium-card-header">
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-clock me-2"></i>Actividad Reciente

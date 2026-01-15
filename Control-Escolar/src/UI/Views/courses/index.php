@@ -6,14 +6,14 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-book me-2"></i> Gestión de Cursos</h1>
             <p class="page-subtitle">Administra los cursos del sistema educativo cristiano</p>
         </div>
         <div class="page-header-actions admin-premium-actions">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+            <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createCourseModal">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Curso
             </button>
         </div>
@@ -36,7 +36,7 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Filtros de búsqueda -->
     <div class="row mb-4 admin-section">
         <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card">
+            <div class="card filter-card premium-card premium-filter-card page-card">
                 <div class="card-body premium-card-body">
                     <form class="row g-3 admin-filter-form" id="courseFilters" method="GET" action="<?= htmlspecialchars($basePath . '/courses') ?>">
                         <div class="col-md-3">
@@ -70,12 +70,12 @@ if (!isset($_SESSION['user_id'])) {
     <!-- Tabla de cursos -->
     <div class="row admin-section">
         <div class="col-12">
-            <div class="card premium-card">
+            <div class="card premium-card page-card table-card">
                 <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Cursos</h5>
                 </div>
                 <div class="card-body premium-card-body">
-                    <div class="table-responsive premium-table-wrapper">
+                    <div class="table-responsive premium-table-wrapper datatable-premium">
                         <table class="table table-striped table-hover premium-table" id="coursesTable" data-datatable data-order-column="1" data-order-direction="asc">
                             <thead>
                                 <tr>

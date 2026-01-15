@@ -14,7 +14,7 @@ if ($userRole === 'student') {
 $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-person-plus me-2"></i> Gestión de Inscripciones</h1>
@@ -38,7 +38,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 
     <div class="row mb-4 admin-section">
         <div class="col-lg-8">
-            <div class="card premium-card admin-form-card">
+            <div class="card premium-card admin-form-card page-card">
                 <div class="card-body premium-card-body">
                     <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i> Periodo activo: <?= htmlspecialchars($activePeriodName) ?></h5>
                     <?php if (!$activePeriod): ?>
@@ -83,7 +83,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
                                     Ignorar choque de horario
                                 </label>
                             </div>
-                            <button class="btn btn-primary" type="submit">
+                            <button class="btn btn-primary btn-premium" type="submit">
                                 <i class="bi bi-save me-1"></i> Registrar inscripción
                             </button>
                         </form>
@@ -92,7 +92,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card premium-card admin-stat-card">
+            <div class="card premium-card admin-stat-card page-card">
                 <div class="card-body premium-card-body">
                     <h6 class="text-uppercase text-muted">Ventana de inscripción</h6>
                     <?php if (!$activePeriod): ?>

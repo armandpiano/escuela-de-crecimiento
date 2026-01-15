@@ -6,14 +6,14 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-calendar-event me-2"></i> Periodos Académicos</h1>
             <p class="page-subtitle">Da de alta, edita y administra los periodos académicos del sistema</p>
         </div>
         <div class="page-header-actions admin-premium-actions">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
+            <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Periodo
             </button>
         </div>
@@ -35,7 +35,7 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="row mb-4 admin-section">
         <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card">
+            <div class="card filter-card premium-card premium-filter-card page-card">
                 <div class="card-body premium-card-body d-flex justify-content-between align-items-center flex-wrap">
                     <span class="text-muted">Total: <?= count($periods ?? []) ?> periodos</span>
                 </div>
@@ -45,13 +45,13 @@ if (!isset($_SESSION['user_id'])) {
 
     <div class="row admin-section">
         <div class="col-12">
-            <div class="card premium-card">
+            <div class="card premium-card page-card table-card">
                 <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Periodos</h5>
                 </div>
                 <div class="card-body premium-card-body">
                     <div class="table-responsive premium-table-wrapper">
-                        <table class="table table-striped table-hover premium-table">
+                        <table class="table table-striped table-hover premium-table datatable-premium">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>

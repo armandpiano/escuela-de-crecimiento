@@ -12,14 +12,14 @@ if ($userRole !== 'admin') {
 }
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-grid-1x2 me-2"></i> Módulos</h1>
             <p class="page-subtitle">Crea, organiza y asigna módulos a las materias del plan académico.</p>
         </div>
         <div class="page-header-actions admin-premium-actions">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModuleModal">
+            <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createModuleModal">
                 <i class="bi bi-plus-circle me-1"></i> Nuevo Módulo
             </button>
         </div>
@@ -39,7 +39,7 @@ if ($userRole !== 'admin') {
         </div>
     <?php endif; ?>
 
-    <div class="card mb-4 premium-card premium-filter-card admin-section">
+    <div class="card mb-4 premium-card premium-filter-card admin-section page-card filter-card">
         <div class="card-body premium-card-body">
             <form method="GET" action="<?= htmlspecialchars($basePath . '/modules') ?>" class="row g-2 align-items-center admin-filter-form">
                 <div class="col-12 col-md-8">
@@ -56,7 +56,7 @@ if ($userRole !== 'admin') {
         </div>
     </div>
 
-    <div class="card premium-card admin-section">
+    <div class="card premium-card admin-section page-card table-card">
         <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bi bi-list-ul me-2"></i> Lista de Módulos
@@ -73,7 +73,7 @@ if ($userRole !== 'admin') {
                 </div>
             <?php else: ?>
                 <div class="table-responsive table-scroll premium-table-wrapper">
-                    <table class="table table-striped align-middle sortable-table premium-table">
+                    <table class="table table-striped align-middle sortable-table premium-table datatable-premium">
                         <thead>
                             <tr>
                                 <th data-sortable="true">Nombre <span class="sort-indicator"></span></th>

@@ -12,7 +12,7 @@ if ($userRole !== 'admin') {
 }
 ?>
 
-<div class="container-xxl app-content admin-premium-page">
+<div class="container-xxl app-content admin-premium-page admin-page page-shell">
     <div class="page-header admin-premium-header">
         <div>
             <h1 class="page-title"><i class="bi bi-person-badge me-2"></i> Alumnos</h1>
@@ -34,12 +34,12 @@ if ($userRole !== 'admin') {
         </div>
     <?php endif; ?>
 
-    <div class="card premium-card admin-section">
+    <div class="card premium-card admin-section page-card table-card">
         <div class="card-body premium-card-body">
             <?php if (empty($students)): ?>
                 <p class="text-muted">No hay alumnos registrados.</p>
             <?php else: ?>
-                <div class="table-responsive premium-table-wrapper">
+                <div class="table-responsive premium-table-wrapper datatable-premium">
                     <table class="table table-striped align-middle premium-table" data-datatable data-order-column="0" data-order-direction="asc">
                         <thead>
                             <tr>
