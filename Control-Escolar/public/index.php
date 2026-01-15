@@ -124,6 +124,7 @@ function redirectIfAuthenticated($basePath) {
 // Función para cargar el layout principal
 function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePath = null) {
     $basePath = $basePath ?? getBasePath();
+    $faviconPath = $basePath !== '' ? $basePath . '/public/uploads/logo-afc.png' : '/public/uploads/logo-afc.png';
     $userName = $_SESSION['user_name'] ?? null;
     $userRole = $_SESSION['user_role'] ?? null;
     
@@ -146,6 +147,8 @@ function loadLayout($content, $title = 'Sistema Escuela de Crecimiento', $basePa
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
         <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
         <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+        <link rel="icon" type="image/png" href="<?php echo htmlspecialchars($faviconPath); ?>">
+        <link rel="apple-touch-icon" href="<?php echo htmlspecialchars($faviconPath); ?>">
         <link href="<?php echo htmlspecialchars($basePath); ?>/assets/css/ui-premium.css" rel="stylesheet">
     </head>
     <body class="app-body">

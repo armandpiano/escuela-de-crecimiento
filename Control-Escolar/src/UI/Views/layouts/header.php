@@ -10,6 +10,7 @@ $pageSubtitle = $pageSubtitle ?? '';
 $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)[0] : $pageTitle;
 $pageShellClass = $pageShellClass ?? '';
 $topbarClass = $topbarClass ?? '';
+$faviconPath = $basePath !== '' ? $basePath . '/public/uploads/logo-afc.png' : '/public/uploads/logo-afc.png';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -25,6 +26,8 @@ $topbarClass = $topbarClass ?? '';
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="<?= htmlspecialchars($faviconPath) ?>">
+    <link rel="apple-touch-icon" href="<?= htmlspecialchars($faviconPath) ?>">
     <link href="<?= htmlspecialchars($basePath) ?>/assets/css/ui-premium.css" rel="stylesheet">
 </head>
 <body class="app-body">
@@ -127,23 +130,25 @@ $topbarClass = $topbarClass ?? '';
 
             <div class="main-content" id="mainContent">
                 <header class="topbar<?= $topbarClass ? ' ' . htmlspecialchars($topbarClass) : '' ?>">
-                    <div class="d-flex align-items-center">
-                        <button class="btn-toggle-sidebar" id="toggleSidebar" type="button">
-                            <i class="bi bi-list"></i>
-                        </button>
-                        <div>
-                            <div class="fw-semibold text-uppercase text-muted small">Control Escolar</div>
-                            <div class="fw-bold"><?= htmlspecialchars($displayTitle) ?></div>
+                    <div class="container-premium topbar-inner">
+                        <div class="d-flex align-items-center">
+                            <button class="btn-toggle-sidebar" id="toggleSidebar" type="button">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <div>
+                                <div class="fw-semibold text-uppercase text-muted small">Control Escolar</div>
+                                <div class="fw-bold"><?= htmlspecialchars($displayTitle) ?></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="topbar-actions">
-                        <div class="user-chip">
-                            <i class="bi bi-person-circle text-primary"></i>
-                            <?= htmlspecialchars($displayName) ?>
+                        <div class="topbar-actions">
+                            <div class="user-chip">
+                                <i class="bi bi-person-circle text-primary"></i>
+                                <?= htmlspecialchars($displayName) ?>
+                            </div>
+                            <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($basePath . '/logout') ?>">
+                                <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                            </a>
                         </div>
-                        <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($basePath . '/logout') ?>">
-                            <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
-                        </a>
                     </div>
                 </header>
 
@@ -166,7 +171,7 @@ $topbarClass = $topbarClass ?? '';
                     </nav>
                 <?php endif; ?>
 
-                <main class="content app-content">
+                <main class="content app-content container-premium">
     <?php else: ?>
         <nav class="navbar navbar-expand-lg navbar-dark app-navbar">
             <div class="container-fluid">
