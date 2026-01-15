@@ -10,15 +10,27 @@ if ($userRole === 'student') {
     header('Location: ' . $basePath . '/enrollments');
     exit();
 }
+$displayName = $_SESSION['user_name'] ?? 'Usuario';
 
 $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
 ?>
 
-<div class="container-xxl app-content admin-premium-page admin-page page-shell">
-    <div class="page-header admin-premium-header">
-        <div>
-            <h1 class="page-title"><i class="bi bi-person-plus me-2"></i> Gestión de Inscripciones</h1>
-            <p class="page-subtitle">Registra inscripciones manuales con validaciones y overrides.</p>
+<div class="container-xxl app-content admin-premium-page admin-page page-shell page-shell-dashboard">
+    <div class="dash-header-card dash-card">
+        <div class="dash-header-main">
+            <div>
+                <h1 class="page-title"><i class="bi bi-person-plus me-2"></i> Gestión de Inscripciones</h1>
+                <p class="page-subtitle">Registra inscripciones manuales con validaciones y overrides.</p>
+            </div>
+            <div class="dash-header-actions">
+                <div class="dash-header-meta">
+                    <span class="badge badge-premium"><?= htmlspecialchars(ucfirst($userRole)) ?></span>
+                    <span class="dash-user-name"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($displayName) ?></span>
+                </div>
+                <a class="btn btn-primary btn-premium" href="#enrollmentForm">
+                    <i class="bi bi-check2-circle me-1"></i> Registrar inscripción
+                </a>
+            </div>
         </div>
     </div>
 
@@ -36,10 +48,62 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
         </div>
     <?php endif; ?>
 
-    <div class="row mb-4 admin-section">
+    <div class="dash-actions-grid">
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/courses') ?>">
+            <span class="dash-action-icon"><i class="bi bi-book"></i></span>
+            <div>
+                <div class="dash-action-title">Cursos</div>
+                <div class="dash-action-subtitle">Gestiona grupos</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/enrollments') ?>">
+            <span class="dash-action-icon"><i class="bi bi-person-plus"></i></span>
+            <div>
+                <div class="dash-action-title">Inscripciones</div>
+                <div class="dash-action-subtitle">Altas y seguimientos</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/subjects') ?>">
+            <span class="dash-action-icon"><i class="bi bi-journal-bookmark"></i></span>
+            <div>
+                <div class="dash-action-title">Materias</div>
+                <div class="dash-action-subtitle">Catálogo académico</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/teachers') ?>">
+            <span class="dash-action-icon"><i class="bi bi-easel"></i></span>
+            <div>
+                <div class="dash-action-title">Profesores</div>
+                <div class="dash-action-subtitle">Plantilla docente</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/students') ?>">
+            <span class="dash-action-icon"><i class="bi bi-people"></i></span>
+            <div>
+                <div class="dash-action-title">Alumnos</div>
+                <div class="dash-action-subtitle">Directorio</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/periods') ?>">
+            <span class="dash-action-icon"><i class="bi bi-calendar3"></i></span>
+            <div>
+                <div class="dash-action-title">Períodos</div>
+                <div class="dash-action-subtitle">Calendario</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/modules') ?>">
+            <span class="dash-action-icon"><i class="bi bi-grid-1x2"></i></span>
+            <div>
+                <div class="dash-action-title">Módulos</div>
+                <div class="dash-action-subtitle">Estructura</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="row g-4">
         <div class="col-lg-8">
-            <div class="card premium-card admin-form-card page-card">
-                <div class="card-body premium-card-body">
+            <div class="card dash-card dash-filter-card">
+                <div class="card-body premium-card-body" id="enrollmentForm">
                     <h5 class="card-title"><i class="bi bi-calendar-event me-2"></i> Periodo activo: <?= htmlspecialchars($activePeriodName) ?></h5>
                     <?php if (!$activePeriod): ?>
                         <p class="text-muted">No hay un periodo académico activo.</p>
@@ -92,7 +156,7 @@ $activePeriodName = $activePeriod['name'] ?? 'Sin periodo activo';
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="card premium-card admin-stat-card page-card">
+            <div class="card dash-card">
                 <div class="card-body premium-card-body">
                     <h6 class="text-uppercase text-muted">Ventana de inscripción</h6>
                     <?php if (!$activePeriod): ?>

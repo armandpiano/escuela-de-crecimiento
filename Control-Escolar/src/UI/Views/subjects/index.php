@@ -4,24 +4,32 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ' . $basePath . '/login');
     exit();
 }
+$displayName = $_SESSION['user_name'] ?? 'Usuario';
+$userRole = $_SESSION['user_role'] ?? 'admin';
 ?>
 
-<div class="container-xxl app-content admin-premium-page admin-page page-shell">
-    <div class="page-header admin-premium-header">
-        <div>
-            <h1 class="page-title"><i class="bi bi-journal-bookmark me-2"></i> Gestión de Materias</h1>
-            <p class="page-subtitle">Administra las materias y asignaturas del sistema educativo</p>
-        </div>
-        <div class="page-header-actions admin-premium-actions">
-            <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
-                <i class="bi bi-plus-circle me-1"></i> Nueva Materia
-            </button>
-            <button class="btn btn-primary btn-premium" id="exportSubjects">
-                <i class="bi bi-download me-1"></i> Exportar Lista
-            </button>
-            <button class="btn btn-outline-info" id="bulkActions">
-                <i class="bi bi-list-check me-1"></i> Acciones Masivas
-            </button>
+<div class="container-xxl app-content admin-premium-page admin-page page-shell page-shell-dashboard">
+    <div class="dash-header-card dash-card">
+        <div class="dash-header-main">
+            <div>
+                <h1 class="page-title"><i class="bi bi-journal-bookmark me-2"></i> Gestión de Materias</h1>
+                <p class="page-subtitle">Administra las materias y asignaturas del sistema educativo</p>
+            </div>
+            <div class="dash-header-actions">
+                <div class="dash-header-meta">
+                    <span class="badge badge-premium"><?= htmlspecialchars(ucfirst($userRole)) ?></span>
+                    <span class="dash-user-name"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($displayName) ?></span>
+                </div>
+                <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createSubjectModal">
+                    <i class="bi bi-plus-circle me-1"></i> Nueva Materia
+                </button>
+                <button class="btn btn-primary btn-premium" id="exportSubjects">
+                    <i class="bi bi-download me-1"></i> Exportar Lista
+                </button>
+                <button class="btn btn-outline-info" id="bulkActions">
+                    <i class="bi bi-list-check me-1"></i> Acciones Masivas
+                </button>
+            </div>
         </div>
     </div>
 
@@ -39,87 +47,131 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     <?php endif; ?>
 
+    <div class="dash-actions-grid">
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/courses') ?>">
+            <span class="dash-action-icon"><i class="bi bi-book"></i></span>
+            <div>
+                <div class="dash-action-title">Cursos</div>
+                <div class="dash-action-subtitle">Gestiona grupos</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/enrollments') ?>">
+            <span class="dash-action-icon"><i class="bi bi-person-plus"></i></span>
+            <div>
+                <div class="dash-action-title">Inscripciones</div>
+                <div class="dash-action-subtitle">Altas y seguimientos</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/subjects') ?>">
+            <span class="dash-action-icon"><i class="bi bi-journal-bookmark"></i></span>
+            <div>
+                <div class="dash-action-title">Materias</div>
+                <div class="dash-action-subtitle">Catálogo académico</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/teachers') ?>">
+            <span class="dash-action-icon"><i class="bi bi-easel"></i></span>
+            <div>
+                <div class="dash-action-title">Profesores</div>
+                <div class="dash-action-subtitle">Plantilla docente</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/students') ?>">
+            <span class="dash-action-icon"><i class="bi bi-people"></i></span>
+            <div>
+                <div class="dash-action-title">Alumnos</div>
+                <div class="dash-action-subtitle">Directorio</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/periods') ?>">
+            <span class="dash-action-icon"><i class="bi bi-calendar3"></i></span>
+            <div>
+                <div class="dash-action-title">Períodos</div>
+                <div class="dash-action-subtitle">Calendario</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/modules') ?>">
+            <span class="dash-action-icon"><i class="bi bi-grid-1x2"></i></span>
+            <div>
+                <div class="dash-action-title">Módulos</div>
+                <div class="dash-action-subtitle">Estructura</div>
+            </div>
+        </a>
+    </div>
+
     <!-- Búsqueda rápida -->
-    <div class="row mb-4 admin-section">
-        <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card page-card">
-                <div class="card-body premium-card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                        <div>
-                            <h6 class="mb-1 text-muted">Búsqueda rápida</h6>
-                            <p class="mb-0 text-muted">Encuentra materias por nombre, código o módulo.</p>
-                        </div>
-                        <div class="input-group search-input-group">
-                            <input type="text" class="form-control" id="globalSearch" placeholder="Buscar materias...">
-                            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
-                                <i class="bi bi-search"></i>
-                            </button>
-                        </div>
-                    </div>
+    <div class="card dash-card dash-filter-card filter-card mb-4">
+        <div class="card-body premium-card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h6 class="mb-1 text-muted">Búsqueda rápida</h6>
+                    <p class="mb-0 text-muted">Encuentra materias por nombre, código o módulo.</p>
+                </div>
+                <div class="input-group search-input-group">
+                    <input type="text" class="form-control" id="globalSearch" placeholder="Buscar materias...">
+                    <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                        <i class="bi bi-search"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Filtros y búsqueda avanzada -->
-    <div class="row mb-4 admin-section">
-        <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card page-card">
-                <div class="card-header premium-card-header">
-                    <h6 class="mb-0">
-                        <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
-                            <i class="bi bi-funnel me-1"></i> Filtros Avanzados
-                            <i class="bi bi-chevron-down ms-1"></i>
-                        </button>
-                    </h6>
+    <div class="card dash-card dash-filter-card filter-card mb-4">
+        <div class="card-header premium-card-header">
+            <h6 class="mb-0">
+                <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                    <i class="bi bi-funnel me-1"></i> Filtros Avanzados
+                    <i class="bi bi-chevron-down ms-1"></i>
+                </button>
+            </h6>
+        </div>
+        <div class="collapse" id="advancedFilters">
+            <div class="card-body premium-card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="statusFilter" class="form-label">Estado</label>
+                        <select class="form-select select2" id="statusFilter" data-enhance="select">
+                            <option value="">Todos los estados</option>
+                            <option value="active">Activa</option>
+                            <option value="inactive">Inactiva</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="categoryFilter" class="form-label">Categoría</label>
+                        <select class="form-select select2" id="categoryFilter" data-enhance="select">
+                            <option value="">Todas las categorías</option>
+                            <option value="mathematics">Matemáticas</option>
+                            <option value="language">Lenguaje</option>
+                            <option value="science">Ciencias</option>
+                            <option value="social">Ciencias Sociales</option>
+                            <option value="religious">Educación Religiosa</option>
+                            <option value="physical">Educación Física</option>
+                            <option value="arts">Artes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="gradeLevelFilter" class="form-label">Nivel</label>
+                        <select class="form-select select2" id="gradeLevelFilter" data-enhance="select">
+                            <option value="">Todos los niveles</option>
+                            <option value="1">1° Grado</option>
+                            <option value="2">2° Grado</option>
+                            <option value="3">3° Grado</option>
+                            <option value="4">4° Grado</option>
+                            <option value="5">5° Grado</option>
+                            <option value="6">6° Grado</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="collapse" id="advancedFilters">
-                    <div class="card-body premium-card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <label for="statusFilter" class="form-label">Estado</label>
-                                <select class="form-select select2" id="statusFilter" data-enhance="select">
-                                    <option value="">Todos los estados</option>
-                                    <option value="active">Activa</option>
-                                    <option value="inactive">Inactiva</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="categoryFilter" class="form-label">Categoría</label>
-                                <select class="form-select select2" id="categoryFilter" data-enhance="select">
-                                    <option value="">Todas las categorías</option>
-                                    <option value="mathematics">Matemáticas</option>
-                                    <option value="language">Lenguaje</option>
-                                    <option value="science">Ciencias</option>
-                                    <option value="social">Ciencias Sociales</option>
-                                    <option value="religious">Educación Religiosa</option>
-                                    <option value="physical">Educación Física</option>
-                                    <option value="arts">Artes</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="gradeLevelFilter" class="form-label">Nivel</label>
-                                <select class="form-select select2" id="gradeLevelFilter" data-enhance="select">
-                                    <option value="">Todos los niveles</option>
-                                    <option value="1">1° Grado</option>
-                                    <option value="2">2° Grado</option>
-                                    <option value="3">3° Grado</option>
-                                    <option value="4">4° Grado</option>
-                                    <option value="5">5° Grado</option>
-                                    <option value="6">6° Grado</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-12">
-                                <button type="button" class="btn btn-outline-primary" id="applyAdvancedFilters">
-                                    <i class="bi bi-check-lg me-1"></i> Aplicar Filtros
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" id="clearAdvancedFilters">
-                                    <i class="bi bi-x-lg me-1"></i> Limpiar Filtros
-                                </button>
-                            </div>
-                        </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="button" class="btn btn-outline-primary" id="applyAdvancedFilters">
+                            <i class="bi bi-check-lg me-1"></i> Aplicar Filtros
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="clearAdvancedFilters">
+                            <i class="bi bi-x-lg me-1"></i> Limpiar Filtros
+                        </button>
                     </div>
                 </div>
             </div>
@@ -127,10 +179,8 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 
     <!-- Vista de materias -->
-    <div class="row admin-section">
-        <div class="col-12">
-            <div class="card premium-card page-card table-card">
-                <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
+    <div class="card dash-card dash-table-card table-card">
+        <div class="card-header premium-card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="bi bi-list-ul me-2"></i> Lista de Materias
                         <span class="badge bg-secondary ms-2" id="totalSubjects"><?= count($subjects ?? []) ?></span>
@@ -149,7 +199,7 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
                     </div>
                 </div>
-                <div class="card-body premium-card-body">
+        <div class="card-body premium-card-body">
                     <!-- Vista de tabla -->
                     <div class="table-responsive table-scroll premium-table-wrapper" id="tableViewContainer">
                         <table class="table table-striped table-hover sortable-table premium-table datatable-premium" id="subjectsTable">
@@ -295,8 +345,6 @@ if (!isset($_SESSION['user_id'])) {
                             <!-- La paginación se generará dinámicamente -->
                         </ul>
                     </nav>
-                </div>
-            </div>
         </div>
     </div>
 </div>

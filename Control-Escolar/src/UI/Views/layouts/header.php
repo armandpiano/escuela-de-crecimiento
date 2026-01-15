@@ -8,6 +8,8 @@ $breadcrumbs = $breadcrumbs ?? [];
 $pageTitle = $pageTitle ?? 'Escuela de Crecimiento';
 $pageSubtitle = $pageSubtitle ?? '';
 $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)[0] : $pageTitle;
+$pageShellClass = $pageShellClass ?? '';
+$topbarClass = $topbarClass ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -36,7 +38,7 @@ $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)
     </div>
 
     <?php if ($isAuthenticated): ?>
-        <div class="app-shell admin-page">
+        <div class="app-shell admin-page<?= $pageShellClass ? ' ' . htmlspecialchars($pageShellClass) : '' ?>">
             <nav class="sidebar" id="sidebar">
                 <div class="sidebar-header">
                     <a href="<?= htmlspecialchars($homePath) ?>" class="logo">
@@ -124,7 +126,7 @@ $displayTitle = strpos($pageTitle, ' - ') !== false ? explode(' - ', $pageTitle)
             </nav>
 
             <div class="main-content" id="mainContent">
-                <header class="topbar">
+                <header class="topbar<?= $topbarClass ? ' ' . htmlspecialchars($topbarClass) : '' ?>">
                     <div class="d-flex align-items-center">
                         <button class="btn-toggle-sidebar" id="toggleSidebar" type="button">
                             <i class="bi bi-list"></i>

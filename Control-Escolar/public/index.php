@@ -1387,16 +1387,8 @@ switch ($route['action']) {
             ORDER BY e.enrollment_at DESC
         ")->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($activeTerm) {
-            $enrollmentStmt = $pdo->prepare("
-                SELECT COUNT(*) 
-                FROM enrollments e
-                INNER JOIN courses c ON c.id = e.course_id
-                WHERE c.term_id = :term_id
-            ");
-            $enrollmentStmt->execute(['term_id' => $activeTerm['id']]);
-            $dashboardData['stats']['enrollments'] = (int) $enrollmentStmt->fetchColumn();
-        }
+        $enrollmentStmt = $pdo->query("SELECT COUNT(*) FROM enrollments");
+        $dashboardData['stats']['enrollments'] = (int) $enrollmentStmt->fetchColumn();
 
         if (($_SESSION['user_role'] ?? '') === 'teacher') {
             $teacherId = (int) ($_SESSION['user_id'] ?? 0);
@@ -1564,7 +1556,9 @@ switch ($route['action']) {
                 'terms' => $terms,
                 'filters' => $filters,
                 'errorMessage' => $errorMessage,
-                'successMessage' => $successMessage
+                'successMessage' => $successMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;
@@ -1666,7 +1660,9 @@ switch ($route['action']) {
                 'students' => $students,
                 'adminCourses' => $adminCourses,
                 'errorMessage' => $errorMessage,
-                'successMessage' => $successMessage
+                'successMessage' => $successMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;
@@ -1719,7 +1715,9 @@ switch ($route['action']) {
                     ['label' => 'Control Escolar', 'url' => $route['base_path'] . '/dashboard'],
                     ['label' => 'Profesores']
                 ],
-                'errorMessage' => $errorMessage
+                'errorMessage' => $errorMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;
@@ -2058,7 +2056,9 @@ switch ($route['action']) {
                     ['label' => 'Módulos']
                 ],
                 'errorMessage' => $errorMessage,
-                'successMessage' => $successMessage
+                'successMessage' => $successMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;
@@ -2234,7 +2234,9 @@ switch ($route['action']) {
                     ['label' => 'Materias']
                 ],
                 'errorMessage' => $errorMessage,
-                'successMessage' => $successMessage
+                'successMessage' => $successMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;
@@ -2334,7 +2336,9 @@ switch ($route['action']) {
             [
                 'periods' => $periods,
                 'errorMessage' => $errorMessage,
-                'successMessage' => $successMessage
+                'successMessage' => $successMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;

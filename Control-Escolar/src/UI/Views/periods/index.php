@@ -4,18 +4,26 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ' . $basePath . '/login');
     exit();
 }
+$displayName = $_SESSION['user_name'] ?? 'Usuario';
+$userRole = $_SESSION['user_role'] ?? 'admin';
 ?>
 
-<div class="container-xxl app-content admin-premium-page admin-page page-shell">
-    <div class="page-header admin-premium-header">
-        <div>
-            <h1 class="page-title"><i class="bi bi-calendar-event me-2"></i> Periodos Académicos</h1>
-            <p class="page-subtitle">Da de alta, edita y administra los periodos académicos del sistema</p>
-        </div>
-        <div class="page-header-actions admin-premium-actions">
-            <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
-                <i class="bi bi-plus-circle me-1"></i> Nuevo Periodo
-            </button>
+<div class="container-xxl app-content admin-premium-page admin-page page-shell page-shell-dashboard">
+    <div class="dash-header-card dash-card">
+        <div class="dash-header-main">
+            <div>
+                <h1 class="page-title"><i class="bi bi-calendar-event me-2"></i> Periodos Académicos</h1>
+                <p class="page-subtitle">Da de alta, edita y administra los periodos académicos del sistema</p>
+            </div>
+            <div class="dash-header-actions">
+                <div class="dash-header-meta">
+                    <span class="badge badge-premium"><?= htmlspecialchars(ucfirst($userRole)) ?></span>
+                    <span class="dash-user-name"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($displayName) ?></span>
+                </div>
+                <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
+                    <i class="bi bi-plus-circle me-1"></i> Nuevo Periodo
+                </button>
+            </div>
         </div>
     </div>
 
@@ -33,25 +41,71 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     <?php endif; ?>
 
-    <div class="row mb-4 admin-section">
-        <div class="col-12">
-            <div class="card filter-card premium-card premium-filter-card page-card">
-                <div class="card-body premium-card-body d-flex justify-content-between align-items-center flex-wrap">
-                    <span class="text-muted">Total: <?= count($periods ?? []) ?> periodos</span>
-                </div>
+    <div class="dash-actions-grid">
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/courses') ?>">
+            <span class="dash-action-icon"><i class="bi bi-book"></i></span>
+            <div>
+                <div class="dash-action-title">Cursos</div>
+                <div class="dash-action-subtitle">Gestiona grupos</div>
             </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/enrollments') ?>">
+            <span class="dash-action-icon"><i class="bi bi-person-plus"></i></span>
+            <div>
+                <div class="dash-action-title">Inscripciones</div>
+                <div class="dash-action-subtitle">Altas y seguimientos</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/subjects') ?>">
+            <span class="dash-action-icon"><i class="bi bi-journal-bookmark"></i></span>
+            <div>
+                <div class="dash-action-title">Materias</div>
+                <div class="dash-action-subtitle">Catálogo académico</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/teachers') ?>">
+            <span class="dash-action-icon"><i class="bi bi-easel"></i></span>
+            <div>
+                <div class="dash-action-title">Profesores</div>
+                <div class="dash-action-subtitle">Plantilla docente</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/students') ?>">
+            <span class="dash-action-icon"><i class="bi bi-people"></i></span>
+            <div>
+                <div class="dash-action-title">Alumnos</div>
+                <div class="dash-action-subtitle">Directorio</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/periods') ?>">
+            <span class="dash-action-icon"><i class="bi bi-calendar3"></i></span>
+            <div>
+                <div class="dash-action-title">Períodos</div>
+                <div class="dash-action-subtitle">Calendario</div>
+            </div>
+        </a>
+        <a class="dash-action-card dash-card" href="<?= htmlspecialchars($basePath . '/modules') ?>">
+            <span class="dash-action-icon"><i class="bi bi-grid-1x2"></i></span>
+            <div>
+                <div class="dash-action-title">Módulos</div>
+                <div class="dash-action-subtitle">Estructura</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="card dash-card dash-filter-card filter-card mb-4">
+        <div class="card-body premium-card-body d-flex justify-content-between align-items-center flex-wrap">
+            <span class="text-muted">Total: <?= count($periods ?? []) ?> periodos</span>
         </div>
     </div>
 
-    <div class="row admin-section">
-        <div class="col-12">
-            <div class="card premium-card page-card table-card">
-                <div class="card-header premium-card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Periodos</h5>
-                </div>
-                <div class="card-body premium-card-body">
-                    <div class="table-responsive premium-table-wrapper">
-                        <table class="table table-striped table-hover premium-table datatable-premium">
+    <div class="card dash-card dash-table-card table-card">
+        <div class="card-header premium-card-header">
+            <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i> Lista de Periodos</h5>
+        </div>
+        <div class="card-body premium-card-body">
+            <div class="table-responsive premium-table-wrapper">
+                <table class="table table-striped table-hover premium-table datatable-premium">
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
@@ -119,9 +173,7 @@ if (!isset($_SESSION['user_id'])) {
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
-                        </table>
-                    </div>
-                </div>
+                </table>
             </div>
         </div>
     </div>
