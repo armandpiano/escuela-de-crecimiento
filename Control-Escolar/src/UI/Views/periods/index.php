@@ -4,8 +4,6 @@ if (!isset($_SESSION['user_id'])) {
     header('Location: ' . $basePath . '/login');
     exit();
 }
-$displayName = $_SESSION['user_name'] ?? 'Usuario';
-$userRole = $_SESSION['user_role'] ?? 'admin';
 ?>
 
 <div class="container-premium app-content admin-premium-page admin-page page-shell page-shell-dashboard">
@@ -16,10 +14,6 @@ $userRole = $_SESSION['user_role'] ?? 'admin';
                 <p class="page-subtitle">Da de alta, edita y administra los periodos académicos del sistema</p>
             </div>
             <div class="dash-header-actions">
-                <div class="dash-header-meta">
-                    <span class="badge badge-premium"><?= htmlspecialchars(ucfirst($userRole)) ?></span>
-                    <span class="dash-user-name"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($displayName) ?></span>
-                </div>
                 <button class="btn btn-primary btn-premium" data-bs-toggle="modal" data-bs-target="#createPeriodModal">
                     <i class="bi bi-plus-circle me-1"></i> Nuevo Periodo
                 </button>

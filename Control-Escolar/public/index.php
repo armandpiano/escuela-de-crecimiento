@@ -1801,7 +1801,9 @@ switch ($route['action']) {
                     ['label' => 'Alumnos']
                 ],
                 'errorMessage' => $errorMessage,
-                'successMessage' => $successMessage
+                'successMessage' => $successMessage,
+                'pageShellClass' => 'page-shell-dashboard',
+                'topbarClass' => 'dash-topbar'
             ]
         );
         break;

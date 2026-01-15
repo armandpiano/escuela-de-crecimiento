@@ -6,7 +6,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userRole = $_SESSION['user_role'] ?? '';
-$displayName = $_SESSION['user_name'] ?? 'Usuario';
 if ($userRole !== 'admin') {
     header('Location: ' . $basePath . '/dashboard');
     exit();
@@ -19,12 +18,6 @@ if ($userRole !== 'admin') {
             <div>
                 <h1 class="page-title"><i class="bi bi-person-badge me-2"></i> Alumnos</h1>
                 <p class="page-subtitle">Consulta alumnos registrados en el sistema.</p>
-            </div>
-            <div class="dash-header-actions">
-                <div class="dash-header-meta">
-                    <span class="badge badge-premium"><?= htmlspecialchars(ucfirst($userRole)) ?></span>
-                    <span class="dash-user-name"><i class="bi bi-person-circle me-1"></i><?= htmlspecialchars($displayName) ?></span>
-                </div>
             </div>
         </div>
     </div>
