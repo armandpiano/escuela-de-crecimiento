@@ -129,46 +129,29 @@ $faviconPath = $basePath !== '' ? $basePath . '/public/uploads/logo-afc.png' : '
             </nav>
 
             <div class="main-content" id="mainContent">
-                <div class="page-toolbar">
-                    <div class="container-premium page-toolbar-inner">
-                        <div class="page-toolbar-title">
-                            <div class="text-uppercase text-muted small">Control Escolar</div>
-                            <div class="fw-bold"><?= htmlspecialchars($displayTitle) ?></div>
-                        </div>
-                        <div class="page-toolbar-actions">
-                            <a class="btn btn-outline-premium btn-sm" href="<?= htmlspecialchars($basePath . '/dashboard') ?>">
-                                <i class="bi bi-arrow-left"></i>
-                                <span>Panel de Control</span>
-                            </a>
-                            <div class="user-chip">
-                                <i class="bi bi-person-circle text-primary"></i>
-                                <?= htmlspecialchars($displayName) ?>
+                <div class="page-toolbar<?= $topbarClass ? ' ' . htmlspecialchars($topbarClass) : '' ?>">
+                    <div class="container-premium">
+                        <div class="page-toolbar-inner">
+                            <div class="page-toolbar-title">
+                                <div class="text-uppercase text-muted small">Control Escolar</div>
+                                <div class="fw-bold"><?= htmlspecialchars($displayTitle) ?></div>
                             </div>
-                            <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($basePath . '/logout') ?>">
-                                <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
-                            </a>
+                            <div class="page-toolbar-actions">
+                                <a class="btn btn-outline-premium btn-sm" href="<?= htmlspecialchars($basePath . '/dashboard') ?>">
+                                    <i class="bi bi-arrow-left"></i>
+                                    <span>Panel de Control</span>
+                                </a>
+                                <div class="user-chip">
+                                    <i class="bi bi-person-circle text-primary"></i>
+                                    <?= htmlspecialchars($displayName) ?>
+                                </div>
+                                <a class="btn btn-outline-secondary btn-sm" href="<?= htmlspecialchars($basePath . '/logout') ?>">
+                                    <i class="bi bi-box-arrow-right me-1"></i>Cerrar Sesión
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <?php if (!empty($breadcrumbs)): ?>
-                    <nav class="breadcrumb-nav" aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
-                                <?php
-                                $label = $breadcrumb['label'] ?? '';
-                                $url = $breadcrumb['url'] ?? null;
-                                $isLast = $index === array_key_last($breadcrumbs);
-                                ?>
-                                <?php if ($url && !$isLast): ?>
-                                    <li class="breadcrumb-item"><a href="<?= htmlspecialchars($url) ?>"><?= htmlspecialchars($label) ?></a></li>
-                                <?php else: ?>
-                                    <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($label) ?></li>
-                                <?php endif; ?>
-                            <?php endforeach; ?>
-                        </ol>
-                    </nav>
-                <?php endif; ?>
 
                 <main class="content app-content container-premium">
     <?php else: ?>

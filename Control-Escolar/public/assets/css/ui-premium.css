@@ -404,6 +404,10 @@ body {
     padding: 0.75rem 2rem;
 }
 
+.app-shell .breadcrumb-nav {
+    display: none;
+}
+
 .breadcrumb {
     margin-bottom: 0;
     font-size: 0.9rem;
