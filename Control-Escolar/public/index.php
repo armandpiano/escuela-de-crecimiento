@@ -795,61 +795,72 @@ function createDashboard($basePath = null, array $dashboardData = []) {
     
     ob_start();
     ?>
-    <div class="container-fluid py-4">
-        <div class="d-flex flex-wrap align-items-center justify-content-between bg-white p-3 rounded-3 shadow-sm mb-4">
+    <div class="container-fluid py-4 dashboard-premium">
+        <div class="dashboard-hero premium-glass-card d-flex flex-wrap align-items-center justify-content-between mb-4">
             <div>
-                <h2 class="mb-1"><i class="bi bi-speedometer2"></i> Panel de Control</h2>
+                <h2 class="mb-2 dashboard-title"><i class="bi bi-speedometer2 me-2"></i> Panel de Control</h2>
                 <p class="text-muted mb-0">Bienvenido al Sistema de Gestión Escolar Escuela de Crecimiento</p>
             </div>
-            <div class="text-end">
+            <div class="text-end dashboard-user">
                 <div class="mb-2">
-                    <strong><?php echo htmlspecialchars($userName); ?></strong>
-                    <span class="badge bg-info ms-2"><?php echo ucfirst($userRole); ?></span>
+                    <span class="user-chip">
+                        <i class="bi bi-person-circle"></i>
+                        <?php echo htmlspecialchars($userName); ?>
+                    </span>
+                    <span class="badge badge-soft-info ms-2"><?php echo ucfirst($userRole); ?></span>
                 </div>
-                <a href="<?php echo $basePath; ?>/logout" class="btn btn-outline-danger btn-sm">
+                <a href="<?php echo $basePath; ?>/logout" class="btn btn-outline-danger btn-sm premium-pill-button">
                     <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
                 </a>
             </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardCoursesModal">
-                    <div class="card-body">
-                        <i class="bi bi-book fs-2 text-primary mb-2"></i>
-                        <h5 class="card-title">Cursos</h5>
-                        <p class="card-text display-6 text-primary"><?= (int) $stats['courses'] ?></p>
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6 col-12">
+                <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardCoursesModal">
+                    <div class="kpi-icon kpi-primary">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <div>
+                        <h5 class="kpi-label">Cursos</h5>
+                        <p class="kpi-value text-primary mb-1"><?= (int) $stats['courses'] ?></p>
                         <small class="text-muted">Ver detalle y exportar</small>
                     </div>
                 </button>
             </div>
-            <div class="col-md-3">
-                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardStudentsModal">
-                    <div class="card-body">
-                        <i class="bi bi-people fs-2 text-success mb-2"></i>
-                        <h5 class="card-title">Estudiantes</h5>
-                        <p class="card-text display-6 text-success"><?= (int) $stats['students'] ?></p>
+            <div class="col-xl-3 col-md-6 col-12">
+                <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardStudentsModal">
+                    <div class="kpi-icon kpi-success">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <div>
+                        <h5 class="kpi-label">Estudiantes</h5>
+                        <p class="kpi-value text-success mb-1"><?= (int) $stats['students'] ?></p>
                         <small class="text-muted">Ver detalle y exportar</small>
                     </div>
                 </button>
             </div>
-            <div class="col-md-3">
-                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardTeachersModal">
-                    <div class="card-body">
-                        <i class="bi bi-easel fs-2 text-warning mb-2"></i>
-                        <h5 class="card-title">Profesores</h5>
-                        <p class="card-text display-6 text-warning"><?= (int) $stats['teachers'] ?></p>
+            <div class="col-xl-3 col-md-6 col-12">
+                <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardTeachersModal">
+                    <div class="kpi-icon kpi-warning">
+                        <i class="bi bi-easel"></i>
+                    </div>
+                    <div>
+                        <h5 class="kpi-label">Profesores</h5>
+                        <p class="kpi-value text-warning mb-1"><?= (int) $stats['teachers'] ?></p>
                         <small class="text-muted">Ver detalle y exportar</small>
                     </div>
                 </button>
             </div>
-            <div class="col-md-3">
-                <button type="button" class="card text-center dashboard-stat-card w-100" data-bs-toggle="modal" data-bs-target="#dashboardEnrollmentsModal">
-                    <div class="card-body">
-                        <i class="bi bi-clipboard-data fs-2 text-info mb-2"></i>
-                        <h5 class="card-title">Inscripciones</h5>
-                        <p class="card-text display-6 text-info"><?= (int) $stats['enrollments'] ?></p>
+            <div class="col-xl-3 col-md-6 col-12">
+                <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardEnrollmentsModal">
+                    <div class="kpi-icon kpi-info">
+                        <i class="bi bi-clipboard-data"></i>
+                    </div>
+                    <div>
+                        <h5 class="kpi-label">Inscripciones</h5>
+                        <p class="kpi-value text-info mb-1"><?= (int) $stats['enrollments'] ?></p>
                         <small class="text-muted">Ver detalle y exportar</small>
                     </div>
                 </button>
@@ -857,13 +868,17 @@ function createDashboard($basePath = null, array $dashboardData = []) {
         </div>
         
         <?php if ($userRole === 'teacher'): ?>
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card premium-glass-card mb-4">
+                <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-easel"></i> Mis cursos asignados</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body premium-card-body">
                     <?php if (empty($dashboardData['teacherCourses'])): ?>
-                        <p class="text-muted">No tienes cursos asignados en el periodo activo.</p>
+                        <div class="empty-state premium-empty">
+                            <i class="bi bi-journal-x"></i>
+                            <p class="empty-state-title">Aún no hay cursos asignados</p>
+                            <p class="text-muted mb-0">Cuando tengas cursos activos, aparecerán listados aquí.</p>
+                        </div>
                     <?php else: ?>
                         <div class="table-responsive">
                             <table class="table table-striped">
@@ -889,36 +904,56 @@ function createDashboard($basePath = null, array $dashboardData = []) {
                 </div>
             </div>
         <?php else: ?>
-            <div class="card">
-                <div class="card-header">
+            <div class="card premium-glass-card">
+                <div class="card-header premium-card-header">
                     <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="<?php echo $basePath; ?>/courses" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-book"></i><br>Gestionar Cursos
+                <div class="card-body premium-card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <a href="<?php echo $basePath; ?>/courses" class="premium-pill-action">
+                                <span class="premium-pill-icon"><i class="bi bi-book"></i></span>
+                                <span>
+                                    <span class="premium-pill-title">Gestionar Cursos</span>
+                                    <span class="premium-pill-text">Administra grupos y contenido académico.</span>
+                                </span>
                             </a>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="<?php echo $basePath; ?>/enrollments" class="btn btn-outline-success w-100">
-                                <i class="bi bi-person-plus"></i><br>Gestionar Inscripciones
+                        <div class="col-lg-4 col-md-6">
+                            <a href="<?php echo $basePath; ?>/enrollments" class="premium-pill-action">
+                                <span class="premium-pill-icon"><i class="bi bi-person-plus"></i></span>
+                                <span>
+                                    <span class="premium-pill-title">Gestionar Inscripciones</span>
+                                    <span class="premium-pill-text">Mantén el control del alumnado activo.</span>
+                                </span>
                             </a>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="<?php echo $basePath; ?>/subjects" class="btn btn-outline-warning w-100">
-                                <i class="bi bi-list-ul"></i><br>Gestionar Materias
+                        <div class="col-lg-4 col-md-6">
+                            <a href="<?php echo $basePath; ?>/subjects" class="premium-pill-action">
+                                <span class="premium-pill-icon"><i class="bi bi-list-ul"></i></span>
+                                <span>
+                                    <span class="premium-pill-title">Gestionar Materias</span>
+                                    <span class="premium-pill-text">Organiza el catálogo académico.</span>
+                                </span>
                             </a>
                         </div>
                         <?php if ($userRole === 'admin'): ?>
-                            <div class="col-md-4 mb-3">
-                                <a href="<?php echo $basePath; ?>/teachers" class="btn btn-outline-secondary w-100">
-                                    <i class="bi bi-easel"></i><br>Gestionar Profesores
+                            <div class="col-lg-4 col-md-6">
+                                <a href="<?php echo $basePath; ?>/teachers" class="premium-pill-action">
+                                    <span class="premium-pill-icon"><i class="bi bi-easel"></i></span>
+                                    <span>
+                                        <span class="premium-pill-title">Gestionar Profesores</span>
+                                        <span class="premium-pill-text">Asigna materias y horarios.</span>
+                                    </span>
                                 </a>
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <a href="<?php echo $basePath; ?>/students" class="btn btn-outline-secondary w-100">
-                                    <i class="bi bi-person-badge"></i><br>Gestionar Alumnos
+                            <div class="col-lg-4 col-md-6">
+                                <a href="<?php echo $basePath; ?>/students" class="premium-pill-action">
+                                    <span class="premium-pill-icon"><i class="bi bi-person-badge"></i></span>
+                                    <span>
+                                        <span class="premium-pill-title">Gestionar Alumnos</span>
+                                        <span class="premium-pill-text">Actualiza perfiles estudiantiles.</span>
+                                    </span>
                                 </a>
                             </div>
                         <?php endif; ?>
@@ -928,14 +963,15 @@ function createDashboard($basePath = null, array $dashboardData = []) {
         <?php endif; ?>
         
         <!-- Recent Activity -->
-        <div class="card mt-4">
-            <div class="card-header">
+        <div class="card premium-glass-card mt-4">
+            <div class="card-header premium-card-header">
                 <h5 class="mb-0"><i class="bi bi-clock"></i> Actividad Reciente</h5>
             </div>
-            <div class="card-body">
-                <div class="text-center text-muted">
-                    <i class="bi bi-info-circle"></i>
-                    No hay actividad reciente para mostrar.
+            <div class="card-body premium-card-body">
+                <div class="empty-state premium-empty">
+                    <i class="bi bi-activity"></i>
+                    <p class="empty-state-title">Sin novedades por ahora</p>
+                    <p class="text-muted mb-0">Aquí verás inscripciones, cambios y alertas recientes.</p>
                 </div>
             </div>
         </div>
