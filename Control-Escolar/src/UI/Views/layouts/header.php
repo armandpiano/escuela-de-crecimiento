@@ -131,7 +131,11 @@ $faviconPath = $basePath !== '' ? $basePath . '/public/uploads/logo-afc.png' : '
             <div class="main-content" id="mainContent">
                 <header class="topbar<?= $topbarClass ? ' ' . htmlspecialchars($topbarClass) : '' ?>">
                     <div class="container-premium topbar-inner">
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <a class="btn btn-outline-premium btn-sm topbar-back-link" href="<?= htmlspecialchars($basePath . '/dashboard') ?>">
+                                <i class="bi bi-arrow-left"></i>
+                                <span>Panel de Control</span>
+                            </a>
                             <button class="btn-toggle-sidebar" id="toggleSidebar" type="button">
                                 <i class="bi bi-list"></i>
                             </button>

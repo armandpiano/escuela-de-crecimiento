@@ -278,6 +278,21 @@ body {
     color: #fff;
 }
 
+.btn-outline-premium {
+    border: 1px solid rgba(12, 74, 110, 0.4);
+    color: var(--primary-color);
+    background: rgba(12, 74, 110, 0.06);
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-outline-premium:hover,
+.btn-outline-premium:focus {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(12, 74, 110, 0.2);
+}
+
 .btn-outline-secondary {
     border-color: var(--border-color);
 }
@@ -625,6 +640,7 @@ body {
     box-shadow: var(--shadow-sm);
     padding: 1rem 0;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .topbar-inner {
@@ -632,6 +648,14 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
+    width: 100%;
+}
+
+.topbar-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
 }
 
 .main-content {
@@ -1419,6 +1443,8 @@ body {
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(12px);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .dash-card {

@@ -13,7 +13,7 @@ if ($userRole !== 'admin') {
 $displayName = $_SESSION['user_name'] ?? 'Usuario';
 ?>
 
-<div class="container-xxl app-content admin-premium-page admin-page page-shell page-shell-dashboard">
+<div class="container-premium app-content admin-premium-page admin-page page-shell page-shell-dashboard">
     <div class="dash-header-card dash-card">
         <div class="dash-header-main">
             <div>
