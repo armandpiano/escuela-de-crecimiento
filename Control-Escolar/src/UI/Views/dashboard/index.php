@@ -129,40 +129,40 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     </div>
                 </div>
                 <div class="quick-actions quick-actions-premium">
-                    <a href="/dashboard/courses" class="quick-action quick-action-pill quick-action-teal premium-card">
-                        <div class="quick-action-icon">
+                    <a href="/dashboard/courses" class="quick-action quick-action-pill quick-action-teal premium-card premium-pill-action">
+                        <div class="quick-action-icon premium-pill-icon">
                             <i class="bi bi-plus-circle"></i>
                         </div>
                         <div class="quick-action-content">
-                            <h6 class="quick-action-title">Nuevo Curso</h6>
-                            <p class="quick-action-text">Crear un nuevo curso</p>
+                            <h6 class="quick-action-title premium-pill-title">Nuevo Curso</h6>
+                            <p class="quick-action-text premium-pill-text">Crear un nuevo curso</p>
                         </div>
                     </a>
-                    <a href="/dashboard/enrollments" class="quick-action quick-action-pill quick-action-green premium-card">
-                        <div class="quick-action-icon">
+                    <a href="/dashboard/enrollments" class="quick-action quick-action-pill quick-action-green premium-card premium-pill-action">
+                        <div class="quick-action-icon premium-pill-icon">
                             <i class="bi bi-person-plus"></i>
                         </div>
                         <div class="quick-action-content">
-                            <h6 class="quick-action-title">Inscribir Estudiante</h6>
-                            <p class="quick-action-text">Registrar inscripción</p>
+                            <h6 class="quick-action-title premium-pill-title">Inscribir Estudiante</h6>
+                            <p class="quick-action-text premium-pill-text">Registrar inscripción</p>
                         </div>
                     </a>
-                    <a href="/dashboard/subjects" class="quick-action quick-action-pill quick-action-amber premium-card">
-                        <div class="quick-action-icon">
+                    <a href="/dashboard/subjects" class="quick-action quick-action-pill quick-action-amber premium-card premium-pill-action">
+                        <div class="quick-action-icon premium-pill-icon">
                             <i class="bi bi-book-open"></i>
                         </div>
                         <div class="quick-action-content">
-                            <h6 class="quick-action-title">Nueva Materia</h6>
-                            <p class="quick-action-text">Agregar materia</p>
+                            <h6 class="quick-action-title premium-pill-title">Nueva Materia</h6>
+                            <p class="quick-action-text premium-pill-text">Agregar materia</p>
                         </div>
                     </a>
-                    <a href="/dashboard/reports" class="quick-action quick-action-pill quick-action-blue premium-card">
-                        <div class="quick-action-icon">
+                    <a href="/dashboard/reports" class="quick-action quick-action-pill quick-action-blue premium-card premium-pill-action">
+                        <div class="quick-action-icon premium-pill-icon">
                             <i class="bi bi-graph-up"></i>
                         </div>
                         <div class="quick-action-content">
-                            <h6 class="quick-action-title">Ver Reportes</h6>
-                            <p class="quick-action-text">Análisis del sistema</p>
+                            <h6 class="quick-action-title premium-pill-title">Ver Reportes</h6>
+                            <p class="quick-action-text premium-pill-text">Análisis del sistema</p>
                         </div>
                     </a>
                 </div>
@@ -179,12 +179,12 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                 <div class="stats-grid row g-3">
                     <div class="col-6 col-xl-3">
                         <div class="stat-card premium-card dashboard-kpi-card">
-                            <div class="stat-icon stat-icon-teal">
+                            <div class="stat-icon stat-icon-teal kpi-icon">
                                 <i class="bi bi-book"></i>
                             </div>
                             <div>
-                                <div class="stat-label">Total Cursos</div>
-                                <div class="stat-value"><?php echo $dashboardStats['total_courses'] ?? 0; ?></div>
+                                <div class="stat-label kpi-label">Total Cursos</div>
+                                <div class="stat-value kpi-value"><?php echo $dashboardStats['total_courses'] ?? 0; ?></div>
                             </div>
                             <div class="stat-change text-success">
                                 <i class="bi bi-arrow-up"></i>
@@ -195,12 +195,12 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     
                     <div class="col-6 col-xl-3">
                         <div class="stat-card premium-card dashboard-kpi-card">
-                            <div class="stat-icon stat-icon-blue">
+                            <div class="stat-icon stat-icon-blue kpi-icon">
                                 <i class="bi bi-person-graduate"></i>
                             </div>
                             <div>
-                                <div class="stat-label">Inscripciones</div>
-                                <div class="stat-value"><?php echo $dashboardStats['total_enrollments'] ?? 0; ?></div>
+                                <div class="stat-label kpi-label">Inscripciones</div>
+                                <div class="stat-value kpi-value"><?php echo $dashboardStats['total_enrollments'] ?? 0; ?></div>
                             </div>
                             <div class="stat-change text-info">
                                 <i class="bi bi-clock"></i>
@@ -211,12 +211,12 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     
                     <div class="col-6 col-xl-3">
                         <div class="stat-card premium-card dashboard-kpi-card">
-                            <div class="stat-icon stat-icon-green">
+                            <div class="stat-icon stat-icon-green kpi-icon">
                                 <i class="bi bi-people"></i>
                             </div>
                             <div>
-                                <div class="stat-label">Estudiantes</div>
-                                <div class="stat-value"><?php echo $dashboardStats['total_students'] ?? 0; ?></div>
+                                <div class="stat-label kpi-label">Estudiantes</div>
+                                <div class="stat-value kpi-value"><?php echo $dashboardStats['total_students'] ?? 0; ?></div>
                             </div>
                             <div class="stat-change text-success">
                                 <i class="bi bi-person-plus"></i> Este mes
@@ -226,12 +226,12 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     
                     <div class="col-6 col-xl-3">
                         <div class="stat-card premium-card dashboard-kpi-card">
-                            <div class="stat-icon stat-icon-amber">
+                            <div class="stat-icon stat-icon-amber kpi-icon">
                                 <i class="bi bi-book-open"></i>
                             </div>
                             <div>
-                                <div class="stat-label">Materias</div>
-                                <div class="stat-value"><?php echo $dashboardStats['total_subjects'] ?? 0; ?></div>
+                                <div class="stat-label kpi-label">Materias</div>
+                                <div class="stat-value kpi-value"><?php echo $dashboardStats['total_subjects'] ?? 0; ?></div>
                             </div>
                             <div class="stat-change text-primary">
                                 <i class="bi bi-star"></i>
@@ -242,12 +242,12 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     
                     <div class="col-6 col-xl-3">
                         <div class="stat-card premium-card dashboard-kpi-card">
-                            <div class="stat-icon stat-icon-teal">
+                            <div class="stat-icon stat-icon-teal kpi-icon">
                                 <i class="bi bi-easel"></i>
                             </div>
                             <div>
-                                <div class="stat-label">Profesores</div>
-                                <div class="stat-value"><?php echo $dashboardStats['total_teachers'] ?? 0; ?></div>
+                                <div class="stat-label kpi-label">Profesores</div>
+                                <div class="stat-value kpi-value"><?php echo $dashboardStats['total_teachers'] ?? 0; ?></div>
                             </div>
                             <div class="stat-change text-info">
                                 <i class="bi bi-clock"></i> Activos
@@ -257,12 +257,12 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                     
                     <div class="col-6 col-xl-3">
                         <div class="stat-card premium-card dashboard-kpi-card">
-                            <div class="stat-icon stat-icon-blue">
+                            <div class="stat-icon stat-icon-blue kpi-icon">
                                 <i class="bi bi-currency-dollar"></i>
                             </div>
                             <div>
-                                <div class="stat-label">Ingresos Mensuales</div>
-                                <div class="stat-value">$<?php echo number_format($dashboardStats['monthly_revenue'] ?? 0, 2); ?></div>
+                                <div class="stat-label kpi-label">Ingresos Mensuales</div>
+                                <div class="stat-value kpi-value">$<?php echo number_format($dashboardStats['monthly_revenue'] ?? 0, 2); ?></div>
                             </div>
                             <div class="stat-change text-success">
                                 <i class="bi bi-percent"></i>

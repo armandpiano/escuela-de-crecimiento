@@ -1914,3 +1914,110 @@ body {
         grid-template-columns: 1fr !important;
     }
 }
+
+@media (max-width: 768px) {
+    .dashboard-page,
+    .dashboard-page * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    .dashboard-kpi-card {
+        padding: 0.75rem 0.85rem !important;
+        min-height: 0 !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: wrap;
+        gap: 0.6rem !important;
+    }
+
+    .dashboard-kpi-card > div {
+        min-width: 0;
+    }
+
+    .dashboard-kpi-card .stat-icon,
+    .dashboard-kpi-card .kpi-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 1rem;
+    }
+
+    .dashboard-kpi-card .stat-label,
+    .dashboard-kpi-card .kpi-label {
+        font-size: 0.85rem;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0.15rem;
+    }
+
+    .dashboard-kpi-card .stat-value,
+    .dashboard-kpi-card .kpi-value {
+        font-size: 1.4rem;
+        line-height: 1.1;
+    }
+
+    .dashboard-kpi-card .stat-change {
+        font-size: 0.75rem;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex-basis: 100%;
+        margin-top: 0.15rem;
+    }
+
+    .quick-actions-premium {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.7rem !important;
+    }
+
+    .premium-pill-action {
+        padding: 0.7rem 0.85rem !important;
+        min-height: 0 !important;
+        border-radius: 16px !important;
+        gap: 0.6rem !important;
+        align-items: flex-start !important;
+    }
+
+    .premium-pill-icon {
+        width: 2rem !important;
+        height: 2rem !important;
+        font-size: 1rem !important;
+    }
+
+    .premium-pill-title {
+        font-size: 0.92rem;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .premium-pill-text {
+        font-size: 0.78rem !important;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 360px) {
+    .dashboard-kpi-card .stat-change {
+        display: none;
+    }
+
+    .quick-actions-premium {
+        grid-template-columns: 1fr !important;
+    }
+
+    .premium-pill-text {
+        display: none !important;
+    }
+}
