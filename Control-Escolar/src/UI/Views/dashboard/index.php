@@ -176,86 +176,98 @@ $basePath = rtrim($basePath ?? '/Control-Escolar', '/');
                         <p class="section-subtitle">Resumen rápido del desempeño de la institución.</p>
                     </div>
                 </div>
-                <div class="stats-grid">
-                    <div class="stat-card premium-card dashboard-kpi-card">
-                        <div class="stat-icon stat-icon-teal">
-                            <i class="bi bi-book"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Total Cursos</div>
-                            <div class="stat-value"><?php echo $dashboardStats['total_courses'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-change text-success">
-                            <i class="bi bi-arrow-up"></i>
-                            <?php echo $dashboardStats['active_courses'] ?? 0; ?> activos
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card premium-card dashboard-kpi-card">
-                        <div class="stat-icon stat-icon-blue">
-                            <i class="bi bi-person-graduate"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Inscripciones</div>
-                            <div class="stat-value"><?php echo $dashboardStats['total_enrollments'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-change text-info">
-                            <i class="bi bi-clock"></i>
-                            <?php echo $dashboardStats['pending_enrollments'] ?? 0; ?> pendientes
+                <div class="stats-grid row g-3">
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-card premium-card dashboard-kpi-card">
+                            <div class="stat-icon stat-icon-teal">
+                                <i class="bi bi-book"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">Total Cursos</div>
+                                <div class="stat-value"><?php echo $dashboardStats['total_courses'] ?? 0; ?></div>
+                            </div>
+                            <div class="stat-change text-success">
+                                <i class="bi bi-arrow-up"></i>
+                                <?php echo $dashboardStats['active_courses'] ?? 0; ?> activos
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="stat-card premium-card dashboard-kpi-card">
-                        <div class="stat-icon stat-icon-green">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Estudiantes</div>
-                            <div class="stat-value"><?php echo $dashboardStats['total_students'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-change text-success">
-                            <i class="bi bi-person-plus"></i> Este mes
-                        </div>
-                    </div>
-                    
-                    <div class="stat-card premium-card dashboard-kpi-card">
-                        <div class="stat-icon stat-icon-amber">
-                            <i class="bi bi-book-open"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Materias</div>
-                            <div class="stat-value"><?php echo $dashboardStats['total_subjects'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-change text-primary">
-                            <i class="bi bi-star"></i>
-                            <?php echo $dashboardStats['average_grade'] ?? 0; ?> promedio
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-card premium-card dashboard-kpi-card">
+                            <div class="stat-icon stat-icon-blue">
+                                <i class="bi bi-person-graduate"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">Inscripciones</div>
+                                <div class="stat-value"><?php echo $dashboardStats['total_enrollments'] ?? 0; ?></div>
+                            </div>
+                            <div class="stat-change text-info">
+                                <i class="bi bi-clock"></i>
+                                <?php echo $dashboardStats['pending_enrollments'] ?? 0; ?> pendientes
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="stat-card premium-card dashboard-kpi-card">
-                        <div class="stat-icon stat-icon-teal">
-                            <i class="bi bi-easel"></i>
-                        </div>
-                        <div>
-                            <div class="stat-label">Profesores</div>
-                            <div class="stat-value"><?php echo $dashboardStats['total_teachers'] ?? 0; ?></div>
-                        </div>
-                        <div class="stat-change text-info">
-                            <i class="bi bi-clock"></i> Activos
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-card premium-card dashboard-kpi-card">
+                            <div class="stat-icon stat-icon-green">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">Estudiantes</div>
+                                <div class="stat-value"><?php echo $dashboardStats['total_students'] ?? 0; ?></div>
+                            </div>
+                            <div class="stat-change text-success">
+                                <i class="bi bi-person-plus"></i> Este mes
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="stat-card premium-card dashboard-kpi-card">
-                        <div class="stat-icon stat-icon-blue">
-                            <i class="bi bi-currency-dollar"></i>
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-card premium-card dashboard-kpi-card">
+                            <div class="stat-icon stat-icon-amber">
+                                <i class="bi bi-book-open"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">Materias</div>
+                                <div class="stat-value"><?php echo $dashboardStats['total_subjects'] ?? 0; ?></div>
+                            </div>
+                            <div class="stat-change text-primary">
+                                <i class="bi bi-star"></i>
+                                <?php echo $dashboardStats['average_grade'] ?? 0; ?> promedio
+                            </div>
                         </div>
-                        <div>
-                            <div class="stat-label">Ingresos Mensuales</div>
-                            <div class="stat-value">$<?php echo number_format($dashboardStats['monthly_revenue'] ?? 0, 2); ?></div>
+                    </div>
+                    
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-card premium-card dashboard-kpi-card">
+                            <div class="stat-icon stat-icon-teal">
+                                <i class="bi bi-easel"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">Profesores</div>
+                                <div class="stat-value"><?php echo $dashboardStats['total_teachers'] ?? 0; ?></div>
+                            </div>
+                            <div class="stat-change text-info">
+                                <i class="bi bi-clock"></i> Activos
+                            </div>
                         </div>
-                        <div class="stat-change text-success">
-                            <i class="bi bi-percent"></i>
-                            <?php echo $dashboardStats['completion_rate'] ?? 0; ?>% completación
+                    </div>
+                    
+                    <div class="col-6 col-xl-3">
+                        <div class="stat-card premium-card dashboard-kpi-card">
+                            <div class="stat-icon stat-icon-blue">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <div>
+                                <div class="stat-label">Ingresos Mensuales</div>
+                                <div class="stat-value">$<?php echo number_format($dashboardStats['monthly_revenue'] ?? 0, 2); ?></div>
+                            </div>
+                            <div class="stat-change text-success">
+                                <i class="bi bi-percent"></i>
+                                <?php echo $dashboardStats['completion_rate'] ?? 0; ?>% completación
+                            </div>
                         </div>
                     </div>
                 </div>
