@@ -1768,3 +1768,38 @@ body {
     font-size: 1.25rem;
     color: #0f172a;
 }
+
+@media (max-width: 768px) {
+    .quick-actions-premium {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.85rem !important;
+    }
+
+    .premium-pill-action {
+        padding: 0.85rem 1rem !important;
+        border-radius: 18px !important;
+        min-height: 64px !important;
+    }
+
+    .premium-pill-icon {
+        width: 2.35rem !important;
+        height: 2.35rem !important;
+        font-size: 1.1rem !important;
+    }
+
+    .premium-pill-text {
+        font-size: 0.82rem !important;
+    }
+}
+
+@media (max-width: 360px) {
+    .dashboard-premium .row.g-4.mb-4 > div {
+        width: 100% !important;
+        flex: 0 0 auto !important;
+    }
+
+    .quick-actions-premium {
+        grid-template-columns: 1fr !important;
+    }
+}

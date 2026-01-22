@@ -820,7 +820,7 @@ function createDashboard($basePath = null, array $dashboardData = []) {
 
         <!-- Statistics Cards -->
         <div class="row g-4 mb-4">
-            <div class="col-xl-3 col-md-6 col-12">
+            <div class="col-6 col-md-6 col-xl-3">
                 <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardCoursesModal">
                     <div class="kpi-icon kpi-primary">
                         <i class="bi bi-book"></i>
@@ -832,7 +832,7 @@ function createDashboard($basePath = null, array $dashboardData = []) {
                     </div>
                 </button>
             </div>
-            <div class="col-xl-3 col-md-6 col-12">
+            <div class="col-6 col-md-6 col-xl-3">
                 <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardStudentsModal">
                     <div class="kpi-icon kpi-success">
                         <i class="bi bi-people"></i>
@@ -844,7 +844,7 @@ function createDashboard($basePath = null, array $dashboardData = []) {
                     </div>
                 </button>
             </div>
-            <div class="col-xl-3 col-md-6 col-12">
+            <div class="col-6 col-md-6 col-xl-3">
                 <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardTeachersModal">
                     <div class="kpi-icon kpi-warning">
                         <i class="bi bi-easel"></i>
@@ -856,7 +856,7 @@ function createDashboard($basePath = null, array $dashboardData = []) {
                     </div>
                 </button>
             </div>
-            <div class="col-xl-3 col-md-6 col-12">
+            <div class="col-6 col-md-6 col-xl-3">
                 <button type="button" class="dashboard-kpi-card premium-glass-card w-100 text-start" data-bs-toggle="modal" data-bs-target="#dashboardEnrollmentsModal">
                     <div class="kpi-icon kpi-info">
                         <i class="bi bi-clipboard-data"></i>
