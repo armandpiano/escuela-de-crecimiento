@@ -912,54 +912,56 @@ function createDashboard($basePath = null, array $dashboardData = []) {
                     <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
                 </div>
                 <div class="card-body premium-card-body">
-                    <div class="row g-3">
-                        <div class="col-lg-4 col-md-6">
-                            <a href="<?php echo $basePath; ?>/courses" class="premium-pill-action">
-                                <span class="premium-pill-icon"><i class="bi bi-book"></i></span>
-                                <span>
-                                    <span class="premium-pill-title">Gestionar Cursos</span>
-                                    <span class="premium-pill-text">Administra grupos y contenido académico.</span>
-                                </span>
-                            </a>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <a href="<?php echo $basePath; ?>/enrollments" class="premium-pill-action">
-                                <span class="premium-pill-icon"><i class="bi bi-person-plus"></i></span>
-                                <span>
-                                    <span class="premium-pill-title">Gestionar Inscripciones</span>
-                                    <span class="premium-pill-text">Mantén el control del alumnado activo.</span>
-                                </span>
-                            </a>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <a href="<?php echo $basePath; ?>/subjects" class="premium-pill-action">
-                                <span class="premium-pill-icon"><i class="bi bi-list-ul"></i></span>
-                                <span>
-                                    <span class="premium-pill-title">Gestionar Materias</span>
-                                    <span class="premium-pill-text">Organiza el catálogo académico.</span>
-                                </span>
-                            </a>
-                        </div>
-                        <?php if ($userRole === 'admin'): ?>
+                    <div class="quick-actions-premium">
+                        <div class="row g-3">
                             <div class="col-lg-4 col-md-6">
-                                <a href="<?php echo $basePath; ?>/teachers" class="premium-pill-action">
-                                    <span class="premium-pill-icon"><i class="bi bi-easel"></i></span>
+                                <a href="<?php echo $basePath; ?>/courses" class="premium-pill-action">
+                                    <span class="premium-pill-icon"><i class="bi bi-book"></i></span>
                                     <span>
-                                        <span class="premium-pill-title">Gestionar Profesores</span>
-                                        <span class="premium-pill-text">Asigna materias y horarios.</span>
+                                        <span class="premium-pill-title">Gestionar Cursos</span>
+                                        <span class="premium-pill-text">Administra grupos y contenido académico.</span>
                                     </span>
                                 </a>
                             </div>
                             <div class="col-lg-4 col-md-6">
-                                <a href="<?php echo $basePath; ?>/students" class="premium-pill-action">
-                                    <span class="premium-pill-icon"><i class="bi bi-person-badge"></i></span>
+                                <a href="<?php echo $basePath; ?>/enrollments" class="premium-pill-action">
+                                    <span class="premium-pill-icon"><i class="bi bi-person-plus"></i></span>
                                     <span>
-                                        <span class="premium-pill-title">Gestionar Alumnos</span>
-                                        <span class="premium-pill-text">Actualiza perfiles estudiantiles.</span>
+                                        <span class="premium-pill-title">Gestionar Inscripciones</span>
+                                        <span class="premium-pill-text">Mantén el control del alumnado activo.</span>
                                     </span>
                                 </a>
                             </div>
-                        <?php endif; ?>
+                            <div class="col-lg-4 col-md-6">
+                                <a href="<?php echo $basePath; ?>/subjects" class="premium-pill-action">
+                                    <span class="premium-pill-icon"><i class="bi bi-list-ul"></i></span>
+                                    <span>
+                                        <span class="premium-pill-title">Gestionar Materias</span>
+                                        <span class="premium-pill-text">Organiza el catálogo académico.</span>
+                                    </span>
+                                </a>
+                            </div>
+                            <?php if ($userRole === 'admin'): ?>
+                                <div class="col-lg-4 col-md-6">
+                                    <a href="<?php echo $basePath; ?>/teachers" class="premium-pill-action">
+                                        <span class="premium-pill-icon"><i class="bi bi-easel"></i></span>
+                                        <span>
+                                            <span class="premium-pill-title">Gestionar Profesores</span>
+                                            <span class="premium-pill-text">Asigna materias y horarios.</span>
+                                        </span>
+                                    </a>
+                                </div>
+                                <div class="col-lg-4 col-md-6">
+                                    <a href="<?php echo $basePath; ?>/students" class="premium-pill-action">
+                                        <span class="premium-pill-icon"><i class="bi bi-person-badge"></i></span>
+                                        <span>
+                                            <span class="premium-pill-title">Gestionar Alumnos</span>
+                                            <span class="premium-pill-text">Actualiza perfiles estudiantiles.</span>
+                                        </span>
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
